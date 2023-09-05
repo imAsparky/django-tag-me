@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  pull_request:
+    branches: [release]
+  workflow_dispatch:
+
+jobs:
+  check_main_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch
+        if: github.base_ref == 'release' && github.head_ref != 'main'
+        run: >
+          echo "::error You can only merge into release from main."
+          exit 1
+  release:
+    needs: check_main_branch
+    name: Release to PyPI
+    runs-on: ubuntu-latest
+    concurrency: release
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # Make sure the whole repository history is present, so that
+          # python-semantic-release can decide if a new release is needed.
+          fetch-depth: 0
+
+      - uses: relekang/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.PYPI_RELEASE_TOKEN }}
+          repository_username: __token__
+          repository_password: ${{ secrets.PYPI_RELEASE_KEY }}
