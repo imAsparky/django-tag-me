@@ -7,7 +7,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from tag_me.utils import parse_tags
+from tag_me.utils.parser import parse_tags
 
 
 class FieldTagListFormatter(list):

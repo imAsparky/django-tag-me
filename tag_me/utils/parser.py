@@ -140,9 +140,9 @@ def _edit_string_for_tags(tags: list = None) -> str:
 
 
 def get_func(
-    default,
     key: str = None,
-):
+    default: Callable = None,
+) -> Callable:
     func_path = getattr(settings, key, None)
     return default if func_path is None else import_string(func_path)
 

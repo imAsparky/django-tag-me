@@ -6,16 +6,33 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
 # from django.core import serializers
-from django.db import models  # router
+from django.db import IntegrityError, models, router, transaction
+from django.utils.crypto import get_random_string
+from django.utils.text import slugify
 
 # from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 User = settings.AUTH_USER_MODEL
 
+try:
+    """Ported from django-taggit
+    https://github.com/jazzband/django-taggit/tree/master
+    """
+    from unidecode import unidecode
+except ImportError:
+
+    def unidecode(tag):
+        return tag
+
 
 class TaggedFieldModel(models.Model):
-    """Store all the details of models with field tags."""
+    """Store all the details of models with field tags.
+
+    This table is populatd using a management command.
+    When a new tagged field is added to a model, run ./manage.py tags -U
+    """
 
     class Meta:
         verbose_name = _("Tagged Field Model")
@@ -45,10 +62,91 @@ class TaggedFieldModel(models.Model):
         return f"{self.model_verbose_name}"
 
 
-class UserTag(models.Model):
-    """A tag for a specific user model field.
+class TagBase(models.Model):
+    """Base class for Tag models.
 
-    Extends django-tag-fields Tagbase and enforces Foreign Keys.
+    PARAMATERS
+    ----------
+
+    :param name: Text max 255 characters
+
+            Required
+
+            The tag name that will be used in the model field.
+
+    :param slug: Text max 255 characters
+
+            Optional
+
+            If not supplied this will be generated automatically.
+
+            Automatic generation ensures the slug is unique.
+
+    """
+
+    class Meta:
+        abstract = True
+        verbose_name = _("Tag ABC")
+        verbose_name_plural = _("Tags ABC")
+
+    name = models.CharField(
+        verbose_name=pgettext_lazy("A tag name", "Name"),
+        blank=False,
+        null=False,
+        max_length=50,
+    )
+
+    slug = models.SlugField(
+        verbose_name=pgettext_lazy("A tag slug", "slug"),
+        unique=True,
+        max_length=100,
+        allow_unicode=True,
+    )
+
+    def save(self, *args, **kwargs):
+        """Ported from django-taggit
+        https://github.com/jazzband/django-taggit/tree/master
+        """
+        if self._state.adding and not self.slug:
+            self.slug = self.slugify(self.name)
+            using = kwargs.get("using") or router.db_for_write(
+                type(self), instance=self
+            )
+            # Make sure we write to the same db for all attempted writes,
+            # with a multi-master setup, theoretically we could try to
+            # write and rollback on different DBs
+            kwargs["using"] = using
+            # Be opportunistic and try to save the tag, this should work for
+            # most cases ;)
+            try:
+                with transaction.atomic(using=using):
+                    res = super().save(*args, **kwargs)
+                return res
+            except IntegrityError:
+                pass
+        else:
+            return super().save(*args, **kwargs)
+
+    def slugify(self, tag: str = None) -> str:
+        if getattr(settings, "TAGS_STRIP_UNICODE_WHEN_SLUGIFYING", False):
+            slug = slugify(
+                unidecode(tag)
+                + "-"
+                + get_random_string(8, f"abcdqrwxyz{tag}0123456789")
+            )
+        else:
+            slug = slugify(
+                tag + "-" + get_random_string(8, f"abcdqrwxyz{tag}0123456789"),
+                allow_unicode=True,
+            )
+
+        return slug
+
+
+class UserTag(TagBase):
+    """A user tag for a specific model field.
+
+    Extends Tag base class and enforces Foreign Keys.
 
     Use this model to create or modify all new User Tags.
 
@@ -86,25 +184,15 @@ class UserTag(models.Model):
 
             Must be a valid model field name.
 
-    :param name: Text max 255 characters
 
-            Required
-
-            The tag name that will be used in the model field.
-
-    :param slug: Text max 255 characters
-
-            Optional
-
-            If not supplied this will be generated automatically.
-
-            Automatic generation ensures the slug is unique.
 
     """
 
     # objects = UserTagsManager()
 
     class Meta:
+        verbose_name = _("User Tag")
+        verbose_name_plural = _("User Tags")
         indexes = [
             models.Index(
                 fields=[
@@ -165,12 +253,6 @@ class UserTag(models.Model):
         null=True,
         max_length=255,
         verbose_name=_("Field"),
-    )
-    name = models.CharField(
-        blank=True,
-        null=True,
-        max_length=255,
-        verbose_name=_("Name"),
     )
 
     def __str__(self) -> str:
