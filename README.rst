@@ -10,6 +10,10 @@
 
 *Django Tag Me... Tag a model, a field, user tags and more...*
 
+*Please Note: Only `Django` running on `Python versions 3.10` and upwards are supported...*
+
+*The reason is we use `Structural Pattern Matching` `match and case` statements.*
+
 |
 
 
