@@ -3,7 +3,7 @@ import logging
 
 from django.core.management.base import LabelCommand
 
-from tag_me.utils import update_models_with_tagged_fields_table
+from tag_me.utils.helpers import update_models_with_tagged_fields_table
 
 logger = logging.getLogger(__name__)
 
@@ -34,4 +34,5 @@ class Command(LabelCommand):
     def handle(self, *args, **options):
         if options["update"]:
             logger.info("\n\n***** Updating Tagged Models *****\n")
+
             update_models_with_tagged_fields_table()
