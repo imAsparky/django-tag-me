@@ -17,10 +17,10 @@
 |
 
 .. image:: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FimAsparky%2Fdjango-tag-me%2Fmain%2Fpyproject.toml&query=project.dependencies&logo=Django&label=Versions&labelColor=%23092E20
-   :alt: Dynamic TOML Badge
+   :alt: Django Version Badge
    :target:: https://docs.djangoproject.com/en/4.2/
 .. image:: https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FimAsparky%2Fdjango-tag-me%2Fmain%2Fpyproject.toml&logo=Python
-   :alt: Python Version from PEP 621 TOML
+   :alt: Python Version Badge
    :target:: https://devdocs.io/python~3.10/
 .. image:: https://www.repostatus.org/badges/latest/concept.svg
    :alt: Project Status: Concept – Minimal or no implementation has been done yet, its a proof-of-concept.
