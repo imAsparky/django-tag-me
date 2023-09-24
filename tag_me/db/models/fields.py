@@ -1,4 +1,5 @@
 """tag-me app collections."""
+from django.core import validators
 from django.core.exceptions import ValidationError
 from django.db.models.fields import CharField
 from django.utils.translation import gettext_lazy as _
@@ -6,15 +7,29 @@ from django.utils.translation import gettext_lazy as _
 from tag_me.db.forms.fields import TagMeCharFieldForm
 from tag_me.utils.collections import FieldTagListFormatter
 
-null_tags: list = [
-    "null",
-    "Null",
-    "NULL",
-]
-
 
 class TagMeCharField(CharField):
     """A tagged field inheriting from Charfield."""
+
+    def __init__(
+        self,
+        *args,
+        choices=None,
+        db_collation=None,
+        **kwargs,
+    ):
+        self.choices = choices
+        super().__init__(
+            *args,
+            choices=choices,
+            db_collation=db_collation,
+            **kwargs,
+        )
+        self.db_collation = db_collation
+        if self.max_length is not None:
+            self.validators.append(
+                validators.MaxLengthValidator(self.max_length)
+            )
 
     def to_python(self, value):
         """
@@ -23,7 +38,13 @@ class TagMeCharField(CharField):
         Return the converted value. Subclasses should override this.
         """
 
+        if self.choices:
+            return value
+
         match value:
+            case None:
+                value = ""
+                return value
             case dict():
                 # If there is a "tags" key, parse the "tags" list to
                 # FieldTagList  ensures that it passes validation.
@@ -36,11 +57,7 @@ class TagMeCharField(CharField):
                 # so its checked in validation.
                 return value
 
-            case list():
-                for tag in null_tags:
-                    if tag in value:
-                        value = value.replace(tag, "")
-
+            case list() | str() | FieldTagListFormatter():
                 parsed_tags = FieldTagListFormatter(value)
 
                 value = parsed_tags.toCSV()
@@ -48,28 +65,17 @@ class TagMeCharField(CharField):
             case set():
                 value = list(value)
 
-                for tag in null_tags:
-                    if tag in value:
-                        value = value.replace(tag, "")
-
                 parsed_tags = FieldTagListFormatter(list(value))
 
                 value = parsed_tags.toCSV()
 
-            case str():
-                for tag in null_tags:
-                    if tag in value:
-                        value = value.replace(tag, "")
-
-                parsed_tags = FieldTagListFormatter(value)
-
-                value = parsed_tags.toCSV()
             case _:
                 raise ValidationError(
                     _("%(value)s is not type str, set, list or dict"),
                     params={"value": value},
                     code="invalid",
                 )
+
         return value
 
     def formfield(self, **kwargs):
@@ -79,3 +85,36 @@ class TagMeCharField(CharField):
                 **kwargs,
             }
         )
+
+    def validate(self, value, model_instance):
+        """
+        Validate value and raise ValidationError if necessary. Subclasses
+        should override this to provide validation logic.
+        """
+
+        if not self.editable:
+            # Skip validation for non-editable fields.
+
+            return
+
+        if self.choices is not None and value not in self.empty_values:
+            for option_key, option_value in self.choices:
+                if isinstance(option_value, (list, tuple)):
+                    # This is an optgroup, so look inside the group for
+                    # options.
+                    for optgroup_key, optgroup_value in option_value:
+                        if value == optgroup_key:
+                            return
+                elif value == option_key:
+                    return
+            raise ValidationError(
+                self.error_messages["invalid_choice"],
+                code="invalid_choice",
+                params={"value": value},
+            )
+
+        if value is None and not self.null:
+            raise ValidationError(self.error_messages["null"], code="null")
+
+        if not self.blank and value in self.empty_values:
+            raise ValidationError(self.error_messages["blank"], code="blank")
