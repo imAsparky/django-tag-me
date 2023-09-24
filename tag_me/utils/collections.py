@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 
 from tag_me.utils.parser import parse_tags
 
+x = list
+
 
 class FieldTagListFormatter(list):
     """A custom tags list.
@@ -23,17 +25,23 @@ class FieldTagListFormatter(list):
     examples of how strings of tags are treated using `parse_tags`.
     """
 
-    def __init__(self, tags: list[str] | str = None):
+    def __init__(
+        self,
+        tags: dict[str : list[str] | set[str] | str]  # noqa: E203
+        | list[str]
+        | set[str]
+        | str
+        | None = None,
+    ) -> list[str]:
         self.tags = []
         self.add_tags(tags)
-        print(f"#32 FieldTagList INIT {type(tags)} {tags}")
 
     def __add__(self, other):
         if isinstance(other, FieldTagListFormatter):
-            return self.__class__(self.tags + other.tags)
+            return self.__class__(sorted(self.tags + other.tags))
         elif isinstance(other, type(self.tags)):
-            return self.__class__(self.tags + other)
-        return self.__class__(self.tags + list(other))
+            return self.__class__(sorted(self.tags + other))
+        return self.__class__(sorted(self.tags + list(other)))
 
     def __cast(self, other):
         return (
@@ -47,8 +55,11 @@ class FieldTagListFormatter(list):
         inst = self.__class__.__new__(self.__class__)
         inst.__dict__.update(self.__dict__)
         # Create a copy and avoid triggering descriptors
-        inst.__dict__["data"] = self.__dict__["data"][:]
+        inst.__dict__["tags"] = self.__dict__["tags"][:]
         return inst
+
+    def copy(self):
+        return self.__copy__()
 
     def __delitem__(self, i):
         del self.tags[i]
@@ -69,12 +80,14 @@ class FieldTagListFormatter(list):
         return self.tags > self.__cast(other)
 
     def __iadd__(self, other):
+        """Add all tags, duplicates are not removed."""
         if isinstance(other, FieldTagListFormatter):
             self.tags += other.tags
         elif isinstance(other, type(self.tags)):
             self.tags += other
         else:
             self.tags += list(other)
+        self.tags = sorted(self.tags)
         return self
 
     def __imul__(self, n):
@@ -91,16 +104,17 @@ class FieldTagListFormatter(list):
         return self.tags < self.__cast(other)
 
     def __mul__(self, n):
-        return self.__class__(self.tags * n)
+        return self.tags * n
+        # return self.__class__(self.tags * n) Python return does not work here. # noqa: E501
 
     __rmul__ = __mul__
 
     def __radd__(self, other):
         if isinstance(other, FieldTagListFormatter):
-            return self.__class__(other.tags + self.tags)
+            return self.__class__(sorted(other.tags + self.tags))
         elif isinstance(other, type(self.tags)):
-            return self.__class__(other + self.tags)
-        return self.__class__(list(other) + self.tags)
+            return self.__class__(sorted(other + self.tags))
+        return self.__class__(sorted(list(other) + self.tags))
 
     def __repr__(self):
         return repr(self.tags)
@@ -182,6 +196,7 @@ class FieldTagListFormatter(list):
         | None = None,
     ) -> list[str]:
         """Return a list of unique tags, without any null values."""
+
         tag_list = self._get_tag_list(tags)
         null_tags: list = [
             "null",
@@ -189,28 +204,25 @@ class FieldTagListFormatter(list):
             "NULL",
         ]
 
-        match tag_list:
-            case list():
-                for tag in tag_list:
-                    match tag:
-                        case str():
-                            if tag not in self.tags and tag not in null_tags:
-                                self.tags.append(tag)
-                        case _:
-                            raise ValidationError(
-                                _(
-                                    "%(value)s must be type <class 'str'>, type is %(val_type)s"  # noqa: E501
-                                ),
-                                params={
-                                    "value": tag,
-                                    "val_type": type(tag),
-                                },
-                                code="invalid",
-                            )
-                self.tags = sorted(self.tags)
-                return self.tags
-            case None:
-                return self.tags
+        if tag_list:
+            for tag in tag_list:
+                match tag:
+                    case str():
+                        if tag not in self.tags and tag not in null_tags:
+                            self.tags.append(tag)
+                    case _:
+                        raise ValidationError(
+                            _(
+                                "%(value)s must be type <class 'str'>, type is %(val_type)s"  # noqa: E501
+                            ),
+                            params={
+                                "value": tag,
+                                "val_type": type(tag),
+                            },
+                            code="invalid",
+                        )
+
+        return sorted(self.tags)
 
     def add_tags(
         self,
@@ -231,9 +243,6 @@ class FieldTagListFormatter(list):
         """S.clear() -> None -- remove all items from S"""
         self.tags.clear()
 
-    def copy(self):
-        return self.__class__(self)
-
     def count(self, item):
         return self.tags.count(item)
 
@@ -248,15 +257,11 @@ class FieldTagListFormatter(list):
         """Allows deletion of multiple tags from tags list."""
         tag_list = self._get_tag_list(tags)
 
-        match tag_list:
-            case list():
-                for tag in tag_list:
-                    if tag in self.tags:
-                        self.tags.remove(tag)
-                self.tags = sorted(self.tags)
-                return self.tags
-            case None:
-                return self.tags
+        for tag in tag_list:
+            if tag in self.tags:
+                self.tags.remove(tag)
+        # self.tags = sorted(self.tags)
+        return sorted(self.tags)
 
     def extend(
         self,
