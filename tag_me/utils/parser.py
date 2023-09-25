@@ -1,9 +1,12 @@
+"""Tag-Me parser functions"""
 from typing import Callable
 
 from django.conf import settings
 
 # from django.utils.functional import wraps
 from django.utils.module_loading import import_string
+
+from tag_me.models import UserTag
 
 
 def _parse_tags(tagstring):
@@ -42,6 +45,7 @@ def _parse_tags(tagstring):
             if c == '"':
                 if buffer:
                     to_be_split.append("".join(buffer))
+                    print(f"TO BE SPLIT {to_be_split}")
                     buffer = []
                 # Find the matching quote
                 open_quote = True
@@ -93,7 +97,7 @@ def split_strip(string, delimiter=","):
     return [w for w in words if w]
 
 
-def _edit_string_for_tags(tags: list = None) -> str:
+def _edit_string_for_tags(tags: list[UserTag] = None) -> str:
     """
     Given list of ``Tag`` instances, creates a string representation of
     the list suitable for editing by the user, such that submitting the
@@ -119,26 +123,6 @@ def _edit_string_for_tags(tags: list = None) -> str:
     return ", ".join(sorted(names))
 
 
-# Possibly delete this
-# def require_instance_manager(func):
-#     """
-#     Checks the instance exists.
-
-#     :raises TypeError: "Can't call %s with a non-instance manager" % func.__name__ # noqa: E501
-
-#     """
-
-#     @wraps(func)
-#     def inner(self, *args, **kwargs):
-#         if self.instance is None:
-#             raise TypeError(
-#                 "Can't call %s with a non-instance manager" % func.__name__
-#             )
-#         return func(self, *args, **kwargs)
-
-#     return inner
-
-
 def get_func(
     key: str = None,
     default: Callable = None,
@@ -155,5 +139,6 @@ def parse_tags(tagstring: str = None) -> Callable:
 
 def edit_string_for_tags(tags: list = None) -> Callable:
     """If setting for `string from tag` conversion use that."""
+
     func = get_func("TAGME_GET_STRING_FROM_TAGS", _edit_string_for_tags)
     return func(tags)
