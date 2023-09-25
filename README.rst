@@ -34,6 +34,9 @@
 .. image:: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
    :target: https://python-semantic-release.readthedocs.io/en/latest/
    :alt: Python Semantic Release
+.. image:: https://readthedocs.org/projects/django-tag-me/badge/?version=latest
+   :target: https://django-tag-me.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
 |
 
