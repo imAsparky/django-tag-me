@@ -39,12 +39,8 @@ Tracker = "https://github.com/imAsparky/django-tag-me/issues"
 
 [tool.coverage.run]
 omit=[
-
   'tests/test_*.py',
   # '*/migrations/*'
-
-
-
 ]
 
 [tool.semantic_release]
