@@ -37,6 +37,15 @@ Repository = "https://github.com/imAsparky/django-tag-me"
 Tracker = "https://github.com/imAsparky/django-tag-me/issues"
 # Documentation = "https://django-tag-me.readthedocs.io"
 
+[tool.coverage.run]
+omit=[
+
+  'tests/test_*.py',
+  # '*/migrations/*'
+
+
+
+]
 
 [tool.semantic_release]
 branch = "main"
