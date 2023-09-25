@@ -1,5 +1,6 @@
 """tag-me model field tests"""
 import pytest
+from django.core import validators
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import SimpleTestCase
@@ -12,7 +13,7 @@ from tag_me.utils.collections import FieldTagListFormatter
 from tests.models import TaggedFieldTestModel
 
 
-class TestCharField(TestCase):
+class TestTagMeCharField(TestCase):
     def test_max_length_passed_to_formfield(self):
         """
         CharField passes its max_length attribute to form fields created using
@@ -20,11 +21,12 @@ class TestCharField(TestCase):
 
         Equivelant to Django test.
         """
-        cf1 = TagMeCharField()
-        cf2 = TagMeCharField(max_length=1234)
-        assert None is cf1.formfield().max_length
-        assert 1234 == cf2.formfield().max_length
-        # assert 1 == 1
+
+        f1 = TagMeCharField()
+        f2 = TagMeCharField(max_length=1234)
+
+        assert None is f1.formfield().max_length
+        assert 1234 == f2.formfield().max_length
 
     @given(
         objs=st.one_of(
@@ -97,6 +99,17 @@ class TestValidation(SimpleTestCase):
         A = "a", "A"
         B = "b", "B"
         C = "c", "C"
+
+    def test_validators(self):
+        f = TagMeCharField(
+            max_length=1234,
+        )
+
+        assert any(
+            x
+            for x in f.validators
+            if isinstance(x, validators.MaxLengthValidator)
+        )
 
     def test_charfield_raises_error_on_empty_string(self):
         """Equivelant to Django test."""
