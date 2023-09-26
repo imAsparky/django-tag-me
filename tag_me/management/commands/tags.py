@@ -1,38 +1,27 @@
 """Management command to update the Tagged Field Models table."""
 import logging
 
-from django.core.management.base import LabelCommand
+from django.core.management.base import BaseCommand, LabelCommand
 
 from tag_me.utils.helpers import update_models_with_tagged_fields_table
 
 logger = logging.getLogger(__name__)
 
 
-class Command(LabelCommand):
-    help = "Update Tagged Fields Table"
-    missing_args_message = """
-    \nA command argument is missing, please add one of the following:
-        -U  or --update : Updates the Tagged Field Models Table
-
-    Usage examples:
-        python manage.py tags -U
-        python manage.py tags --update
-
-"""
-
+class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "-U",
-            "--update",
-            action="store_true",
-            help="Update Tagged Field Models table.",
-        )
-
     def handle(self, *args, **options):
-        if options["update"]:
-            logger.info("\n\n***** Updating Tagged Models *****\n")
+        logger.info("Updating Tagged Models Table.")
 
+        try:
+            self.stdout.write("    Updating Tagged Models Table.")
             update_models_with_tagged_fields_table()
+            self.stdout.write("    SUCCESS: Tagged Models Table updated.")
+        except Exception as e:
+            logger.error(
+                "Tags Table Update Error",
+                exc_info=True,
+            )
+            self.stdout.write("    ERROR: Tagged Models Table not updated.")
