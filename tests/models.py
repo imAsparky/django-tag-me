@@ -1,15 +1,22 @@
 """tests Models file."""
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import pgettext_lazy as _
 
 from tag_me.db.models.fields import TagMeCharField
-from tag_me.models import TaggedFieldModel
+
+# print(f"SETTINGS {settings.INSTALLED_APPS}")
+from tag_me.models import TagBase
 
 User = get_user_model()
 
 
-class TaggedFieldTestModel(models.Model):
+class TagTestBase(TagBase):
+    """A minimal tag to test `TagBase ABC`."""
+
+
+class TaggedFieldTestModel(TagTestBase):
     """A model for testing the Tag base class"""
 
     class Meta:
@@ -22,5 +29,22 @@ class TaggedFieldTestModel(models.Model):
             "Tagged Field Test Models",
         )
 
-    tagged_field_1 = TagMeCharField(max_length=255)
-    tagged_field_2 = TagMeCharField(max_length=255)
+    tagged_field_1 = TagMeCharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    tagged_field_2 = TagMeCharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+
+class Post(models.Model):
+    title = TagMeCharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    body = models.TextField()

@@ -10,4 +10,4 @@ class AppNameConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "tests"
     verbose_name = _("Tests")
-    verbose_name_plural = _("Testss")
+    verbose_name_plural = _("Tests")
