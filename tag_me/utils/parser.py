@@ -45,7 +45,6 @@ def _parse_tags(tagstring):
             if c == '"':
                 if buffer:
                     to_be_split.append("".join(buffer))
-                    print(f"TO BE SPLIT {to_be_split}")
                     buffer = []
                 # Find the matching quote
                 open_quote = True

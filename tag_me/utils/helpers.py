@@ -5,13 +5,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-# from tags.db.models import TaggedFieldJSONField
-from tag_me.models import (
-    TaggedFieldModel,
-    TaggedFieldModel,
-    UserTag,
-)
 from tag_me.db.models.fields import TagMeCharField
+
+# from tags.db.models import TaggedFieldJSONField
+from tag_me.models import TaggedFieldModel, UserTag
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -23,9 +20,7 @@ def update_models_with_tagged_fields_table() -> None:
     Iterates through the Tagged Field Models and updates or creates the model
     and field attributes in the `TaggedFieldModel` table.
     """
-    print("#26 IN UPDATE TAGGED FIELDS")
     for model in get_models_with_tagged_fields():
-        print(f"#28 MODEL IS {model}")
         content = ContentType.objects.get_for_model(
             model, for_concrete_model=True
         )
@@ -62,11 +57,11 @@ def update_models_with_tagged_fields_table() -> None:
 def get_model_tagged_fields_field_and_verbose(
     model_verbose_name: str = None,
 ) -> list[tuple]:
-    """Return a list of tuples containing a models tagged fields name and verbose name.
+    """Return a list of tuples containing a models tagged fields name and verbose name. # noqa: E501
 
     Use this for <select> options in Forms, eg `form.ModelChoices`.
 
-    :return: Returns a list of tuples with `field_name` and `field_verbose_name`.
+    :return: Returns a list of tuples with `field_name` and `field_verbose_name`. # noqa: E501
 
     :rtype: list[tuple()]
 
@@ -104,24 +99,30 @@ def get_models_with_tagged_fields() -> list[models.Model]:
 
     :rtype: list
     """
+    # Separating project apps into PROJECT_APPS makes it more efficient.
+    # If user has all apps in INSTALLED_APPS then use that.
+    match settings.PROJECT_APPS:
+        case None:
+            PROJECT_APPS = settings.INSTALLED_APPS
+        case _:
+            PROJECT_APPS = settings.PROJECT_APPS
 
     _tagged_field_models = []
-    for app in settings.PROJECT_APPS:
+    for app in PROJECT_APPS:
+        # Left for reference, can be deleted any time.
         # we dont want the testing models in the users options
-        if (
-            app != "testing_core"
-            and settings.SETTINGS_MODULE != "config.settings.test"
-        ):
-            app = app
+        # if (
+        #     app != "testing_core"
+        #     and settings.SETTINGS_MODULE != "config.settings.test"
+        # ):
+        #     app = app
 
-        # we want the testing models in the test environment for users options
-        elif settings.SETTINGS_MODULE == "config.settings.test":
-            app = app
+        # # we want the testing models in the test environment for users options # noqa: E501
+        # elif settings.SETTINGS_MODULE == "config.settings.test":
+        #     app = app
 
-        else:
-            break
-
-        print(f"#124 APP IS {app}")
+        # else:
+        #     break
 
         models = ContentType.objects.filter(app_label=app)
         for model in models:
@@ -129,7 +130,7 @@ def get_models_with_tagged_fields() -> list[models.Model]:
                 # if type(field) is TaggedFieldJSONField:
                 if issubclass(type(field), TagMeCharField):
                     _tagged_field_models.append(model.model_class())
-                    # return back to the model loop, prevents duplicates in list.
+                    # return back to the model loop, prevents duplicates in list. # noqa: E501
                     break
 
     return _tagged_field_models
@@ -137,7 +138,7 @@ def get_models_with_tagged_fields() -> list[models.Model]:
 
 def get_models_with_tagged_fields_choices() -> list[tuple]:
     """
-    Return a list of tuples with humanised value for models that have tagged fields .
+    Return a list of tuples with humanised value for models that have tagged fields.  # noqa: E501
 
     Use this for <select> options in Forms, eg `form.ModelChoices`.
 
@@ -170,7 +171,7 @@ def get_models_with_tagged_fields_choices() -> list[tuple]:
 def get_model_tagged_fields_choices(
     feature_name: str = None,
 ) -> list[tuple]:
-    """Return a list of tuples containing a models tagged fields name and verbose name.
+    """Return a list of tuples containing a models tagged fields name and verbose name. # noqa: E501
 
     Use this for <select> options in Forms, eg `form.ModelChoices`.
 
@@ -214,7 +215,7 @@ def get_model_content_type(
     """
 
     if not model_verbose_name:
-        model_verbose_name = ""
+        return None
 
     for model in get_models_with_tagged_fields():
         if model._meta.verbose_name == model_verbose_name:
@@ -222,8 +223,7 @@ def get_model_content_type(
                 model=model,
                 for_concrete_model=True,
             )
-
-    return content_type
+            return content_type
 
 
 def get_field_choices(
@@ -231,12 +231,15 @@ def get_field_choices(
     field_verbose_name: str = None,
     user: User = None,
 ) -> list[tuple]:
-    """Get the available choices for a model field."""
+    """Get the available choices for a model field.
+
+    .. todo:: Add a check for existing field choice enum and return it.
+    """
 
     choices = UserTag.objects.filter(
         feature=model_verbose_name,
         field=field_verbose_name,
-        # user=user,
+        user=user,
     )
 
-    print(choices)
+    return choices

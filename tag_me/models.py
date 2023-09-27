@@ -65,7 +65,7 @@ class TaggedFieldModel(models.Model):
 class TagBase(models.Model):
     """Base class for Tag models.
 
-    PARAMATERS
+    PARAMETERS
     ----------
 
     :param name: Text max 255 characters
@@ -151,7 +151,7 @@ class UserTag(TagBase):
     Use this model to create or modify all new User Tags.
 
 
-    PARAMATERS
+    PARAMETERS
     ----------
 
     :param user: fk - settings.AUTH_USER_MODEL  (CustomUser)

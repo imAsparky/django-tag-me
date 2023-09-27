@@ -3,5 +3,8 @@
 from django.urls import include, path
 
 # from .views import ()
-
-urlpatterns = []
+app_label = "tests"
+app_name = "tests"
+urlpatterns = [
+    path("", include("tag_me.urls"), name="tag-me"),
+]
