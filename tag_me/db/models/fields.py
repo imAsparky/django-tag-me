@@ -18,7 +18,10 @@ class TagMeCharField(CharField):
         **kwargs,
     ):
         self.choices = choices
-        self.max_length = max_length
+        if max_length is None:
+            self.max_length = 255
+        else:
+            self.max_length = max_length
         super().__init__(
             *args,
             choices=choices,
