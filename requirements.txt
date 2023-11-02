@@ -3,7 +3,7 @@
 # Test deps, relocate later.
 coverage==7.0.2
 dj-inmemorystorage==2.1.0
-Django==4.2.4
+Django==4.2.7
 django-extensions==3.2.1
 hypothesis[django]==6.56.4
 pre-commit==3.4.0
