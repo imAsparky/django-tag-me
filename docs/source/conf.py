@@ -38,6 +38,7 @@ intersphinx_mapping = {
         "https://docs.djangoproject.com/en/stable/_objects/",
     ),
     "python": ("https://docs.python.org/3", None),
+    "Unicode Standard": ("https://www.unicode.org/", None),
 }
 
 pygments_style = "monokai"
