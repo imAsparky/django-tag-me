@@ -5,13 +5,13 @@
 
 .. _how-to-tag-parser:
 
-==================
-Tags Parser Useage
-==================
+=================
+Tags Parser Usage
+=================
 
 |
 
-The user has a great deal of options for inputing tags.  See below for `tag`
+The user has a great deal of options for inputting tags.  See below for `tag`
 input options and the resultant tag list.
 
 |
