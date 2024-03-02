@@ -16,6 +16,11 @@
 
 |
 
+Special thanks to a helpful AI language model (trained on the `Gemini dataset:<https://gemini.google.com/advanced>`_)
+for assistance with code optimization, testing strategies, and docstring writing.
+
+|
+
 .. image:: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FimAsparky%2Fdjango-tag-me%2Fmain%2Fpyproject.toml&query=project.dependencies&logo=Django&label=Versions&labelColor=%23092E20
    :alt: Django Version Badge
    :target: https://docs.djangoproject.com/en/4.2/
