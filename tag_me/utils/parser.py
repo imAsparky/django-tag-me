@@ -117,7 +117,7 @@ def remove_control_chars(string: str) -> str:
 
 
 def _parse_tags(tag_string: str) -> list[str]:
-    """OG FROM PASTE IN GEMINI
+    """
     Parses a string of tags, handling multiple words, commas, and quotation marks. # noqa:E501
 
     This function is intended for internal use. It extracts unique tags,
@@ -289,7 +289,7 @@ def get_func(
     return default if func_path is None else import_string(func_path)
 
 
-def parse_tags(tag_string: str = None) -> Callable:
+def parse_tags(tag_string: list[str] | str = None) -> Callable | list[str]:
     """
     Delegates tag parsing to a dynamically selected function.
 
