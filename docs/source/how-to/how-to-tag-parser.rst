@@ -11,18 +11,17 @@ Tags Parser Usage
 
 |
 
-The user has a great deal of options for inputting tags.  See below for `tag`
-input options and the resultant tag list.
+Here are examples of different tag input formats with resulting outputs.
 
 |
 
-====================== ================================= ================================================
-Tag input string       Resulting tags                    Notes
-====================== ================================= ================================================
-apple ball cat         ``["apple", "ball", "cat"]``      No commas, so space delimited
-apple, ball cat        ``["apple", "ball cat"]``         Comma present, so comma delimited
-"apple, ball" cat dog  ``["apple, ball", "cat", "dog"]`` All commas are quoted, so space delimited
-"apple, ball", cat dog ``["apple, ball", "cat dog"]``    Contains an unquoted comma, so comma delimited
-apple "ball cat" dog   ``["apple", "ball cat", "dog"]``  No commas, so space delimited
-"apple" "ball dog      ``["apple", "ball", "dog"]``      Unclosed double quote is ignored
-====================== ================================= ================================================
+================================= ============================================ ===============================================
+Tag input string                  Resulting tags                               Notes
+================================= ============================================ ===============================================
+django htmx alpinejs              ``["django", "htmx", "alpinejs"]``           No commas, so space delimited
+django, htmx alpinejs             ``["django", "htmx alpinejs"]``              Comma present, so comma delimited
+"django, htmx" alpinejs tailwind  ``["django, htmx", "alpinejs", "tailwind"]`` All commas are quoted, so space delimited
+"django, htmx", alpinejs tailwind ``["django, htmx", "alpinejs tailwind"]``    Contains an unquoted comma, so comma delimited
+django "htmx alpinejs" tailwind   ``["django", "htmx alpinejs", "tailwind"]``  No commas, so space delimited
+"django" "htmx tailwind           ``["django", "htmx", "tailwind"]``           Unclosed double quote is ignored
+================================= ============================================ ===============================================

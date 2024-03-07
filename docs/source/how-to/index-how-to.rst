@@ -14,3 +14,4 @@ How-To
    :titlesonly:
 
    how-to-tag-parser
+   how-to-custom-list
