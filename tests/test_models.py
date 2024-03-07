@@ -1,4 +1,5 @@
 """tag-me model tests"""
+
 import logging
 import re
 import string

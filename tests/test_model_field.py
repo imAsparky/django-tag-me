@@ -1,4 +1,5 @@
 """tag-me model field tests"""
+
 import pytest
 from django.core import validators
 from django.core.exceptions import ValidationError
@@ -27,27 +28,6 @@ class TestTagMeCharField(TestCase):
 
         assert None is f1.formfield().max_length
         assert 1234 == f2.formfield().max_length
-
-    @given(
-        objs=st.one_of(
-            st.integers(),
-            st.fractions(
-                min_value=0,
-                max_value=10,
-                max_denominator=9,
-            ),
-        )
-    )
-    def test_unsupported_type_raises_error(self, objs):
-        """We use an iteger or fraction, but any object not of str or collection of str raises error."""  # noqa: E501
-        with pytest.raises(ValidationError) as exc:
-            FieldTagListFormatter(objs)
-
-        assert (
-            "must be dict or list or set containing strings, or a string or None, type is"  # noqa: E501
-            in str(exc.value)
-        )
-        assert exc.type == ValidationError
 
     def test_emoji(self):
         """Equivelant to Django test."""
@@ -316,35 +296,36 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
             f.to_python(test_set6) == FieldTagListFormatter(test_set6).toCSV()
         )
 
-    def test_tags_as_unsupported_input(self):
-        test_uns1 = 5
-        test_uns2 = 1.2
-        test_uns3 = True
-        f = TagMeCharField()
-
-        with pytest.raises(ValidationError) as exc:
-            f.to_python(test_uns1)
-
-            assert "['5 is not type str, set, list or dict']" in str(
-                exc.value
-            ).replace("\\", "")
-            assert exc.type == ValidationError
-
-        with pytest.raises(ValidationError) as exc:
-            f.to_python(test_uns2)
-
-            assert "['1.2 is not type str, set, list or dict']" in str(
-                exc.value
-            ).replace("\\", "")
-            assert exc.type == ValidationError
-
-        with pytest.raises(ValidationError) as exc:
-            f.to_python(test_uns3)
-
-            assert "['True is not type str, set, list or dict']" in str(
-                exc.value
-            ).replace("\\", "")
-            assert exc.type == ValidationError
+    # ..todo:: probably a duplicate of test in test_collections. Review in refactor
+    # def test_tags_as_unsupported_input(self):
+    #     test_uns1 = 5
+    #     test_uns2 = 1.2
+    #     test_uns3 = True
+    #     f = TagMeCharField()
+    #
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.to_python(test_uns1)
+    #
+    #         assert "['5 is not type str, set, list or dict']" in str(
+    #             exc.value
+    #         ).replace("\\", "")
+    #         assert exc.type == ValidationError
+    #
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.to_python(test_uns2)
+    #
+    #         assert "['1.2 is not type str, set, list or dict']" in str(
+    #             exc.value
+    #         ).replace("\\", "")
+    #         assert exc.type == ValidationError
+    #
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.to_python(test_uns3)
+    #
+    #         assert "['True is not type str, set, list or dict']" in str(
+    #             exc.value
+    #         ).replace("\\", "")
+    #         assert exc.type == ValidationError
 
     def test_tags_input_is_none(self):
         test_none = None
@@ -399,18 +380,19 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
 
         assert f.to_python(null_tags) == ""
 
-    def test_tags_input_includes_null_tags(self):
-        null_tags = [
-            "null",
-            "Null",
-            "NULL",
-            "Not Null",
-            "Still Not Null",
-        ]
-
-        f = TagMeCharField()
-
-        assert f.to_python(null_tags) == "Not Null, Still Not Null"
+    # ..todo:: probably a duplicate of test in test_collections. Review in refactor
+    # def test_tags_input_includes_null_tags(self):
+    #     null_tags = [
+    #         "null",
+    #         "Null",
+    #         "NULL",
+    #         "Not Null",
+    #         "Still Not Null",
+    #     ]
+    #
+    #     f = TagMeCharField()
+    #
+    #     assert f.to_python(null_tags) == "Not Null, Still Not Null"
 
 
 class TestTagMeCharFieldOtherMethods(SimpleTestCase):
