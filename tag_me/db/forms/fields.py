@@ -1,11 +1,8 @@
 """tag-me Form Fields"""
-
 import logging
-from django.core import validators
+
 from django.forms.fields import CharField
 from django.utils.translation import gettext_lazy as _
-
-from tag_me.widgets import TagMeSelectMultipleWidget
 
 from tag_me.utils.collections import FieldTagListFormatter
 
@@ -37,21 +34,20 @@ class TagMeCharFieldForm(CharField):
         self.min_length = min_length
         self.strip = strip
         self.empty_value = empty_value
-        super().__init__(**kwargs)
-        if min_length is not None:
-            self.validators.append(
-                validators.MinLengthValidator(int(min_length))
-            )
-        if max_length is not None:
-            self.validators.append(
-                validators.MaxLengthValidator(int(max_length))
-            )
-        self.validators.append(validators.ProhibitNullCharactersValidator())
-        self.formatter = FieldTagListFormatter()
-        self.widget = TagMeSelectMultipleWidget()
+        super().__init__(
+            max_length=max_length,
+            min_length=min_length,
+            strip=strip,
+            empty_value=empty_value,
+            **kwargs,
+        )
 
     def to_python(self, value):
         """Return FieldTagListFormatter(value).toCSV() string."""
-
-        self.formatter.add_tags(value)
-        return self.formatter.toCSV()
+        if value not in self.empty_values:
+            value = FieldTagListFormatter(value).toCSV()
+            if self.strip:
+                value = value.strip()
+        if value in self.empty_values:
+            return self.empty_value
+        return value
