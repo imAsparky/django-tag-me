@@ -53,5 +53,6 @@ class TagMeCharFieldForm(CharField):
     def to_python(self, value):
         """Return FieldTagListFormatter(value).toCSV() string."""
 
+        print(f'FIELD FORM TO PYTHON VALUE: {value}')
         self.formatter.add_tags(value)
         return self.formatter.toCSV()
