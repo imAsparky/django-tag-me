@@ -5,27 +5,7 @@ from django import forms
 from tag_me.models import UserTag
 
 
-class TagCustomModelForm(forms.ModelForm):
-    """
-    A custom ModelForm for the django-tag-me library.
-
-    This form class is designed to work with custom Django views (like the
-    TagCustom...View classes ) that provide the current user object.
-    It enables user-aware logic and filtering within forms.
-    """
-
-    model = None  # Placeholder; you would specify your actual model here
-
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ):
-        self.user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)
-
-
-class UserTagsBaseForm(TagCustomModelForm):
+class UserTagsBaseForm(forms.ModelForm):
     """Business creation form."""
 
     model = None
@@ -45,9 +25,9 @@ class UserTagsBaseForm(TagCustomModelForm):
             ...
         else:
             for field in tagged_fields:
-                self.fields[field].widget.template_name = (
-                    "clearable_file_input.html"
-                )
+                self.fields[
+                    field
+                ].widget.template_name = "clearable_file_input.html"
 
                 # This will dynamically load the choices in the field
                 self.fields[field].widget.choices = [
