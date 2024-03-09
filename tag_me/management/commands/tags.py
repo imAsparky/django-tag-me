@@ -4,7 +4,7 @@ import logging
 
 from django.core.management.base import BaseCommand, LabelCommand
 
-# from tag_me.utils.helpers import update_models_with_tagged_fields_table
+#  from tag_me.utils.helpers import update_models_with_tagged_fields_table
 
 logger = logging.getLogger(__name__)
 

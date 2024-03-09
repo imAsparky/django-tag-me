@@ -73,9 +73,8 @@ class TagMeCharField(CharField):
         """
         print(f"FIELD MODEL TO PYTHON VALUE: {value}")
         self.formatter.add_tags(value)
-        value = self.formatter.toCSV()
 
-        return value
+        return self.formatter.toCSV()
 
     def formfield(self, **kwargs):
         """Overrides formfield adding custom form_class."""
