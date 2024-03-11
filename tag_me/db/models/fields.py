@@ -97,16 +97,16 @@ class TagMeCharField(CharField):
         # will be validated twice. This is considered acceptable since we want
         # the value in the form field (to pass into widget for example).
         defaults = {
-            "max_length": self.max_length,
             "form_class": TagMeCharField_FORM,
+            "max_length": self.max_length,
+            "required": False,
             "widget": TagMeSelectMultipleWidget(
-                    attrs={
-                        'model_verbose_name': self.model._meta.verbose_name,
-                        'field_name': self.name,
-                        'field_verbose_name': self.verbose_name,
-                    },
-
-            )
+                attrs={
+                    "model_verbose_name": self.model._meta.verbose_name,
+                    "field_name": self.name,
+                    "field_verbose_name": self.verbose_name,
+                },
+            ),
         }
-        defaults.update(kwargs)
+        defaults.update(defaults)
         return super().formfield(**defaults)
