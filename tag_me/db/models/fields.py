@@ -3,7 +3,8 @@
 from django.core import validators
 from django.db.models.fields import CharField
 
-from tag_me.db.forms.fields import TagMeCharFieldForm
+from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
+from tag_me.widgets import TagMeSelectMultipleWidget
 from tag_me.utils.collections import FieldTagListFormatter
 
 
@@ -18,7 +19,7 @@ class TagMeCharField(CharField):
 
     def __init__(self, *args, db_collation=None, **kwargs):
         """
-        Initializes the TagMeCharField.
+        Initializes the custom TagMeCharField model field.
 
         :param *args: Positional arguments passed to the parent CharField constructor. # noqa: E501
         :param **kwargs: Keyword arguments passed to the parent CharField constructor. # noqa: E501
@@ -35,14 +36,14 @@ class TagMeCharField(CharField):
         """
         Converts the database representation of tags into a FieldTagListFormatter. # noqa: E501
 
-        :param value: The raw tag data as retrieved from the database (expected to be a CSV string). # noqa: E501
-        :param expression: Information about how the value was obtained (e.g., aggregations). # noqa: E501
+        :param value: The raw tag data as retrieved from the database
+                            (expected to be a CSV string).
+        :param expression: Information about how the value was obtained
+                            (e.g., aggregations).
         :param connection: The database connection used.
 
         :return: A FieldTagListFormatter instance containing the parsed tags.
         """
-
-        print(f"FIELD MODEL FROM DB VALUE: {value}")
         self.formatter.add_tags(value)
         value = self.formatter.toCSV()
 
@@ -63,28 +64,49 @@ class TagMeCharField(CharField):
 
     def to_python(self, value):
         """
-        Converts raw tag input into a FieldTagListFormatter.
+        Converts raw tag data into a structured format suitable for storage.
 
-        This method is primarily used during form handling to transform input data. # noqa: E501
+        This method is responsible for parsing the raw tag data
+        (often a string) and converting it into an internal representation that
+        can be saved and manipulated by your application.
 
         :param value: The raw tag data, typically a string.
 
-        :return: A FieldTagListFormatter instance containing the parsed tags.
+        :return string: A FieldTagListFormatter.toCSV() formatted string.
         """
-        print(f"FIELD MODEL TO PYTHON VALUE: {value}")
         self.formatter.add_tags(value)
 
         return self.formatter.toCSV()
 
     def formfield(self, **kwargs):
-        """Overrides formfield adding custom form_class."""
+        """Overrides the default form field generation for this model field.
+
+        This method allows customization of the form field used to represent
+        this model field within a Django form.
+
+
+        :params **kwargs (dict): Additional keyword arguments that can be used
+                to further customize the form field.
+
+        :returns django.forms.Field: An instance of a form field appropriate for
+                representing this model field.
+
+        """
 
         # Passing max_length to forms.CharField means that the value's length
         # will be validated twice. This is considered acceptable since we want
         # the value in the form field (to pass into widget for example).
         defaults = {
             "max_length": self.max_length,
-            "form_class": TagMeCharFieldForm,
+            "form_class": TagMeCharField_FORM,
+            "widget": TagMeSelectMultipleWidget(
+                    attrs={
+                        'model_verbose_name': self.model._meta.verbose_name,
+                        'field_name': self.name,
+                        'field_verbose_name': self.verbose_name,
+                    },
+
+            )
         }
         defaults.update(kwargs)
         return super().formfield(**defaults)
