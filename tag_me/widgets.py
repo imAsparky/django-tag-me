@@ -34,13 +34,18 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
     def render(self, name, value, attrs=None, renderer=None):
         # ... obtain content_type, field_name, and user ...
 
+        # Pop the choices filters from the attrs dict
+        model_verbose_name = self.attrs.pop("model_verbose_name", None)
+        field_verbose_name = self.attrs.pop("field_verbose_name", None)
+        user = self.attrs.pop("user", None)
+
         print(f"WIDGET {name} VALUE {self.__dict__}")
 
         # Fetch choices dynamically
         # choices = get_field_choices(
-        #     model_verbose_name=self.attrs.get("model_verbose_name"),
-        #     field_verbose_name=self.attrs.get("field_verbose_name"),
-        #     user=self.attrs.get("user"),
+        #     model_verbose_name=model_verbose_name,
+        #     field_verbose_name=field_verbose_name,
+        #     user=user,
         # )
         # value = list(value)
         choices = [
