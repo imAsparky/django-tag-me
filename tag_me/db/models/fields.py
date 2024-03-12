@@ -47,10 +47,9 @@ class TagMeCharField(CharField):
 
         :return: A FieldTagListFormatter instance containing the parsed tags.
         """
+        self.formatter.clear()  # Ensure we start with an empty list
         self.formatter.add_tags(value)
-        value = self.formatter.toCSV()
-
-        return value
+        return self.formatter.toCSV()
 
     def get_prep_value(self, value):
         """
@@ -63,9 +62,7 @@ class TagMeCharField(CharField):
                         database storage.
         """
         self.formatter.add_tags(value)
-        value = self.formatter.toCSV()
-
-        return value
+        return self.formatter.toCSV()
 
     def to_python(self, value):
         """
