@@ -1,5 +1,6 @@
-"""tag-me app collections."""
+"""tag-me app custom model charfield."""
 
+from django.contrib.admin.widgets import AdminTextInputWidget
 from django.core import validators
 from django.db.models.fields import CharField
 
@@ -21,8 +22,10 @@ class TagMeCharField(CharField):
         """
         Initializes the custom TagMeCharField model field.
 
-        :param *args: Positional arguments passed to the parent CharField constructor. # noqa: E501
-        :param **kwargs: Keyword arguments passed to the parent CharField constructor. # noqa: E501
+        :param *args: Positional arguments passed to the parent CharField
+                        constructor.
+        :param **kwargs: Keyword arguments passed to the parent CharField
+                        constructor.
         """
         super().__init__(*args, **kwargs)
         self.db_collation = db_collation
@@ -34,7 +37,7 @@ class TagMeCharField(CharField):
 
     def from_db_value(self, value, expression, connection):
         """
-        Converts the database representation of tags into a FieldTagListFormatter. # noqa: E501
+        Converts the database representation of tags into a FieldTagListFormatter compliant format. # noqa: E501
 
         :param value: The raw tag data as retrieved from the database
                             (expected to be a CSV string).
@@ -53,9 +56,11 @@ class TagMeCharField(CharField):
         """
         Prepares the tag data for saving into the database.
 
-        :param value: The tag data, either as a FieldTagListFormatter instance or a raw string. # noqa: E501
+        :param value: The tag data, either as a FieldTagListFormatter
+                        instance or a raw string.
 
-        :return: A CSV-formatted string representing the tags, ready for database storage. # noqa: E501
+        :return: A CSV-formatted string representing the tags, ready for
+                        database storage.
         """
         self.formatter.add_tags(value)
         value = self.formatter.toCSV()
@@ -81,32 +86,53 @@ class TagMeCharField(CharField):
     def formfield(self, **kwargs):
         """Overrides the default form field generation for this model field.
 
-        This method allows customization of the form field used to represent
-        this model field within a Django form.
+        Provides flexibility in selecting the form field widget based on the
+        provided 'widget' argument in kwargs. Supports custom widgets as well
+        as Django Admin widgets.
 
+        **Context for User/Admin Discrepancies:**
+
+        This customization allows for scenarios where appropriate tag options
+        might differ between regular users and admin users. By setting the
+        field as readonly in certain contexts, it ensures data consistency and
+        prevents the introduction of invalid tags by regular users, while still
+        allowing admins to view the full set of selected tags if needed.
 
         :params **kwargs (dict): Additional keyword arguments that can be used
-                to further customize the form field.
+                                 to further customize the form field.
 
-        :returns django.forms.Field: An instance of a form field appropriate for
-                representing this model field.
-
+        :returns django.forms.Field: An instance of a form field appropriate
+                                    for representing this model field.
         """
 
-        # Passing max_length to forms.CharField means that the value's length
-        # will be validated twice. This is considered acceptable since we want
-        # the value in the form field (to pass into widget for example).
-        defaults = {
-            "form_class": TagMeCharField_FORM,
-            "max_length": self.max_length,
-            "required": False,
-            "widget": TagMeSelectMultipleWidget(
-                attrs={
-                    "model_verbose_name": self.model._meta.verbose_name,
-                    "field_name": self.name,
-                    "field_verbose_name": self.verbose_name,
-                },
-            ),
-        }
-        defaults.update(defaults)
+        # Extract and analyze the provided widget
+        widget = kwargs.get("widget", None)
+
+        # Conditional widget configuration
+        if "django.contrib.admin.widgets" in str(widget):
+            # Admin-specific widget setup
+            defaults = {
+                "max_length": self.max_length,
+                "required": False,
+                "widget": AdminTextInputWidget(
+                    attrs={
+                        "readonly": True,
+                    },
+                ),
+            }
+        else:
+            # Default custom widget setup
+            defaults = {
+                "form_class": TagMeCharField_FORM,
+                "max_length": self.max_length,
+                "required": False,
+                "widget": TagMeSelectMultipleWidget(
+                    attrs={
+                        "model_verbose_name": self.model._meta.verbose_name,
+                        "field_name": self.name,
+                        "field_verbose_name": self.verbose_name,
+                    },
+                ),
+            }
+
         return super().formfield(**defaults)
