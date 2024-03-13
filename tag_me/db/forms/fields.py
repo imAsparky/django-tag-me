@@ -27,6 +27,7 @@ class TagMeCharField(CharField):
     def to_python(self, value):
         """Return FieldTagListFormatter(value).toCSV() string."""
 
+        self.formatter.clear()  # Ensure we start with an empty list
         self.formatter.add_tags(value)
         return self.formatter.toCSV(
             include_trailing_comma=True,  # Ensures correct tag string parsing

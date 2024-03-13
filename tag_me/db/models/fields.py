@@ -49,6 +49,7 @@ class TagMeCharField(CharField):
         """
         self.formatter.clear()  # Ensure we start with an empty list
         self.formatter.add_tags(value)
+
         return self.formatter.toCSV(
             include_trailing_comma=True,  # Ensures correct tag string parsing
         )
@@ -63,7 +64,9 @@ class TagMeCharField(CharField):
         :return: A CSV-formatted string representing the tags, ready for
                         database storage.
         """
+        self.formatter.clear()  # Ensure we start with an empty list
         self.formatter.add_tags(value)
+
         return self.formatter.toCSV(
             include_trailing_comma=True,  # Ensures correct tag string parsing
         )
@@ -80,6 +83,7 @@ class TagMeCharField(CharField):
 
         :return string: A FieldTagListFormatter.toCSV() formatted string.
         """
+        self.formatter.clear()  # Ensure we start with an empty list
         self.formatter.add_tags(value)
 
         return self.formatter.toCSV(
