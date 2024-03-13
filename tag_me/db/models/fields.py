@@ -49,7 +49,9 @@ class TagMeCharField(CharField):
         """
         self.formatter.clear()  # Ensure we start with an empty list
         self.formatter.add_tags(value)
-        return self.formatter.toCSV()
+        return self.formatter.toCSV(
+            include_trailing_comma=True,  # Ensures correct tag string parsing
+        )
 
     def get_prep_value(self, value):
         """
@@ -62,7 +64,9 @@ class TagMeCharField(CharField):
                         database storage.
         """
         self.formatter.add_tags(value)
-        return self.formatter.toCSV()
+        return self.formatter.toCSV(
+            include_trailing_comma=True,  # Ensures correct tag string parsing
+        )
 
     def to_python(self, value):
         """
@@ -78,7 +82,9 @@ class TagMeCharField(CharField):
         """
         self.formatter.add_tags(value)
 
-        return self.formatter.toCSV()
+        return self.formatter.toCSV(
+            include_trailing_comma=True,  # Ensures correct tag string parsing
+        )
 
     def formfield(self, **kwargs):
         """Overrides the default form field generation for this model field.
