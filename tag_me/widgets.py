@@ -1,74 +1,77 @@
-"""directory Forms file."""
+"""tag-me app custom form widget."""
 
-import logging
 from typing import override
 
 from django import forms
+from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 
-# from tag_me.utils.helpers import get_field_choices
+from tag_me.utils.helpers import get_user_field_choices_as_list_tuples
 
-logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
 
     allow_multiple_selected = True
 
-    def value_from_datadict(self, data, files, name):
-        # print(f"WIDGET value_from_datadict\n{data}")
-        try:
-            getter = data.getlist
-            print(f"WIDGET GET LIST value_from_datadict\n{name}\n{getter}")
-        except AttributeError:
-            getter = data.get
-        return getter(name)
-
-    def value_omitted_from_data(self, data, files, name):
-        print("WIDGET value_omitted_from_data")
-        # An unselected <select multiple> doesn't appear in POST data, so it's
-        # never known if the value is actually omitted.
-        return False
-
     @override
-    def render(self, name, value, attrs=None, renderer=None):
-        # ... obtain content_type, field_name, and user ...
+    def render(self, name, value, attrs=None, renderer=None) -> str:
+        """Renders a multiple select HTML element with dynamically generated choices.  # noqa: E501
 
-        # Pop the choices filters from the attrs dict
-        model_verbose_name = self.attrs.pop("model_verbose_name", None)
+        A custom Django form widget that provides user-specific options
+        tailored to a particular model field. It's designed to be flexible and
+        works by fetching relevant tag choices on the fly.
+
+        Args:
+            :param name: The name attribute to use for the generated
+                         <select> element.
+            :param value:  The currently selected value or values for the
+                           field.  This can be a single value or potentially a
+                           list/iterable of values for multiple selection.
+            :param attrs: (dict, optional) A dictionary of additional
+                          attributes to include in the rendered <select> tag
+                          (e.g., 'id', 'class')
+            :param renderer:  (Django Renderer, optional) An advanced option
+                                            to override the rendering engine.
+                                            Most users can ignore this.
+
+        Returns:
+            str:  Mark safe HTML output representing the fully formed <select>
+                  element with its <option> tags populated from your dynamic
+                  choices.
+        """
+
+        # Important: 'attrs' is modified in place by removing some entries
+        # The 'attrs' removed are for filtering choices and not required
+        # elsewhere.
         field_verbose_name = self.attrs.pop("field_verbose_name", None)
+        field_name = self.attrs.pop("field_name", None)
+        model_verbose_name = self.attrs.pop("model_verbose_name", None)
         user = self.attrs.pop("user", None)
 
-        print(f"WIDGET {name} VALUE {self.__dict__}")
+        css_class = self.attrs.get("css_class", None)
 
-        # Fetch choices dynamically
-        # choices = get_field_choices(
-        #     model_verbose_name=model_verbose_name,
-        #     field_verbose_name=field_verbose_name,
-        #     user=user,
-        # )
-        # value = list(value)
-        choices = [
-            ("tag1", "tag1"),
-            ("tag 2", "tag 2"),
-            ("tag 3", "tag 3"),
-            ("tag4", "tag4"),
-        ]
+        # Call the parent class render (essential for Widget functionality)
+        super().render(name, value, attrs, renderer)
 
-        # Logic to generate HTML, approximately:
-        output = ['<select multiple name="{}">'.format(name)]
-        for option_value, option_label in choices:
-            # print(f"OPTIONS {option_value} -> {option_label}")
-            # print(f'OPTION {option_value} == VALUE {value} {option_value == value} ')
-            selected = option_value in value  # Assuming values are tag slugs
-            # print('WIDGET selected:', selected)
+        # Dynamically fetch user and field specific choices
+        self.choices = get_user_field_choices_as_list_tuples(
+            model_verbose_name=model_verbose_name,
+            field_verbose_name=field_name,
+            user=User.objects.get(username=user),
+        )
+
+        # ... (Code for generating the HTML output, default Django select) ...
+        output = [f'<select multiple name="{name}" class={css_class}>']
+        for option_value, option_label in self.choices:
+            selected = option_value in value
             output.append(
                 '<option value="{}" {}>{}</option>'.format(
                     option_value, "selected" if selected else "", option_label
                 )
             )
         output.append("</select>")
-        # print(f'WIDGET OUTPUT {mark_safe("".join(output))}')
         return mark_safe("".join(output))
 
     # @override
