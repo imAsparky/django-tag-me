@@ -1,15 +1,10 @@
-"""tag-me Form Fields"""
-
-# import logging
+"""tag-me app custom form charfield."""
 
 # from django.core import validators
 from django.forms.fields import CharField
 from django.utils.translation import gettext_lazy as _
 
 from tag_me.utils.collections import FieldTagListFormatter
-
-
-# logger = logging.getLogger(__name__)
 
 
 class TagMeCharField(CharField):
@@ -33,4 +28,6 @@ class TagMeCharField(CharField):
         """Return FieldTagListFormatter(value).toCSV() string."""
 
         self.formatter.add_tags(value)
-        return self.formatter.toCSV()
+        return self.formatter.toCSV(
+            include_trailing_comma=True,  # Ensures correct tag string parsing
+        )
