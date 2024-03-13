@@ -1,21 +1,56 @@
-"""django-tag-me Forms file."""
+"""tag-me app custom forms."""
 
 from django import forms
-
+from tag_me.db.forms.fields import TagMeCharField
 from tag_me.models import UserTag
 
 
 class TagCustomModelForm(forms.ModelForm):
-    """Custom tag-me model form."""
+    """Custom ModelForm designed for use with TagMeCharField fields.
+
+    This form automatically injects user information and styles into any
+    TagMeCharField widgets it contains, providing a streamlined experience.
+
+    **Key Features:**
+
+    * **User Awareness:**  Passes the current user to TagMeCharField widgets,
+      enabling user-specific customization (likely for tag choices).
+    * **Styling:** Adds CSS classes to TagMeCharField widgets for consistent
+      visual appearance.
+
+    **Usage:**
+
+    1. Define a Django model that includes one or more TagMeCharField fields.
+    2. Use `TagCustomModelForm` as the base class for a form tied to this model.
+
+    """
 
     def __init__(self, *args, **kwargs):
-        # # Add user_id to form
+        """Initializes the form, extracting the user for later use.
+
+        Args:
+            :param user (User):  The Django User object representing the
+                                 currently logged-in user. This is supplied
+                                 via the 'get_form_kwargs' method in a
+                                 Django view
+            :param *args:  Additional positional arguments to pass to the parent
+                           ModelForm's constructor.
+            :param **kwargs:  Additional keyword arguments to pass to the parent
+                              ModelForm's constructor.
+        """
         self.user = kwargs.pop("user", None)
-        self.fields["port_tags"].model_verbose_name = kwargs.pop(
-            "model_verbose_name", None
-        )
-        print(f'FORM INIT Verbose {self.fields["port_tags"].__dict__}')
         super().__init__(*args, **kwargs)
+
+        for field_name, field in self.fields.items():
+            if isinstance(
+                field, TagMeCharField
+            ):  # Check if it's a TagMeCharField field
+                self.fields[field_name].widget.attrs.update(
+                    {
+                        "css_class": "",
+                        "user": self.user,
+                    }
+                )
 
 
 class UserTagsBaseForm(forms.ModelForm):
