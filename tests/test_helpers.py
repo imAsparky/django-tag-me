@@ -21,7 +21,7 @@ from hypothesis.extra.django import TestCase
 
 from tag_me.models import TaggedFieldModel, UserTag
 from tag_me.utils.helpers import (  # update_models_with_tagged_fields_table,
-    get_field_choices,
+    get_user_field_choices_as_list_tuples,
     get_model_content_type,
     get_model_tagged_fields_choices,
     get_model_tagged_fields_field_and_verbose,
@@ -171,21 +171,21 @@ class TestTagHelpers(TestCase):
 
         assert content is None
 
-    def test_get_field_choices(self):
+    def test_get_user_field_choices_as_list_tuples(self):
         choices_all = UserTag.objects.all()
-        choices_1 = get_field_choices(
+        choices_1 = get_user_field_choices_as_list_tuples(
             model_verbose_name="Tagged Field Test Model",
-            field_verbose_name="tagged_field_1",
+            field_name="tagged_field_1",
             user=self.user1,
         )
-        choices_2 = get_field_choices(
+        choices_2 = get_user_field_choices_as_list_tuples(
             model_verbose_name="Tagged Field Test Model",
-            field_verbose_name="tagged_field_1",
+            field_name="tagged_field_1",
             user=self.user2,
         )
-        choices_3 = get_field_choices(
+        choices_3 = get_user_field_choices_as_list_tuples(
             model_verbose_name="Tagged Field Test Model",
-            field_verbose_name="tagged_field_1",
+            field_name="tagged_field_1",
             user=self.user3,
         )
 
