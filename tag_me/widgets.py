@@ -60,7 +60,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # Dynamically fetch user and field specific choices
         self.choices = get_user_field_choices_as_list_tuples(
             model_verbose_name=model_verbose_name,
-            field_verbose_name=field_name,
+            field_name=field_name,
             user=User.objects.get(username=user),
         )
 
@@ -84,7 +84,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
 
 # options_list = get_user_field_choices_as_list_tuples(
 #     model_verbose_name=model_verbose_name,
-#     field_verbose_name=field_name,
+#     field_name=field_name,
 #     user=User.objects.get(username=user),
 # )
 

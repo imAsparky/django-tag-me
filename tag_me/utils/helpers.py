@@ -249,7 +249,7 @@ def get_model_content_type(
 
 def get_user_field_choices_as_queryset(
     model_verbose_name: str = None,
-    field_verbose_name: str = None,
+    field_name: str = None,
     user: User = None,
 ) -> models.QuerySet:
     """Fetches tag choices for a specific user, field, and model.
@@ -263,7 +263,7 @@ def get_user_field_choices_as_queryset(
             forms for efficiency.
 
     :param model_verbose_name: The display name of the model the field belongs to.
-    :param field_verbose_name: The display name of the field.
+    :param field_name: The  name of the field.
     :param user: The Django User object representing the user whose tags we want.
     :return: A Django QuerySet representing tag choices.
 
@@ -271,7 +271,7 @@ def get_user_field_choices_as_queryset(
 
     choices = UserTag.objects.filter(
         feature=model_verbose_name,
-        field=field_verbose_name,
+        field=field_name,
         user=user,
     )
 
@@ -280,7 +280,7 @@ def get_user_field_choices_as_queryset(
 
 def get_user_field_choices_as_list_tuples(
     model_verbose_name: str = None,
-    field_verbose_name: str = None,
+    field_name: str = None,
     user: User = None,
 ) -> list[tuple]:
     """Prepares a list of tag choices suitable for a user's form field.
@@ -294,16 +294,18 @@ def get_user_field_choices_as_list_tuples(
         * `label`: The tag name (displayed to the user)
 
     :param model_verbose_name: The display name of the model the field belongs to.
-    :param field_verbose_name: The display name of the field.
+    :param field_name: The display name of the field.
     :param user: The Django User object representing the user whose tags we want.
     :return: A list of tuples, ready to be used for choices in a form field.
     """
-    # Need to add handling of this in the widget render
-    # choices = [(None, None)]
+    # .. todo:: Need to add handling of this in the widget render method for default
+    # Django config,  if none then the value should be ---------
+    # Default behaviour is <select> returns first value.
+    # choices = [(None, None)].
     choices = []
     user_tags = get_user_field_choices_as_queryset(
         model_verbose_name=model_verbose_name,
-        field_verbose_name=field_verbose_name,
+        field_name=field_name,
         user=user,
     )  # Get the tags as a QuerySet (efficient)
 
