@@ -1,4 +1,5 @@
 """tags Models file."""
+
 # import json
 # from collections import UserList
 
@@ -11,7 +12,7 @@ from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 
 # from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy as _
 from django.utils.translation import pgettext_lazy
 
 User = settings.AUTH_USER_MODEL
@@ -30,13 +31,19 @@ except ImportError:
 class TaggedFieldModel(models.Model):
     """Store all the details of models with field tags.
 
-    This table is populatd using a management command.
+    This table is populated using a management command.
     When a new tagged field is added to a model, run ./manage.py tags -U
     """
 
     class Meta:
-        verbose_name = _("Tagged Field Model")
-        verbose_name_plural = _("Tagged Field Models")
+        verbose_name = _(
+            "Verbose name",
+            "Tagged Field Model",
+        )
+        verbose_name_plural = _(
+            "Verbose name",
+            "Tagged Field Models",
+        )
 
     content = models.ForeignKey(
         ContentType,
@@ -86,18 +93,30 @@ class TagBase(models.Model):
 
     class Meta:
         abstract = True
-        verbose_name = _("Tag ABC")
-        verbose_name_plural = _("Tags ABC")
+        verbose_name = _(
+            "Verbose name",
+            "Tag ABC",
+        )
+        verbose_name_plural = _(
+            "Verbose name",
+            "Tags ABC",
+        )
 
     name = models.CharField(
-        verbose_name=pgettext_lazy("A tag name", "Name"),
+        verbose_name=_(
+            "Verbose name",
+            "Name",
+        ),
         blank=False,
         null=False,
         max_length=50,
     )
 
     slug = models.SlugField(
-        verbose_name=pgettext_lazy("A tag slug", "slug"),
+        verbose_name=_(
+            "Verbose name",
+            "slug",
+        ),
         unique=True,
         max_length=100,
         allow_unicode=True,
@@ -191,8 +210,14 @@ class UserTag(TagBase):
     # objects = UserTagsManager()
 
     class Meta:
-        verbose_name = _("User Tag")
-        verbose_name_plural = _("User Tags")
+        verbose_name = _(
+            "Verbose name",
+            "User Tag",
+        )
+        verbose_name_plural = _(
+            "Verbose name",
+            "User Tags",
+        )
         indexes = [
             models.Index(
                 fields=[
@@ -206,15 +231,15 @@ class UserTag(TagBase):
                 fields=[
                     "user",
                     "content_type_id",
-                    "field",
+                    "field_name",
                     "name",
                 ],
                 name="unique_user_field_tag",
             )
         ]
         ordering = [
-            "feature",
-            "field",
+            "model_verbose_name",
+            "field_name",
             "name",
         ]
 
@@ -224,7 +249,10 @@ class UserTag(TagBase):
         null=True,
         related_name="user_tags",
         on_delete=models.CASCADE,
-        verbose_name=_("User"),
+        verbose_name=_(
+            "Verbose name",
+            "User",
+        ),
     )
     content_type = models.ForeignKey(
         ContentType,
@@ -232,31 +260,43 @@ class UserTag(TagBase):
         null=True,
         on_delete=models.CASCADE,
         related_name="user_tag_content_id",
-        verbose_name=_("Content ID"),
+        verbose_name=_(
+            "Verbose name",
+            "Content ID",
+        ),
         default=None,
     )
-    feature = models.CharField(
+    model_verbose_name = models.CharField(
         blank=True,
         null=True,
         max_length=255,
-        verbose_name=_("Feature"),
+        verbose_name=_(
+            "Verbose name",
+            "Feature",
+        ),
         default=None,
     )
     comment = models.CharField(
         blank=True,
         null=True,
         max_length=255,
-        verbose_name=_("Comment"),
+        verbose_name=_(
+            "Verbose name",
+            "Comment",
+        ),
     )
-    field = models.CharField(
+    field_name = models.CharField(
         blank=True,
         null=True,
         max_length=255,
-        verbose_name=_("Field"),
+        verbose_name=_(
+            "Verbose name",
+            "Field",
+        ),
     )
 
     def __str__(self) -> str:
-        return f"{self.user.username}:{self.feature}:{self.field}:{self.name}"
+        return f"{self.user.username}:{self.model_verbose_name}:{self.field}:{self.name}"
 
     def nothing_here():
         """acc._meta.__dict__["concrete_model"]
