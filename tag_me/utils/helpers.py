@@ -270,8 +270,8 @@ def get_user_field_choices_as_queryset(
     """
 
     choices = UserTag.objects.filter(
-        feature=model_verbose_name,
-        field=field_name,
+        model_verbose_name=model_verbose_name,
+        field_name=field_name,
         user=user,
     )
 
