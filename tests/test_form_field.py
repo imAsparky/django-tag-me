@@ -16,7 +16,9 @@ class TestTagMeCharFieldForm(SimpleTestCase):
     def test_with_value(self):
         f = TagMeCharField()
 
-        assert f.to_python("a,b,c") == FieldTagListFormatter("a,b,c").toCSV()
+        assert f.to_python("a,b,c") == FieldTagListFormatter("a,b,c").toCSV(
+            include_trailing_comma=True,
+        )
 
     def test_validators(self):
         f = TagMeCharField(

@@ -186,24 +186,36 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         test_str6 = '"apple""ball dog'
         f = TagMeCharField()
 
-        assert (
-            f.to_python(test_str1) == FieldTagListFormatter(test_str1).toCSV()
+        assert f.to_python(test_str1) == FieldTagListFormatter(
+            test_str1
+        ).toCSV(
+            include_trailing_comma=True,
         )
 
-        assert (
-            f.to_python(test_str2) == FieldTagListFormatter(test_str2).toCSV()
+        assert f.to_python(test_str2) == FieldTagListFormatter(
+            test_str2
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_str3) == FieldTagListFormatter(test_str3).toCSV()
+        assert f.to_python(test_str3) == FieldTagListFormatter(
+            test_str3
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_str4) == FieldTagListFormatter(test_str4).toCSV()
+        assert f.to_python(test_str4) == FieldTagListFormatter(
+            test_str4
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_str5) == FieldTagListFormatter(test_str5).toCSV()
+        assert f.to_python(test_str5) == FieldTagListFormatter(
+            test_str5
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_str6) == FieldTagListFormatter(test_str6).toCSV()
+        assert f.to_python(test_str6) == FieldTagListFormatter(
+            test_str6
+        ).toCSV(
+            include_trailing_comma=True,
         )
 
     def test_tags_as_list_input(self):
@@ -215,23 +227,35 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         test_lst6 = ['"apple""ball dog']
         f = TagMeCharField()
 
-        assert (
-            f.to_python(test_lst1) == FieldTagListFormatter(test_lst1).toCSV()
+        assert f.to_python(test_lst1) == FieldTagListFormatter(
+            test_lst1
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_lst2) == FieldTagListFormatter(test_lst2).toCSV()
+        assert f.to_python(test_lst2) == FieldTagListFormatter(
+            test_lst2
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_lst3) == FieldTagListFormatter(test_lst3).toCSV()
+        assert f.to_python(test_lst3) == FieldTagListFormatter(
+            test_lst3
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_lst4) == FieldTagListFormatter(test_lst4).toCSV()
+        assert f.to_python(test_lst4) == FieldTagListFormatter(
+            test_lst4
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_lst5) == FieldTagListFormatter(test_lst5).toCSV()
+        assert f.to_python(test_lst5) == FieldTagListFormatter(
+            test_lst5
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_lst6) == FieldTagListFormatter(test_lst6).toCSV()
+        assert f.to_python(test_lst6) == FieldTagListFormatter(
+            test_lst6
+        ).toCSV(
+            include_trailing_comma=True,
         )
 
     def test_tags_as_dict_input(self):
@@ -243,29 +267,35 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         test_dict6 = {"tags": ['"apple""ball dog']}
         f = TagMeCharField()
 
-        assert (
-            f.to_python(test_dict1)
-            == FieldTagListFormatter(test_dict1).toCSV()
+        assert f.to_python(test_dict1) == FieldTagListFormatter(
+            test_dict1
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_dict2)
-            == FieldTagListFormatter(test_dict2).toCSV()
+        assert f.to_python(test_dict2) == FieldTagListFormatter(
+            test_dict2
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_dict3)
-            == FieldTagListFormatter(test_dict3).toCSV()
+        assert f.to_python(test_dict3) == FieldTagListFormatter(
+            test_dict3
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_dict4)
-            == FieldTagListFormatter(test_dict4).toCSV()
+        assert f.to_python(test_dict4) == FieldTagListFormatter(
+            test_dict4
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_dict5)
-            == FieldTagListFormatter(test_dict5).toCSV()
+        assert f.to_python(test_dict5) == FieldTagListFormatter(
+            test_dict5
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_dict6)
-            == FieldTagListFormatter(test_dict6).toCSV()
+        assert f.to_python(test_dict6) == FieldTagListFormatter(
+            test_dict6
+        ).toCSV(
+            include_trailing_comma=True,
         )
 
     def test_tags_as_set_input(self):
@@ -277,23 +307,35 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         test_set6 = {'"apple""ball dog'}
         f = TagMeCharField()
 
-        assert (
-            f.to_python(test_set1) == FieldTagListFormatter(test_set1).toCSV()
+        assert f.to_python(test_set1) == FieldTagListFormatter(
+            test_set1
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_set2) == FieldTagListFormatter(test_set2).toCSV()
+        assert f.to_python(test_set2) == FieldTagListFormatter(
+            test_set2
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_set3) == FieldTagListFormatter(test_set3).toCSV()
+        assert f.to_python(test_set3) == FieldTagListFormatter(
+            test_set3
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_set4) == FieldTagListFormatter(test_set4).toCSV()
+        assert f.to_python(test_set4) == FieldTagListFormatter(
+            test_set4
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_set5) == FieldTagListFormatter(test_set5).toCSV()
+        assert f.to_python(test_set5) == FieldTagListFormatter(
+            test_set5
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_set6) == FieldTagListFormatter(test_set6).toCSV()
+        assert f.to_python(test_set6) == FieldTagListFormatter(
+            test_set6
+        ).toCSV(
+            include_trailing_comma=True,
         )
 
     # ..todo:: probably a duplicate of test in test_collections. Review in refactor
@@ -341,23 +383,35 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         test_ftf6 = FieldTagListFormatter({'"apple""ball dog'})
         f = TagMeCharField()
 
-        assert (
-            f.to_python(test_ftf1) == FieldTagListFormatter(test_ftf1).toCSV()
+        assert f.to_python(test_ftf1) == FieldTagListFormatter(
+            test_ftf1
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_ftf2) == FieldTagListFormatter(test_ftf2).toCSV()
+        assert f.to_python(test_ftf2) == FieldTagListFormatter(
+            test_ftf2
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_ftf3) == FieldTagListFormatter(test_ftf3).toCSV()
+        assert f.to_python(test_ftf3) == FieldTagListFormatter(
+            test_ftf3
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_ftf4) == FieldTagListFormatter(test_ftf4).toCSV()
+        assert f.to_python(test_ftf4) == FieldTagListFormatter(
+            test_ftf4
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_ftf5) == FieldTagListFormatter(test_ftf5).toCSV()
+        assert f.to_python(test_ftf5) == FieldTagListFormatter(
+            test_ftf5
+        ).toCSV(
+            include_trailing_comma=True,
         )
-        assert (
-            f.to_python(test_ftf6) == FieldTagListFormatter(test_ftf6).toCSV()
+        assert f.to_python(test_ftf6) == FieldTagListFormatter(
+            test_ftf6
+        ).toCSV(
+            include_trailing_comma=True,
         )
 
     def test_tags_input_is_choices(self):
