@@ -7,7 +7,9 @@ from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
-from tag_me.utils.helpers import get_user_field_choices_as_list_tuples
+from tag_me.utils.helpers import (
+    get_user_field_choices_as_list_or_queryset,
+)
 
 User = get_user_model()
 
@@ -57,8 +59,8 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # Call the parent class render (essential for Widget functionality)
         super().render(name, value, attrs, renderer)
 
-        # Dynamically fetch user and field specific choices
-        self.choices = get_user_field_choices_as_list_tuples(
+        # Dynamically fetch user and field specific choices as a list.
+        self.choices = get_user_field_choices_as_list_or_queryset(
             model_verbose_name=model_verbose_name,
             field_name=field_name,
             user=User.objects.get(username=user),

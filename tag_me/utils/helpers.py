@@ -247,11 +247,12 @@ def get_model_content_type(
             return content_type  # Found it!
 
 
-def get_user_field_choices_as_queryset(
+def get_user_field_choices_as_list_or_queryset(
     model_verbose_name: str = None,
     field_name: str = None,
     user: User = None,
-) -> models.QuerySet:
+    return_list: bool = True,
+) -> list | models.QuerySet:
     """Fetches tag choices for a specific user, field, and model.
 
     This function is designed to help you dynamically populate dropdown menus
@@ -259,13 +260,13 @@ def get_user_field_choices_as_queryset(
             Key points:
 
     * Filters tags based on the provided model name, field name, and user.
-    * Returns the result as a Django QuerySet, which can be directly used in
-            forms for efficiency.
+    * Returns the result as a Flat List, or optionally a Django QuerySet.
 
     :param model_verbose_name: The display name of the model the field belongs to.
     :param field_name: The  name of the field.
     :param user: The Django User object representing the user whose tags we want.
-    :return: A Django QuerySet representing tag choices.
+    :param return_list: Default return a List, otherwise a Django QuerySet.
+    :return: Defaults to a List. optional Django QuerySet representing tag choices.
 
     """
 
@@ -275,7 +276,10 @@ def get_user_field_choices_as_queryset(
         user=user,
     )
 
-    return choices
+    if return_list:
+        return choices.values_list('name', flat=True)
+    else:
+        return choices
 
 
 def get_user_field_choices_as_list_tuples(
@@ -303,10 +307,11 @@ def get_user_field_choices_as_list_tuples(
     # Default behaviour is <select> returns first value.
     # choices = [(None, None)].
     choices = []
-    user_tags = get_user_field_choices_as_queryset(
+    user_tags = get_user_field_choices_as_list_or_queryset(
         model_verbose_name=model_verbose_name,
         field_name=field_name,
         user=user,
+        return_list=False,
     )  # Get the tags as a QuerySet (efficient)
 
     for user_tag in user_tags:
