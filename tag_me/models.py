@@ -296,7 +296,7 @@ class UserTag(TagBase):
     )
 
     def __str__(self) -> str:
-        return f"{self.user.username}:{self.model_verbose_name}:{self.field}:{self.name}"
+        return f"{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.name}"
 
     def nothing_here():
         """acc._meta.__dict__["concrete_model"]
