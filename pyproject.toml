@@ -6,12 +6,13 @@ build-backend = "flit_core.buildapi"
 [project]
 authors = [{ name = "Mark Sevelj", email = "mark.sevelj@dunwright.com.au" }]
 classifiers = [
-  "Development Status :: 1 - Planning",
+  "Development Status :: 2 - Pre-Alpha",
   "Environment :: Web Environment",
   "Framework :: Django",
   "Framework :: Django :: 4.0",
   "Framework :: Django :: 4.1",
   "Framework :: Django :: 4.2",
+  "Framework :: Django :: 5.0",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
@@ -59,4 +60,4 @@ exclude_dirs = ["tests"]
 
 [tool.black]
 line-length = 79
-target-version = ['py311']
+target-version = ['py312']
