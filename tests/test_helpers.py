@@ -86,8 +86,8 @@ class TestTagHelpers(TestCase):
             content_type=get_model_content_type(
                 model_verbose_name="Tagged Field Test Model",
             ),
-            feature="Tagged Field Test Model",
-            field="tagged_field_1",
+            model_verbose_name="Tagged Field Test Model",
+            field_name="tagged_field_1",
         )
         self.user2_tag1 = UserTag.objects.create(
             user=self.user2,
@@ -95,8 +95,8 @@ class TestTagHelpers(TestCase):
             content_type=get_model_content_type(
                 model_verbose_name="Tagged Field Test Model",
             ),
-            feature="Tagged Field Test Model",
-            field="tagged_field_1",
+            model_verbose_name="Tagged Field Test Model",
+            field_name="tagged_field_1",
         )
 
         self.user3_tag1 = UserTag.objects.create(
@@ -105,8 +105,8 @@ class TestTagHelpers(TestCase):
             content_type=get_model_content_type(
                 model_verbose_name="Tagged Field Test Model",
             ),
-            feature="Tagged Field Test Model",
-            field="tagged_field_1",
+            model_verbose_name="Tagged Field Test Model",
+            field_name="tagged_field_1",
         )
 
     def test_get_model_tagged_fields_field_and_verbose_empty_verbose(self):
