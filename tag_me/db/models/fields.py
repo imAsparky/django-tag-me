@@ -114,7 +114,6 @@ class TagMeCharField(CharField):
                                     for representing this model field.
         """
         if self.choices:
-
             tag_choices_list = []
             # Convert choice values to a list.
             for label, value in self.choices:
@@ -150,6 +149,7 @@ class TagMeCharField(CharField):
                         "model_verbose_name": self.model._meta.verbose_name,
                         "field_name": self.name,
                         "field_verbose_name": self.verbose_name,
+                        "_tag_choices": self._tag_choices,
                     },
                 ),
             }
