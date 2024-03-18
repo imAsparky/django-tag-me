@@ -49,22 +49,27 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # Important: 'attrs' is modified in place by removing some entries
         # The 'attrs' removed are for filtering choices and not required
         # elsewhere.
+        css_class = self.attrs.get("css_class", None)
         field_verbose_name = self.attrs.pop("field_verbose_name", None)
         field_name = self.attrs.pop("field_name", None)
         model_verbose_name = self.attrs.pop("model_verbose_name", None)
+        _tag_choices = self.attrs.pop("_tag_choices", None)
         user = self.attrs.pop("user", None)
-
-        css_class = self.attrs.get("css_class", None)
 
         # Call the parent class render (essential for Widget functionality)
         super().render(name, value, attrs, renderer)
 
-        # Dynamically fetch user and field specific choices as a list.
-        self.choices = get_user_field_choices_as_list_or_queryset(
-            model_verbose_name=model_verbose_name,
-            field_name=field_name,
-            user=User.objects.get(username=user),
-        )
+        if _tag_choices:
+            # Here we are using the choices set in the model charfield.
+            self.choices = _tag_choices
+
+        else:
+            # Dynamically fetch user and field specific choices as a list.
+            self.choices = get_user_field_choices_as_list_or_queryset(
+                model_verbose_name=model_verbose_name,
+                field_name=field_name,
+                user=User.objects.get(username=user),
+            )
 
         values: list = []
         match value:
