@@ -33,6 +33,8 @@ class TagMeCharField(CharField):
             self.validators.append(
                 validators.MaxLengthValidator(self.max_length)
             )
+        # Used to pass choices as a list to widget attrs.
+        self._tag_choices: list = []
         self.formatter = FieldTagListFormatter()
 
     def from_db_value(self, value, expression, connection):
@@ -111,6 +113,16 @@ class TagMeCharField(CharField):
         :returns django.forms.Field: An instance of a form field appropriate
                                     for representing this model field.
         """
+        if self.choices:
+
+            tag_choices_list = []
+            # Convert choice values to a list.
+            for label, value in self.choices:
+                tag_choices_list.append(str(value))
+            self.formatter.clear()
+            self.formatter.add_tags(tag_choices_list)
+            self._tag_choices = self.formatter.toList()
+            self.choices = None  # Disable Django choices machinery.
 
         # Extract and analyze the provided widget
         widget = kwargs.get("widget", None)
