@@ -5,7 +5,7 @@ from tag_me.db.forms.fields import TagMeCharField
 from tag_me.models import UserTag
 
 
-class TagCustomModelForm(forms.ModelForm):
+class TagMeModelForm(forms.ModelForm):
     """Custom ModelForm designed for use with TagMeCharField fields.
 
     This form automatically injects user information and styles into any
@@ -21,7 +21,7 @@ class TagCustomModelForm(forms.ModelForm):
     **Usage:**
 
     1. Define a Django model that includes one or more TagMeCharField fields.
-    2. Use `TagCustomModelForm` as the base class for a form tied to this model.
+    2. Use `TagMeModelForm` as the base class for a form tied to this model.
 
     """
 
