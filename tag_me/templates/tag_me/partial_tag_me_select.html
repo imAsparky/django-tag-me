@@ -1,17 +1,4 @@
 <!-- original code by https://github.com/alexpechkarev/alpinejs-multiselect/ -->
-<!-- Select Options -->
-<select
-  id='id_{{ name }}'
-  name='{{ name }}'
-  x-bind:value="selectedValues()"
-  class="hidden"
-  multiple
->
-  {% for tag in choices %}
-    <option value='{{ tag }}' data-search='{{ tag }}'>{{ tag }}</option>
-  {% endfor %}
-</select>
-
 
 <div class="w-full flex flex-col items-center h-64 mx-auto" @keyup.alt="toggle">
     <!-- Selected Tags -->
