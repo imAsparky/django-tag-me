@@ -9,7 +9,7 @@ from django.views.generic import (
 )
 
 
-class TagCustomCreateView(CreateView):
+class TagMeCreateView(CreateView):
     """
     A custom CreateView for the django-tag-me library.
 
@@ -36,7 +36,7 @@ class TagCustomCreateView(CreateView):
         return kwargs
 
 
-class TagCustomDeleteView(DeleteView):
+class TagMeDeleteView(DeleteView):
     """
     A custom DeleteView for the django-tag-me library.
 
@@ -65,7 +65,7 @@ class TagCustomDeleteView(DeleteView):
         return kwargs
 
 
-class TagCustomFormView(FormView):
+class TagMeFormView(FormView):
     """
     A custom FormView for the django-tag-me library.
 
@@ -92,7 +92,7 @@ class TagCustomFormView(FormView):
         return kwargs
 
 
-class TagCustomUpdateView(UpdateView):
+class TagMeUpdateView(UpdateView):
     """
     A custom UpdateView for the django-tag-me library.
 
