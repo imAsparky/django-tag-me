@@ -1,19 +1,14 @@
 """tags Models file."""
 
-# import json
-# from collections import UserList
+import copy
+import logging
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-
-# from django.core import serializers
 from django.db import IntegrityError, models, router, transaction
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
-
-# from django.urls import reverse
 from django.utils.translation import pgettext_lazy as _
-from django.utils.translation import pgettext_lazy
 
 User = settings.AUTH_USER_MODEL
 
@@ -28,11 +23,128 @@ except ImportError:
         return tag
 
 
-class TaggedFieldModel(models.Model):
-    """Store all the details of models with field tags.
+class TagMeSynchronise(models.Model):
+    """
+    Internal model for managing tag synchronization configuration.
 
-    This table is populated using a management command.
-    When a new tagged field is added to a model, run ./manage.py tags -U
+    This model maintains an internal registry of models and their fields
+    configured with attribute `synchronise=True` indicating that tags applied
+    to those fields should be synchronised across related content types.
+    This configuration is used by the 'tag-me' library.
+
+    Do not interact with this model directly. When tagged fields are added,
+    modified, or have the 'synchronise' attribute changed you must update
+    the registry.
+    To update the registry after adding or modifying tagged fields,
+    use the management command:  ./manage.py tags -U
+    """
+
+    class Meta:
+        verbose_name = _(
+            "Verbose name",
+            "Tags Synchronised",
+        )
+        verbose_name_plural = _(
+            "Verbose name",
+            "Tags Synchronised",
+        )
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "name",
+                ],
+                name="unique_tag_synchronise_name",
+            )
+        ]
+
+    name = models.CharField(
+        max_length=255,
+        default="default",
+    )
+    synchronise = models.JSONField(
+        blank=True,
+        null=True,
+        default=dict,
+    )
+
+    def _get_field_name_models_to_sync(self, field: str = None) -> bool:
+        """"""
+        if field in self.synchronise.keys():
+            return self.synchronise.get(field)
+
+    def _add_model_to_sync_list(
+        self,
+        content_type_id: str = None,
+        field: str = None,
+    ):
+        if not content_type_id | field:
+            return False
+        if content_type_id not in self.synchronise[field]:
+            self.synchronise[field].append(content_type_id)
+            return True
+
+    def check_field_sync_list_lengths(self):
+        """
+        Performs a sanity check on field synchronization configurations.
+
+        This method examines the lengths of synchronization lists (stored in
+        the 'synchronise' attribute) and logs warnings or informational
+        messages to help developers identify potential issues:
+
+        * **Lists with zero entries:** Warns about fields that might need
+        removal from the synchronization configuration.
+        * **Lists with one entry:** Warns about potentially incomplete
+            configurations.
+        * **Lists with two or more entries:** Provides information depending
+            on the length, considering a two-item synchronization list as the
+            expected minimum.
+        """
+        logger = logging.getLogger(__name__)
+
+        if self.synchronise.items():
+            for k, v in self.synchronise.items():
+                match len(v):
+                    case 0:
+                        logger.warning(
+                            "Field <%s> has no content id's listed that require synchronising.\nPlease consider removing this key from the sync list.",
+                            k,
+                        )
+                    case 1:
+                        logger.warning(
+                            "Field <%s> only has 1 element, content id is %s\nHave you forgotten to add synchronise=True to another model <%s> field?",
+                            k,
+                            v,
+                            k,
+                        )
+                    case 2:
+                        logger.info(
+                            "Your field <%s> sync list has 2 required minumum elements with content id's %s ",
+                            k,
+                            v,
+                        )
+                    case _:
+                        logger.info(
+                            "Your field <%s> sync list has more than the 2 required minumum elements with content id's %s ",
+                            k,
+                            v,
+                        )
+
+        else:
+            logger.info(
+                "You have no field tags listed that require synchronising"
+            )
+
+
+class TaggedFieldModel(models.Model):
+    """
+    Stores configuration details for fields using the 'tag-me' library.
+
+    This model maintains an internal registry of models and their fields
+    configured for tagging.
+    Do not interact with this model directly. To update the registry after
+    adding or modifying tagged fields, use the management
+    command:  ./manage.py tags -U
     """
 
     class Meta:
@@ -160,6 +272,10 @@ class TagBase(models.Model):
             )
 
         return slug
+
+
+# A store for synchronised tags, that are yet to be saved
+add_synced_user_tags_list = []
 
 
 class UserTag(TagBase):
@@ -297,6 +413,56 @@ class UserTag(TagBase):
 
     def __str__(self) -> str:
         return f"{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.name}"
+
+    def save(self, sync_tags_save: bool = False, *args, **kwargs):
+        """
+        Saves the model instance and optionally synchronises related tags.
+
+        This method allows you to control whether related tags from synchronised
+        content types will also be updated when the model saves.
+
+        :param sync_tags_save: If True, tags on related content types configured
+                               for synchronisation will be updated.  Defaults to False.
+        :param args: Additional positional arguments passed to the superclass's save method.
+        :param kwargs: Additional keyword arguments passed to the superclass's save method.
+
+        """
+        # We don't need to gather synchronising information if the save is
+        # for synchronising tags.  The information has already been collected
+        if not sync_tags_save:
+            sync = TagMeSynchronise.objects.get(name="default")
+            # Check if tags should be synced for a specific field
+            if self.field_name in sync.synchronise.keys():
+                # Get other objects with this tag (excluding the current one)
+                content_ids = copy.deepcopy(sync.synchronise[self.field_name])
+                content_ids.remove(self.content_type_id)
+                tagged_models = TaggedFieldModel.objects.filter(
+                    content_id__in=content_ids
+                ).distinct()
+                for content_id in content_ids:
+                    syncing_model = ContentType.objects.get(id=content_id)
+                    add_synced_user_tags_list.append(
+                        UserTag(
+                            user=self.user,
+                            content_type=syncing_model,
+                            model_verbose_name=tagged_models.filter(
+                                content_id=content_id
+                            )[0].model_verbose_name,
+                            comment="Tag created with automatic tag synchronising.",  # noqa: E501
+                            field_name=self.field_name,
+                            name=self.name,
+                            slug=self.slug + "-" + str(content_id),
+                        )
+                    )
+
+        super().save(*args, **kwargs)
+
+        if add_synced_user_tags_list:
+            # Bulk create the new synchronized tags
+            for tag in add_synced_user_tags_list:
+                add_synced_user_tags_list.remove(tag)
+                tag.save(sync_tags_save=True)
+        return
 
     def nothing_here():
         """acc._meta.__dict__["concrete_model"]
