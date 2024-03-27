@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from tag_me.models import TaggedFieldModel, UserTag
+from tag_me.models import TaggedFieldModel, UserTag, TagMeSynchronise
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -61,6 +61,52 @@ def update_models_with_tagged_fields_table() -> None:
                             logger.info(
                                 f"\tUpdated {obj} : {field[0]}"
                             )  # Log an updated entry
+        update_fields_that_should_be_synchronised()
+
+
+def update_fields_that_should_be_synchronised():
+    """
+    Updates the synchronization configuration to include fields marked for tag synchronization.
+
+    This function scans all models and checks for fields that have the 'synchronise'
+    attribute set to True. If found, it updates the 'TagMeSynchronise' model (named 'default')
+    to ensure that tags applied to those fields will be synchronised across relevant content types.
+    """
+    from tag_me.models import TaggedFieldModel, TagMeSynchronise
+
+    # Retrieve or create the default synchronization configuration
+    sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
+
+    # Get a list of unique content IDs from existing TaggedFieldModel instances
+    model_content_ids = (
+        TaggedFieldModel.objects.all()
+        .values_list("content_id", flat=True)
+        .distinct()
+    )
+
+    # Retrieve ContentType models for further processing
+    models_for_sync = ContentType.objects.filter(
+        id__in=model_content_ids
+    )  # Get models_for_sync from the list of content_id's
+
+    # Flag to track changes to the sync config
+    sync_updated: bool = False
+    for model in models_for_sync:
+        for field in model.model_class()._meta.fields:
+            # Check if the field has the 'synchronise' attribute, and it's set
+            # to True
+            if hasattr(field, "synchronise") and field.synchronise:
+                # Ensure the field is registered for synchronization
+                if not sync.synchronise.get(field.name, False):
+                    sync.synchronise[field.name] = []
+                # Add the ContentType ID to the sync list for this field
+                if model.id not in sync.synchronise[field.name]:
+                    sync.synchronise[field.name].append(model.id)
+                    sync_updated = True
+
+    # Save the updated synchronization configuration if changes were made
+    if sync_updated:
+        sync.save()
 
 
 def get_model_tagged_fields_field_and_verbose(
@@ -119,7 +165,7 @@ def get_models_with_tagged_fields() -> list[models.Model]:
         case _:
             PROJECT_APPS = settings.PROJECT_APPS
 
-    _tagged_field_models = [] # Stores the models we find
+    _tagged_field_models = []  # Stores the models we find
     for app in PROJECT_APPS:
         # Left for reference, can be deleted any time.
         # we dont want the testing models in the users options
@@ -136,13 +182,19 @@ def get_models_with_tagged_fields() -> list[models.Model]:
         # else:
         #     break
 
-        models = ContentType.objects.filter(app_label=app) # Get models from the app
+        models = ContentType.objects.filter(
+            app_label=app
+        )  # Get models from the app
+
         for model in models:
             for field in model.model_class()._meta.fields:
                 # if type(field) is TaggedFieldJSONField:
-                if issubclass(type(field), TagMeCharField): # Check for tagged field
+
+                if issubclass(
+                    type(field), TagMeCharField
+                ):  # Check for tagged field
                     _tagged_field_models.append(model.model_class())
-                    break # No need to check other fields in this model
+                    break  # No need to check other fields in this model
 
     return _tagged_field_models
 
@@ -166,7 +218,7 @@ def get_models_with_tagged_fields_choices() -> list[tuple]:
     for model in get_models_with_tagged_fields():
         for field in model._meta.fields:
             if issubclass(type(field), TagMeCharField):
-                label = model._meta.verbose_name # User-friendly model name
+                label = model._meta.verbose_name  # User-friendly model name
                 value = label
                 _tagged_field_model_choices.append(
                     (value, label),
@@ -200,12 +252,18 @@ def get_model_tagged_fields_choices(
     if not feature_name:
         feature_name = ""  # Allow filtering by any model
 
-    _tagged_field_list_choices = [(None, None)]  # Placeholder for 'no selection' option
+    _tagged_field_list_choices = [
+        (None, None)
+    ]  # Placeholder for 'no selection' option
 
     for model in get_models_with_tagged_fields():
-        if model._meta.verbose_name == feature_name:  # Check if we want this model
+        if (
+            model._meta.verbose_name == feature_name
+        ):  # Check if we want this model
             for field in model._meta.fields:
-                if issubclass(type(field), TagMeCharField):  # Find tagged fields
+                if issubclass(
+                    type(field), TagMeCharField
+                ):  # Find tagged fields
                     label = str(
                         model._meta.get_field(field.name).verbose_name.title()
                     )  # Get a nicely formatted label
@@ -277,7 +335,7 @@ def get_user_field_choices_as_list_or_queryset(
     )
 
     if return_list:
-        return choices.values_list('name', flat=True)
+        return choices.values_list("name", flat=True)
     else:
         return choices
 
@@ -315,6 +373,8 @@ def get_user_field_choices_as_list_tuples(
     )  # Get the tags as a QuerySet (efficient)
 
     for user_tag in user_tags:
-        choices.append((user_tag.name, user_tag.name))  # Build a tuple (value, label)
+        choices.append(
+            (user_tag.name, user_tag.name)
+        )  # Build a tuple (value, label)
 
     return choices

@@ -18,7 +18,9 @@ class TagMeCharField(CharField):
      in a comma-separated (CSV)  format.
     """
 
-    def __init__(self, *args, db_collation=None, **kwargs):
+    def __init__(
+        self, *args, synchronise: bool = False, db_collation=None, **kwargs
+    ):
         """
         Initializes the custom TagMeCharField model field.
 
@@ -28,6 +30,7 @@ class TagMeCharField(CharField):
                         constructor.
         """
         super().__init__(*args, **kwargs)
+        self.synchronise = synchronise
         self.db_collation = db_collation
         if self.max_length is not None:
             self.validators.append(
