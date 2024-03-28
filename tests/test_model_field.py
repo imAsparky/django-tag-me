@@ -1,5 +1,7 @@
 """tag-me model field tests"""
 
+from typing import Dict
+
 import pytest
 from django.core import validators
 from django.core.exceptions import ValidationError
@@ -20,7 +22,7 @@ class TestTagMeCharField(TestCase):
         CharField passes its max_length attribute to form fields created using
         the formfield() method.
 
-        Equivelant to Django test.
+        Equivalent to Django test.
         """
 
         f1 = TagMeCharField()
@@ -30,40 +32,43 @@ class TestTagMeCharField(TestCase):
         assert 1234 == f2.formfield().max_length
 
     def test_emoji(self):
-        """Equivelant to Django test."""
+        """Equivalent to Django test."""
         tag = TaggedFieldTestModel.objects.create(
             tagged_field_1=["Smile 😀"]
             # slug="Whatever.",
         )
         tag.refresh_from_db()
+        # tag-me tags are stored in the db with trailing comma to ensure they
+        # are parsed correctly
+        assert "Smile 😀," == tag.tagged_field_1
 
-        assert "Smile 😀" == tag.tagged_field_1
-
-    def test_assignment_from_choice_enum(self):
-        """Equivelant to Django test."""
-
-        class Event(models.TextChoices):
-            C = "Carnival!"
-            F = "Festival!"
-
-        tag_1 = TaggedFieldTestModel.objects.create(
-            tagged_field_1=Event.C,
-            tagged_field_2=Event.F,
-        )
-        tag_1.refresh_from_db()
-        assert "Carnival!" == tag_1.tagged_field_1
-        assert "Festival!" == tag_1.tagged_field_2
-        assert Event.C == tag_1.tagged_field_1
-        assert Event.F == tag_1.tagged_field_2
-        tag_2 = TaggedFieldTestModel.objects.get(
-            tagged_field_1="Carnival!",
-        )
-        assert tag_2 == tag_1
-        assert Event.C == tag_2.tagged_field_1
+    # Removed issue-108. tag-me bypasses Django choices validation. The choices
+    # are added to a FieldTagListFormatter instance.
+    # def test_assignment_from_choice_enum(self):
+    #     """Equivalent to Django test."""
+    #
+    #     class Event(models.TextChoices):
+    #         C = "Carnival!"
+    #         F = "Festival!"
+    #
+    #     tag_1 = TaggedFieldTestModel.objects.create(
+    #         tagged_field_1=Event.C,
+    #         tagged_field_2=Event.F,
+    #     )
+    #     tag_1.refresh_from_db()
+    #     assert "Carnival!" == tag_1.tagged_field_1
+    #     assert "Festival!" == tag_1.tagged_field_2
+    #     assert Event.C == tag_1.tagged_field_1
+    #     assert Event.F == tag_1.tagged_field_2
+    #     tag_2 = TaggedFieldTestModel.objects.get(
+    #         tagged_field_1="Carnival!",
+    #     )
+    #     assert tag_2 == tag_1
+    #     assert Event.C == tag_2.tagged_field_1
 
 
 class TestMethods(SimpleTestCase):
-    """Equivelant to Django test."""
+    """Equivalent to Django test."""
 
     def test_deconstruct(self):
         f = TagMeCharField()
@@ -102,25 +107,34 @@ class TestValidation(SimpleTestCase):
         f = TagMeCharField(blank=True)
         assert f.clean("", None) == ""
 
-    def test_charfield_with_choices_cleans_valid_choice(self):
-        f = TagMeCharField(max_length=1, choices=[("a", "A"), ("b", "B")])
-        assert f.clean("a", None) == "a"
+    # Removed issue-108. tag-me bypasses Django choices validation. The choices
+    # are added to a FieldTagListFormatter instance.
+    # def test_charfield_with_choices_cleans_valid_choice(self):
+    #     f = TagMeCharField(max_length=1, choices=[("a", "A"), ("b", "B")])
+    #     assert f.clean("a", None) == "a"
 
-    def test_charfield_with_choices_raises_error_on_invalid_choice(self):
-        f = TagMeCharField(choices=[("a", "A"), ("b", "B")])
-        msg = "Value 'not a' is not a valid choice."
-        with self.assertRaisesMessage(ValidationError, msg):
-            f.clean("not a", None)
+    # Removed issue-108. tag-me does not use enum in choices. The choices
+    # are added to a FieldTagListFormatter instance.
+    # def test_charfield_with_choices_raises_error_on_invalid_choice(self):
+    #     f = TagMeCharField(choices=[("a", "A"), ("b", "B")])
+    #     msg = "Value 'not a' is not a valid choice."
+    #     with self.assertRaisesMessage(ValidationError, msg):
+    #         f.clean("not a", None)
 
-    def test_enum_choices_cleans_valid_string(self):
-        f = TagMeCharField(choices=self.Choices.choices, max_length=1)
-        assert f.clean("c", None) == "c"
+    # Removed issue-108. tag-me does not use enum in choices. The choices
+    # are added to a FieldTagListFormatter instance.
+    # def test_enum_choices_cleans_valid_string(self):
+    #     f = TagMeCharField(choices=self.Choices.choices, max_length=1)
+    #     assert f.clean("c", None) == "c"
 
-    def test_enum_choices_invalid_input(self):
-        f = TagMeCharField(choices=self.Choices.choices, max_length=1)
-        msg = "Value 'd' is not a valid choice."
-        with self.assertRaisesMessage(ValidationError, msg):
-            f.clean("d", None)
+    # Removed issue-108. tag-me does not use enum in choices. The choices
+    # are added to a FieldTagListFormatter instance.
+    # def test_enum_choices_invalid_input(self):
+    #     f = TagMeCharField(choices=self.Choices.choices, max_length=1)
+    #     msg = "Value 'd' is not a valid choice."
+    #     with self.assertRaisesMessage(ValidationError, msg):
+    #         f.clean("d", None)
+    #
 
     def test_charfield_raises_error_on_empty_input(self):
         f = TagMeCharField(null=False)
@@ -131,43 +145,49 @@ class TestValidation(SimpleTestCase):
 
     def test_charfield_not_editable(self):
         f = TagMeCharField(editable=False)
-        value = "testing"
+        # All tag-me tags are stored with a trailing comma to ensure correct
+        # parsing to and from db
+        value = "testing,"
 
         assert f.clean(value, None) == value
 
-    def test_charfield_choice_not_valid_and_not_in_empty(self):
-        f = TagMeCharField(choices=self.Choices.choices)
-        value = "invalid"
+    # Removed issue-108. tag-me bypasses Django choices validation. The choices
+    # are added to a FieldTagListFormatter instance.
+    # def test_charfield_choice_not_valid_and_not_in_empty(self):
+    #     f = TagMeCharField(choices=self.Choices.choices)
+    #     value = "invalid"
+    #
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.clean(value, None)
+    #     assert "Value 'invalid' is not a valid choice." in str(exc.value)
+    #     assert exc.type == ValidationError
 
-        with pytest.raises(ValidationError) as exc:
-            f.clean(value, None)
-        assert "Value 'invalid' is not a valid choice." in str(exc.value)
-        assert exc.type == ValidationError
-
-    def test_charfield_choice_in_empty_values(self):
-        f = TagMeCharField(choices=self.Choices.choices)
-
-        with pytest.raises(ValidationError) as exc:
-            f.clean(None, None)
-        assert "This field cannot be null." in str(exc.value)
-        assert exc.type == ValidationError
-
-        with pytest.raises(ValidationError) as exc:
-            f.clean("", None)
-        assert "This field cannot be blank." in str(exc.value)
-        assert exc.type == ValidationError
-        with pytest.raises(ValidationError) as exc:
-            f.clean([], None)
-        assert "This field cannot be blank." in str(exc.value)
-        assert exc.type == ValidationError
-        with pytest.raises(ValidationError) as exc:
-            f.clean((), None)
-        assert "This field cannot be blank." in str(exc.value)
-        assert exc.type == ValidationError
-        with pytest.raises(ValidationError) as exc:
-            f.clean({}, None)
-        assert "This field cannot be blank." in str(exc.value)
-        assert exc.type == ValidationError
+    # Removed issue-108. tag-me bypasses Django choices validation. The choices
+    # are added to a FieldTagListFormatter instance.
+    # def test_charfield_choice_in_empty_values(self):
+    #     f = TagMeCharField(choices=self.Choices.choices)
+    #
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.clean(None, None)
+    #     assert "This field cannot be null." in str(exc.value)
+    #     assert exc.type == ValidationError
+    #
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.clean("", None)
+    #     assert "This field cannot be blank." in str(exc.value)
+    #     assert exc.type == ValidationError
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.clean([], None)
+    #     assert "This field cannot be blank." in str(exc.value)
+    #     assert exc.type == ValidationError
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.clean((), None)
+    #     assert "This field cannot be blank." in str(exc.value)
+    #     assert exc.type == ValidationError
+    #     with pytest.raises(ValidationError) as exc:
+    #         f.clean({}, None)
+    #     assert "This field cannot be blank." in str(exc.value)
+    #     assert exc.type == ValidationError
 
 
 class TestTagMeCharfieldtoPython(SimpleTestCase):
@@ -421,7 +441,14 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
 
         f = TagMeCharField(choices=Event.choices)
 
-        assert f.to_python(f.choices) == Event.choices
+        # Check internal representation of choices
+        assert f._tag_choices == ["Carnival!", "Festival!"]
+
+        # Check the choices are formatted and saved to the db correctly
+        assert f.to_python(f._tag_choices) == "Carnival!, Festival!,"
+
+        # Check Django choices machinery is disabled.
+        assert f.choices is None
 
     def test_tags_input_is_null_only_tags(self):
         null_tags = [
@@ -452,10 +479,21 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
 class TestTagMeCharFieldOtherMethods(SimpleTestCase):
     """Test other overridden Charfield Methods"""
 
-    def test_form_field_form_class(self):
+    def test_default_form_field_form_class_widget(self):
+
         f = TagMeCharField()
 
         assert (
             str(type(f.formfield()))
-            == "<class 'tag_me.db.forms.fields.TagMeCharFieldForm'>"
+            == "<class 'tag_me.db.forms.fields.TagMeCharField'>"
+        )
+
+    def test_admin_form_field_form_class_widget(self):
+        kwargs: dict[str, str] = {"widget": "django.contrib.admin.widgets"}
+
+        f = TagMeCharField()
+
+        assert (
+            str(type(f.formfield(**kwargs)))
+            == "<class 'django.forms.fields.CharField'>"
         )

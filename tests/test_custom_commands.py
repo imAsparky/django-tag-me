@@ -14,6 +14,7 @@ class TestCustomManagementCommands(TestCase):
 
         assert "Updating Tagged Models Table." in self.out_migration.getvalue()
         assert (
-            "SUCCESS: Tagged Models Table updated."
+            "    SUCCESS: Tagged Models Table,"
+            " and Synchronised Fields updated."
             in self.out_migration.getvalue()
         )
