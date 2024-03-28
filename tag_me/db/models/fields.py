@@ -24,6 +24,8 @@ class TagMeCharField(CharField):
         """
         Initializes the custom TagMeCharField model field.
 
+        :param synchronise: Boolean indicating whether this field is
+            synchronised with other models with the same field name.
         :param *args: Positional arguments passed to the parent CharField
                         constructor.
         :param **kwargs: Keyword arguments passed to the parent CharField
@@ -36,9 +38,18 @@ class TagMeCharField(CharField):
             self.validators.append(
                 validators.MaxLengthValidator(self.max_length)
             )
+        self.formatter = FieldTagListFormatter()
         # Used to pass choices as a list to widget attrs.
         self._tag_choices: list = []
-        self.formatter = FieldTagListFormatter()
+        if self.choices:
+            tag_choices_list = []
+            # Convert choice labels to a list.
+            for label, value in self.choices:
+                tag_choices_list.append(str(label))
+            self.formatter.clear()
+            self.formatter.add_tags(tag_choices_list)
+            self._tag_choices = self.formatter.toList()
+            self.choices = None  # Disable Django choices machinery.
 
     def from_db_value(self, value, expression, connection):
         """
@@ -116,18 +127,15 @@ class TagMeCharField(CharField):
         :returns django.forms.Field: An instance of a form field appropriate
                                     for representing this model field.
         """
-        if self.choices:
-            tag_choices_list = []
-            # Convert choice values to a list.
-            for label, value in self.choices:
-                tag_choices_list.append(str(value))
-            self.formatter.clear()
-            self.formatter.add_tags(tag_choices_list)
-            self._tag_choices = self.formatter.toList()
-            self.choices = None  # Disable Django choices machinery.
 
         # Extract and analyze the provided widget
         widget = kwargs.get("widget", None)
+
+        # Added for edge cases when running tests.
+        if hasattr(self, "model"):
+            model_verbose_name = self.model._meta.verbose_name
+        else:
+            model_verbose_name = "** No Model **"
 
         # Conditional widget configuration
         if "django.contrib.admin.widgets" in str(widget):
@@ -149,7 +157,7 @@ class TagMeCharField(CharField):
                 "required": False,
                 "widget": TagMeSelectMultipleWidget(
                     attrs={
-                        "model_verbose_name": self.model._meta.verbose_name,
+                        "model_verbose_name": model_verbose_name,
                         "field_name": self.name,
                         "field_verbose_name": self.verbose_name,
                         "_tag_choices": self._tag_choices,
