@@ -16,11 +16,6 @@
 
 |
 
-Special thanks to a helpful AI language model (trained on the `Gemini dataset:<https://gemini.google.com/advanced>`_)
-for assistance with code optimization, testing strategies, and docstring writing.
-
-|
-
 .. image:: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FimAsparky%2Fdjango-tag-me%2Fmain%2Fpyproject.toml&query=project.dependencies&logo=Django&label=Versions&labelColor=%23092E20
    :alt: Django Version Badge
    :target: https://docs.djangoproject.com/en/4.2/
@@ -30,9 +25,9 @@ for assistance with code optimization, testing strategies, and docstring writing
 .. image:: https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FimAsparky%2Fdjango-tag-me%2Fmain%2Fpyproject.toml&logo=Python
    :alt: Python Version Badge
    :target:: https://devdocs.io/python~3.10/
-.. image:: https://www.repostatus.org/badges/latest/concept.svg
-   :alt: Project Status: Concept – Minimal or no implementation has been done yet, its a proof-of-concept.
-   :target: https://www.repostatus.org/#concept
+.. image:: https://www.repostatus.org/badges/latest/wip.svg
+   :alt: Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.
+   :target: https://www.repostatus.org/#wip
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
@@ -50,10 +45,10 @@ for assistance with code optimization, testing strategies, and docstring writing
 Django Tag Me Features in the Pipeline!
 ---------------------------------------
 
-#. Easily set up `User tags`.
-#. Tag a field.
-#. Tag a model.
-#. Easy as `1,2,3` - `select2` integration in your forms and templates with no other dependencies.
+#. Easily set up `User tags`. **In Progress**.
+#. Tag a field. **Completed**.
+#. Tag a model. **Completed**.
+#. Easy as `1,2,3` - Custom select widget integration in your forms and templates. **Completed**.
 #. `sqLite` search with `i_contains`.
 #. `Postgres` text search or `i_contains`.
 
@@ -62,14 +57,10 @@ Django Tag Me Features in the Pipeline!
 
 
 
-
-
-
-
-
-
-
-
-
 Built with
 `Django Cookiecutter <https://github.com/imAsparky/django-cookiecutter>`_
+
+|
+
+Special thanks to a helpful AI language model (trained on the `Gemini dataset:<https://gemini.google.com/advanced>`_)
+for assistance with code optimization, testing strategies, and docstring writing.

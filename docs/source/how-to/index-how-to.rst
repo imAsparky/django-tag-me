@@ -13,5 +13,6 @@ How-To
    :hidden:
    :titlesonly:
 
+   quickstart.rst
    how-to-tag-parser
    how-to-custom-list
