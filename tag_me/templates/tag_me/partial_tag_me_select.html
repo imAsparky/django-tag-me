@@ -1,6 +1,11 @@
 <!-- original code by https://github.com/alexpechkarev/alpinejs-multiselect/ -->
 
-<div class="w-full flex flex-col items-center mx-auto" @keyup.alt="toggle">
+<div class="w-full flex flex-col items-center mx-auto"
+     @keyup.alt="toggle()"
+     @keyup.escape.prevent.stop="toggle()"
+     @click.away="toggle()"
+    >
+    
     <!-- Selected Tags -->
     <input
       name="js_{{ name }}[]"
@@ -17,7 +22,7 @@
             <div class="w-full">
                 <div class="my-2 p-1 flex border border-gray-200 bg-white rounded-md">
                     <div
-                      x-on:click="open"
+                      x-on:click="open()"
                       class="flex flex-auto flex-wrap"
                     >
                         <!-- iterating over selected elements -->
@@ -143,7 +148,7 @@
                   x-show.transition.origin.top="isOpen()"
                   x-trap="isOpen()"
                   class="absolute shadow-lg top-100 bg-white z-40 w-full lef-0 rounded max-h-80"
-                  x-on:click.away="close"
+                  x-on:click.away="close()"
                 >
                     <div class="flex flex-col w-full">
 
@@ -172,23 +177,23 @@
                                   name="search"
                                   autocomplete="off"
                                   x-model.debounce.750ms="search"
-                                  @keyup.escape="clear"
-                                  @keyup.delete="deselect"
+                                  @keyup.escape="clear()"
+                                  @keyup.delete="deselect()"
                                   class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border border-indigo-300 rounded-md h-10"
                                   placeholder=""
                                 >
                                 <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
-                                    <kbd class="inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400 mr-2" x-on:click="clear">
+                                    <kbd class="inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400 mr-2" x-on:click="clear()">
                                         Esc
                                     </kbd>
-                                    <kbd class="inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400" x-on:click="deselect">
+                                    <kbd class="inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400" x-on:click="deselect()">
                                         Del
                                     </kbd>
                                 </div>
                             </div>
                         </div>
                         <!-- Options container -->
-                        <ul class="z-10 mt-0 w-full bg-white shadow-lg max-h-80 rounded-md py-0 text-base ring-1 ring-black ring-opacity-5 focus:outline-none  overflow-y-auto sm:text-sm" tabindex="-1" role="listbox" @keyup.delete="deselect">
+                        <ul class="z-10 mt-0 w-full bg-white shadow-lg max-h-80 rounded-md py-0 text-base ring-1 ring-black ring-opacity-5 focus:outline-none  overflow-y-auto sm:text-sm" tabindex="-1" role="listbox" @keyup.delete="deselect()">
                             <template x-for="(option,index) in options" :key="option.text">
                                 <li class="text-gray-900 cursor-default select-none relative py-2 pl-3 pr-3"
                                     role="option">
