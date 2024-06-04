@@ -3,6 +3,7 @@
 from typing import override
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
@@ -11,14 +12,16 @@ from tag_me.utils.helpers import (
     get_user_field_choices_as_list_or_queryset,
 )
 
+
+
+
 User = get_user_model()
 
 
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
 
     allow_multiple_selected = True
-    template_name = "tag_me/tag_me_select.html"
-
+    # template_name = "tag_me/tag_me_select.html"
     @override
     def render(self, name, value, attrs=None, renderer=None) -> str:
         """Renders a multiple select HTML element with dynamically generated choices.  # noqa: E501
@@ -45,7 +48,6 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                   element with its <option> tags populated from your dynamic
                   choices.
         """
-
         # Important: 'attrs' is modified in place by removing some entries
         # The 'attrs' removed are for filtering choices and not required
         # elsewhere.
@@ -56,13 +58,20 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         _tag_choices = self.attrs.pop("_tag_choices", None)
         user = self.attrs.pop("user", None)
 
+        if 'display_number_selected' not in self.attrs:
+            self.attrs['display_number_selected'] =  settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
+        # Get the template theme
+        if 'theme' not in self.attrs:
+            self.template_name = settings.DJ_TAG_ME_THEMES['default']
+        else:
+            self.template_name = settings.DJ_TAG_ME_THEMES[self.attrs['theme']]
+
         # Call the parent class render (essential for Widget functionality)
         super().render(name, value, attrs, renderer)
 
         if _tag_choices:
             # Here we are using the choices set in the model charfield.
             self.choices = _tag_choices
-
         else:
             # Dynamically fetch user and field specific choices as a list.
             self.choices = get_user_field_choices_as_list_or_queryset(
@@ -79,9 +88,11 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
 
         context = {
             "name": name,
+            "verbose_name": field_verbose_name,
             "values": values,
             "choices": self.choices,
             # "options": json.dumps(options),
+            "display_number_selected": self.attrs['display_number_selected'],
         }
 
         return mark_safe(render_to_string(self.template_name, context))
