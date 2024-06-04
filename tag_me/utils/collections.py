@@ -36,6 +36,7 @@ class FieldTagListFormatter(list):
             | str
             | None
         ) = None,
+        tags_with_meta:dict = None,
     ) -> None:
 
         super().__init__()
@@ -170,7 +171,7 @@ class FieldTagListFormatter(list):
         """Checks if all tags in a list are valid."""
         return all(self._is_valid_tag(tag) for tag in tag_list)
 
-    def _extract_tags_from_dict(self, tags: dict[list[str] | str]) -> list:
+    def _extract_tags_from_dict(self, tags: dict[list[str] | str]) -> list[str]:
         """Extracts and validates tags from a dictionary.
 
         :param tags: The input dictionary.
@@ -183,8 +184,14 @@ class FieldTagListFormatter(list):
         """
         try:
             if self._is_valid_tag_container(tags):
-                inner_tags: str | list = tags["tags"]
+                inner_tags: str | list | dict | set = tags["tags"]
                 match inner_tags:
+                    case dict():
+                        """For the tag meta data feature
+                        Extracts the keys from the tag dict as tags.-
+                        """
+                        if self._is_valid_tag_list(inner_tags.keys()):
+                            return inner_tags.keys()
                     case str():
                         return parse_tags(inner_tags)
                     case list() | set():
@@ -281,7 +288,7 @@ class FieldTagListFormatter(list):
     def _add_tags(
         self,
         tags: (
-            dict[str : list[str] | set[str] | str]  # noqa: E203
+            dict[str : dict[str:any] | list[str] | set[str] | str]  # noqa: E203
             | list[str]
             | set[str]
             | str
