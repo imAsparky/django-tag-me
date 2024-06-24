@@ -23,6 +23,99 @@ except ImportError:
         return tag
 
 
+class TagBase(models.Model):
+    """Base class for Tag models.
+
+    PARAMETERS
+    ----------
+
+    :param name: Text max 255 characters
+
+            Required
+
+            The tag name that will be used in the model field.
+
+    :param slug: Text max 255 characters
+
+            Optional
+
+            If not supplied this will be generated automatically.
+
+            Automatic generation ensures the slug is unique.
+
+    """
+
+    class Meta:
+        abstract = True
+        verbose_name = _(
+            "Verbose name",
+            "Tag ABC",
+        )
+        verbose_name_plural = _(
+            "Verbose name",
+            "Tags ABC",
+        )
+
+    name = models.CharField(
+        verbose_name=_(
+            "Verbose name",
+            "Name",
+        ),
+        blank=False,
+        null=False,
+        max_length=50,
+    )
+
+    slug = models.SlugField(
+        verbose_name=_(
+            "Verbose name",
+            "slug",
+        ),
+        unique=True,
+        max_length=100,
+        allow_unicode=True,
+    )
+
+    def save(self, *args, **kwargs):
+        """Ported from django-taggit
+        https://github.com/jazzband/django-taggit/tree/master
+        """
+        if self._state.adding and not self.slug:
+            self.slug = self.slugify(self.name)
+            using = kwargs.get("using") or router.db_for_write(
+                type(self), instance=self
+            )
+            # Make sure we write to the same db for all attempted writes,
+            # with a multi-master setup, theoretically we could try to
+            # write and rollback on different DBs
+            kwargs["using"] = using
+            # Be opportunistic and try to save the tag, this should work for
+            # most cases ;)
+            try:
+                with transaction.atomic(using=using):
+                    res = super().save(*args, **kwargs)
+                return res
+            except IntegrityError:
+                pass
+        else:
+            return super().save(*args, **kwargs)
+
+    def slugify(self, tag: str = None) -> str:
+        if getattr(settings, "TAGS_STRIP_UNICODE_WHEN_SLUGIFYING", False):
+            slug = slugify(
+                unidecode(tag)
+                + "-"
+                + get_random_string(8, f"abcdqrwxyz{tag}0123456789")
+            )
+        else:
+            slug = slugify(
+                tag + "-" + get_random_string(8, f"abcdqrwxyz{tag}0123456789"),
+                allow_unicode=True,
+            )
+
+        return slug
+
+
 class TagMeSynchronise(models.Model):
     """
     Internal model for managing tag synchronization configuration.
@@ -179,99 +272,6 @@ class TaggedFieldModel(models.Model):
 
     def __str__(self):
         return f"{self.model_verbose_name}"
-
-
-class TagBase(models.Model):
-    """Base class for Tag models.
-
-    PARAMETERS
-    ----------
-
-    :param name: Text max 255 characters
-
-            Required
-
-            The tag name that will be used in the model field.
-
-    :param slug: Text max 255 characters
-
-            Optional
-
-            If not supplied this will be generated automatically.
-
-            Automatic generation ensures the slug is unique.
-
-    """
-
-    class Meta:
-        abstract = True
-        verbose_name = _(
-            "Verbose name",
-            "Tag ABC",
-        )
-        verbose_name_plural = _(
-            "Verbose name",
-            "Tags ABC",
-        )
-
-    name = models.CharField(
-        verbose_name=_(
-            "Verbose name",
-            "Name",
-        ),
-        blank=False,
-        null=False,
-        max_length=50,
-    )
-
-    slug = models.SlugField(
-        verbose_name=_(
-            "Verbose name",
-            "slug",
-        ),
-        unique=True,
-        max_length=100,
-        allow_unicode=True,
-    )
-
-    def save(self, *args, **kwargs):
-        """Ported from django-taggit
-        https://github.com/jazzband/django-taggit/tree/master
-        """
-        if self._state.adding and not self.slug:
-            self.slug = self.slugify(self.name)
-            using = kwargs.get("using") or router.db_for_write(
-                type(self), instance=self
-            )
-            # Make sure we write to the same db for all attempted writes,
-            # with a multi-master setup, theoretically we could try to
-            # write and rollback on different DBs
-            kwargs["using"] = using
-            # Be opportunistic and try to save the tag, this should work for
-            # most cases ;)
-            try:
-                with transaction.atomic(using=using):
-                    res = super().save(*args, **kwargs)
-                return res
-            except IntegrityError:
-                pass
-        else:
-            return super().save(*args, **kwargs)
-
-    def slugify(self, tag: str = None) -> str:
-        if getattr(settings, "TAGS_STRIP_UNICODE_WHEN_SLUGIFYING", False):
-            slug = slugify(
-                unidecode(tag)
-                + "-"
-                + get_random_string(8, f"abcdqrwxyz{tag}0123456789")
-            )
-        else:
-            slug = slugify(
-                tag + "-" + get_random_string(8, f"abcdqrwxyz{tag}0123456789"),
-                allow_unicode=True,
-            )
-
-        return slug
 
 
 # A store for synchronised tags, that are yet to be saved

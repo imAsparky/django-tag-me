@@ -19,7 +19,6 @@ User = get_user_model()
 
 
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
-
     allow_multiple_selected = True
     # template_name = "tag_me/tag_me_select.html"
     @override

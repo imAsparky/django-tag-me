@@ -30,6 +30,12 @@ maintainers = [{ name = "Mark Sevelj", email = "mark.sevelj@dunwright.com.au" }]
 name = "django-tag-me"
 readme = "README.rst"
 requires-python = ">=3.10"
+[project.optional-dependencies]
+dev=[
+  "hypothesis",
+  "pyright",
+  "pytest",
+]
 
 [tool.flit.module]
 name = "tag_me"
