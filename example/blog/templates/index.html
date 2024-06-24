@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div
+  class="bg-gray-900"
+>
+
+<h1
+  class="px-3 py-2.5 text-left text-sm font-semibold text-gray-100"
+  >Tag Me Test Project</h1>
+
+
+</div>
+
+  <div>
+<a href="{% url 'articles:create-article' %}"
+
+  >
+  <button 
+    type="button" 
+    class=" mt-6 ml-6 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Create Article</button>
+</a>
+<a href="{% url 'articles:list-articles' %}"
+
+  >
+  <button 
+    type="button" 
+    class=" mt-6 ml-6 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Articles List</button>
+</a>
+
+</div>
+
+{% endblock %}

@@ -26,7 +26,22 @@ Installation
 
 |
 
+
+**Add `tag-me` to your installed apps.
+|
+
+.. code-block:: python
+
+    INSTALLED_APPS = [
+    "tag_me",
+]
+
+|
+
+
+
 Once installed, add the models and static files to your Django project:
+
 
 |
 
