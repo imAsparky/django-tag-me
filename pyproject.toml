@@ -30,8 +30,11 @@ maintainers = [{ name = "Mark Sevelj", email = "mark.sevelj@dunwright.com.au" }]
 name = "django-tag-me"
 readme = "README.rst"
 requires-python = ">=3.10"
+
 [project.optional-dependencies]
 dev=[
+  "django-extensions",
+  "django-tag-me",
   "hypothesis",
   "pyright",
   "pytest",
