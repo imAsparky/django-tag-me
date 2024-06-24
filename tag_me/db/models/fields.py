@@ -19,7 +19,11 @@ class TagMeCharField(CharField):
     """
 
     def __init__(
-        self, *args, synchronise: bool = False, db_collation=None, **kwargs
+        self,
+        *args,
+        synchronise: bool = False,
+        db_collation=None,
+        **kwargs,
     ):
         """
         Initializes the custom TagMeCharField model field.

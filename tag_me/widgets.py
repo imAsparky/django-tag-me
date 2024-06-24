@@ -15,7 +15,6 @@ User = get_user_model()
 
 
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
-
     allow_multiple_selected = True
     template_name = "tag_me/tag_me_select.html"
 
@@ -45,7 +44,6 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                   element with its <option> tags populated from your dynamic
                   choices.
         """
-
         # Important: 'attrs' is modified in place by removing some entries
         # The 'attrs' removed are for filtering choices and not required
         # elsewhere.
