@@ -24,4 +24,5 @@ from django.urls import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("articles.urls")),
+    path("tag_me/", include("tag_me.urls")),
 ]
