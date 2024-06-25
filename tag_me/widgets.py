@@ -2,6 +2,7 @@
 
 from typing import override
 
+from django.contrib.contenttypes.models import ContentType
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -89,8 +90,11 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                     values.append(val.strip())
 
         context = {
-            "name": name,
-            "verbose_name": field_verbose_name,
+            # "content_type": content_type,
+            "model_verbose_name": model_verbose_name,
+            "name": name,  # This is the tag name.
+            "field_verbose_name": field_verbose_name,
+            "field_name": field_name,
             "values": values,
             "choices": self.choices,
             # "options": json.dumps(options),

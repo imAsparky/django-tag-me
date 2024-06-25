@@ -1,6 +1,7 @@
 """django-tag-me forms"""
 
 from django import forms
+from django.forms import widgets
 
 # from tag_me.forms import TagMeModelForm
 from tag_me.db.forms.mixins import TagMeModelFormMixin
@@ -43,7 +44,9 @@ class ArticleCreateForm(TagMeModelFormMixin, forms.ModelForm):
             "article": "Article",
             "tag": "Tags",
         }
-        forms.widgets = {}
+        widgets = {
+            "tag": TagMeSelectMultipleWidget(),
+        }
 
 
 class ArticleListForm(forms.ModelForm):
