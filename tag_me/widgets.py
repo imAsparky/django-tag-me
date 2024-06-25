@@ -90,7 +90,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                     values.append(val.strip())
 
         context = {
-            # "content_type": content_type,
+            "content_type": self.attrs['content_type'],
             "model_verbose_name": model_verbose_name,
             "name": name,  # This is the tag name.
             "field_verbose_name": field_verbose_name,

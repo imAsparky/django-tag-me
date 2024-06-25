@@ -1,6 +1,7 @@
 """tag-me app custom model charfield."""
 
 from django.contrib.admin.widgets import AdminTextInputWidget
+from django.contrib.contenttypes.models import ContentType
 from django.core import validators
 from django.db.models.fields import CharField
 
@@ -161,6 +162,7 @@ class TagMeCharField(CharField):
                 "required": False,
                 "widget": TagMeSelectMultipleWidget(
                     attrs={
+                        "content_type": ContentType.objects.get_for_model(self.model),
                         "model_verbose_name": model_verbose_name,
                         "field_name": self.name,
                         "field_verbose_name": self.verbose_name,
