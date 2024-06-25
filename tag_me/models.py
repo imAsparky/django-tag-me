@@ -64,6 +64,10 @@ class TagBase(models.Model):
         blank=False,
         null=False,
         max_length=50,
+        help_text=_(
+            "Help",
+            "This is the tag",
+        ),
     )
 
     slug = models.SlugField(
