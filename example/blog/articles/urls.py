@@ -5,6 +5,7 @@ from .views import (
     index,
     ArticleCreateView,
     ArticleListView,
+    ArticleUpdateView,
     AuthorCreateView,
 )
 
@@ -26,6 +27,11 @@ urlpatterns = [
         "list/article",
         ArticleListView.as_view(),
         name="list-articles",
+    ),
+    path(
+        "update/article/<int:pk>",
+        ArticleUpdateView.as_view(),
+        name="update-article",
     ),
     path(
         "create/author",

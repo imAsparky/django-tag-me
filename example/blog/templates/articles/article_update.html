@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<div>
+<h1>Update Article</h1>
+    <form action="{% url 'articles:update-article' object.id %}" method="post">
+    {% csrf_token %}
+
+    {{ form }}
+    <input type="submit" value="Submit">
+</form>
+
+
+</div>
+
+
+{% endblock %}

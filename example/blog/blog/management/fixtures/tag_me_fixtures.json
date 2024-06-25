@@ -52,6 +52,84 @@
     }
 },
 {
+    "model": "admin.logentry",
+    "pk": 5,
+    "fields": {
+        "action_time": "2024-06-25T03:58:41.186Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "user1:Tag:tag:tag 1",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 6,
+    "fields": {
+        "action_time": "2024-06-25T03:59:03.422Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "2",
+        "object_repr": "user1:Tag:tag:tag 2",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 7,
+    "fields": {
+        "action_time": "2024-06-25T04:00:00.928Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "3",
+        "object_repr": "user1:Tag:tag:tag 3",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 8,
+    "fields": {
+        "action_time": "2024-06-25T04:00:46.236Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "user1:Article:tag:tag 1",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Feature\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 9,
+    "fields": {
+        "action_time": "2024-06-25T04:00:55.510Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "2",
+        "object_repr": "user1:Article:tag:tag 2",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Feature\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 10,
+    "fields": {
+        "action_time": "2024-06-25T04:01:04.407Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "3",
+        "object_repr": "user1:Article:tag:tag 3",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Feature\"]}}]"
+    }
+},
+{
     "model": "auth.permission",
     "pk": 1,
     "fields": {
@@ -614,6 +692,45 @@
         "model_verbose_name": "Article",
         "field_name": "tag",
         "field_verbose_name": "Article Tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 1,
+    "fields": {
+        "name": "tag 1",
+        "slug": "tag-1",
+        "user": 1,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 2,
+    "fields": {
+        "name": "tag 2",
+        "slug": "tag-2",
+        "user": 1,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 3,
+    "fields": {
+        "name": "tag 3",
+        "slug": "tag-3",
+        "user": 1,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "tag"
     }
 },
 {

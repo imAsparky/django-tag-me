@@ -64,3 +64,23 @@ class ArticleListForm(forms.ModelForm):
             "article": "Article",
             "tag": "Tags",
         }
+
+
+class ArticleUpdateForm(TagMeModelFormMixin, forms.ModelForm):
+    """Article creation form"""
+
+    class Meta:
+        model = Article
+        fields = [
+            "tag",
+            "author",
+            "article",
+        ]
+        labels = {
+            "author": "Author",
+            "article": "Article",
+            "tag": "Tags",
+        }
+        widgets = {
+            "tag": TagMeSelectMultipleWidget(),
+        }
