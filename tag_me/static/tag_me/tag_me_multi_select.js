@@ -61,6 +61,16 @@ document.addEventListener("alpine:init", () => {
 
             }));
         },
+        createNewTag() {
+          fetch(obj.createTagAPI, {
+            method: 'POST',
+            body: new URLSearchParams([
+              ['name', this.search],
+              ['csrfmiddlewaretoken', getCookie('csrftoken')],
+              ['content_type', obj.contentTypePk],
+            ]),
+          });
+        },
         // clear search field
         clear() {
             this.search = ''
