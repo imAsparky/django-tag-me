@@ -52,6 +52,214 @@
     }
 },
 {
+    "model": "admin.logentry",
+    "pk": 5,
+    "fields": {
+        "action_time": "2024-06-25T03:58:41.186Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "user1:Tag:tag:tag 1",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 6,
+    "fields": {
+        "action_time": "2024-06-25T03:59:03.422Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "2",
+        "object_repr": "user1:Tag:tag:tag 2",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 7,
+    "fields": {
+        "action_time": "2024-06-25T04:00:00.928Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "3",
+        "object_repr": "user1:Tag:tag:tag 3",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 8,
+    "fields": {
+        "action_time": "2024-06-25T04:00:46.236Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "user1:Article:tag:tag 1",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Feature\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 9,
+    "fields": {
+        "action_time": "2024-06-25T04:00:55.510Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "2",
+        "object_repr": "user1:Article:tag:tag 2",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Feature\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 10,
+    "fields": {
+        "action_time": "2024-06-25T04:01:04.407Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "3",
+        "object_repr": "user1:Article:tag:tag 3",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Feature\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 11,
+    "fields": {
+        "action_time": "2024-06-25T23:14:53.942Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "user1:Article:user_tag:tag 1",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Field\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 12,
+    "fields": {
+        "action_time": "2024-06-26T00:28:35.774Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "2",
+        "object_repr": "user1:Article:user_tag:User 1 Article tag 2",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Name\", \"Slug\", \"Field\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 13,
+    "fields": {
+        "action_time": "2024-06-26T00:29:22.974Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "3",
+        "object_repr": "user1:Article:user_tag:User 1 Article tag 3",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Name\", \"Slug\", \"Field\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 14,
+    "fields": {
+        "action_time": "2024-06-26T00:30:03.933Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "1",
+        "object_repr": "user1:Article:user_tag:User 1 Article tag 1",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Name\", \"Slug\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 15,
+    "fields": {
+        "action_time": "2024-06-26T00:31:44.708Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "4",
+        "object_repr": "user2:Article:user_tag:User 2 Article tag 1",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 16,
+    "fields": {
+        "action_time": "2024-06-26T00:32:37.335Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "5",
+        "object_repr": "user2:Article:user_tag:User 2 Article tag 2",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 17,
+    "fields": {
+        "action_time": "2024-06-26T00:33:05.163Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "6",
+        "object_repr": "user2:Article:user_tag:User 2 Article tag 3",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 18,
+    "fields": {
+        "action_time": "2024-06-26T00:33:57.605Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "7",
+        "object_repr": "user3:Article:user_tag:User 3 Article tag 1",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 19,
+    "fields": {
+        "action_time": "2024-06-26T00:34:58.687Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "8",
+        "object_repr": "user3:Article:user_tag:User 3 Article tag 2",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 20,
+    "fields": {
+        "action_time": "2024-06-26T00:35:38.322Z",
+        "user": 1,
+        "content_type": 8,
+        "object_id": "9",
+        "object_repr": "user3:Article:user_tag:User 3 Article tag 3",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
     "model": "auth.permission",
     "pk": 1,
     "fields": {
@@ -452,7 +660,7 @@
     "pk": 1,
     "fields": {
         "password": "pbkdf2_sha256$720000$apDTWvJshbnjGq3RW1sTVp$cD6ex+0YCb+QHLfeIOCstg6VZURUgyxp2/wa8qSPqAk=",
-        "last_login": "2024-06-24T05:08:45.205Z",
+        "last_login": "2024-06-25T07:38:05.268Z",
         "is_superuser": true,
         "username": "user1",
         "first_name": "",
@@ -591,10 +799,26 @@
 },
 {
     "model": "sessions.session",
-    "pk": "ick7xoyvkdmquntjuy5mvg3c7aebrs1y",
+    "pk": "bhsw36u84zhqrpyxh5bvx36e4dxi57tv",
     "fields": {
-        "session_data": ".eJxVjDsOwjAQBe_iGlnZEK9tSnrOED17NySAYimfCnF3EikFtG9m3tu0WJe-XWed2kHMxZA5_W4J-anjDuSB8V5sLuMyDcnuij3obG9F9HU93L-DHnO_1T6da1TQJmYWDZKjY4LTWBPQeArJwyuxbxiIXRCQuC4zM6qwZebzBfOcOGY:1sLbwb:xydAmBTecqKoVmf-soclueEqJIwf5T7f6DCSUj5aYTc",
-        "expire_date": "2024-07-08T05:08:45.208Z"
+        "session_data": "e30:1sM0fo:6z-8HZdIuqelwzFR7OQqcT9Ltbt1e8urvRNjApO2Nck",
+        "expire_date": "2024-07-09T07:33:04.703Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "llgp54wuxu12ald46nxlq5ec600lb5bu",
+    "fields": {
+        "session_data": "e30:1sM0D2:OU8NmeBDyeyshDecRa29KK8YYxy0NrJ9ENFHgeAqczU",
+        "expire_date": "2024-07-09T07:03:20.096Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "nvlphucbqr0bys35s3u6jkxmzogs4rer",
+    "fields": {
+        "session_data": ".eJxVjDsOwjAQBe_iGlnZEK9tSnrOED17NySAYimfCnF3EikFtG9m3tu0WJe-XWed2kHMxZA5_W4J-anjDuSB8V5sLuMyDcnuij3obG9F9HU93L-DHnO_1T6da1TQJmYWDZKjY4LTWBPQeArJwyuxbxiIXRCQuC4zM6qwZebzBfOcOGY:1sM0kf:EMUBEuPrTiTlN2NTOXneJKORJdKh8CODmMsnJgPknmM",
+        "expire_date": "2024-07-09T07:38:05.274Z"
     }
 },
 {
@@ -614,6 +838,134 @@
         "model_verbose_name": "Article",
         "field_name": "tag",
         "field_verbose_name": "Article Tag"
+    }
+},
+{
+    "model": "tag_me.taggedfieldmodel",
+    "pk": 2,
+    "fields": {
+        "content": 11,
+        "model_name": "Article",
+        "model_verbose_name": "Article",
+        "field_name": "user_tag",
+        "field_verbose_name": "Article User Tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 1,
+    "fields": {
+        "name": "User 1 Article tag 1",
+        "slug": "user-1-article-tag-1",
+        "user": 1,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 2,
+    "fields": {
+        "name": "User 1 Article tag 2",
+        "slug": "user-1-article-tag-2",
+        "user": 1,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 3,
+    "fields": {
+        "name": "User 1 Article tag 3",
+        "slug": "user-1-article-tag-3",
+        "user": 1,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 4,
+    "fields": {
+        "name": "User 2 Article tag 1",
+        "slug": "user-2-article-tag-1",
+        "user": 2,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 5,
+    "fields": {
+        "name": "User 2 Article tag 2",
+        "slug": "user-2-article-tag-2",
+        "user": 2,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 6,
+    "fields": {
+        "name": "User 2 Article tag 3",
+        "slug": "user-2-article-tag-3",
+        "user": 2,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 7,
+    "fields": {
+        "name": "User 3 Article tag 1",
+        "slug": "user-3-article-tag-1",
+        "user": 3,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 8,
+    "fields": {
+        "name": "User 3 Article tag 2",
+        "slug": "user-3-article-tag-2",
+        "user": 3,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 9,
+    "fields": {
+        "name": "User 3 Article tag 3",
+        "slug": "user-3-article-tag-3",
+        "user": 3,
+        "content_type": 11,
+        "model_verbose_name": "Article",
+        "comment": null,
+        "field_name": "user_tag"
     }
 },
 {
@@ -649,7 +1001,8 @@
     "fields": {
         "author": 1,
         "article": "The first article.",
-        "tag": "2 Min Read,"
+        "tag": "2 Min Read,",
+        "user_tag": ""
     }
 },
 {
@@ -658,7 +1011,8 @@
     "fields": {
         "author": 2,
         "article": "The second article.",
-        "tag": "5 Min Read,"
+        "tag": "5 Min Read,",
+        "user_tag": ""
     }
 },
 {
@@ -667,7 +1021,8 @@
     "fields": {
         "author": 3,
         "article": "The third article.",
-        "tag": "2 Min Read,"
+        "tag": "2 Min Read,",
+        "user_tag": ""
     }
 },
 {
@@ -676,7 +1031,8 @@
     "fields": {
         "author": 2,
         "article": "Two tags in use!",
-        "tag": "2 Min Read, 5 Min Read,"
+        "tag": "2 Min Read, 5 Min Read,",
+        "user_tag": ""
     }
 }
 ]
