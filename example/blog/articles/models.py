@@ -36,8 +36,8 @@ class Article(models.Model):
     """Article model"""
 
     class Meta:
-        verbose_name = "Article"
-        verbose_name_plural = "Articles"
+        verbose_name = "Blog Article"
+        verbose_name_plural = "Blog Articles"
 
     class ArticleTags(models.TextChoices):
         """An example using choices to constrain tag list"""
@@ -72,5 +72,12 @@ class Article(models.Model):
         blank=True,
         choices=ArticleTags.choices,
         verbose_name="Article Tag",
+        help_text="A tag for the Article",
+    )
+    user_tag = TagMeCharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="Article User Tag",
         help_text="A tag for the Article",
     )
