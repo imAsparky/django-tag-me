@@ -1,0 +1,10 @@
+{% extends "base.html" %}  {# Inherit from your base template #}
+
+{% block content %}
+    <h2>Login</h2>
+    <form method="post">
+        {% csrf_token %}  {# Always include CSRF token for security #}
+        {{ form.as_p }}  {# Render the default login form #}
+        <button type="submit">Login</button>
+    </form>
+{% endblock content %}

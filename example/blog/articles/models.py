@@ -74,3 +74,10 @@ class Article(models.Model):
         verbose_name="Article Tag",
         help_text="A tag for the Article",
     )
+    user_tag = TagMeCharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="Article User Tag",
+        help_text="A tag for the Article",
+    )

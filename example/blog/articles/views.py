@@ -1,17 +1,30 @@
 """django-tag-me views"""
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+from django.http import request
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic import ListView
 
 from tag_me.db.mixins import TagMeArgumentMixin
-
+from tag_me.forms import (
+    UserTagCreateForm,
+    # UserTagDetailForm,
+    # UserTagDeleteForm,
+    UserTagListForm,
+    # UserTagUpdateForm,
+)
 from .forms import (
     ArticleCreateForm,
     ArticleListForm,
     ArticleUpdateForm,
     AuthorCreateForm,
+)
+from tag_me.models import (
+    UserTag,
 )
 
 
@@ -21,8 +34,17 @@ from .models import (
 )
 
 
-def index(request):
-    return render(request, "index.html", {})
+def login(request):
+    return render(request, "login.html", {})
+
+
+def landing(request):
+    return render(request, "articles/landing.html", {})
+
+
+def logout(request):
+    logout(request)  # Call Django's logout function
+    return redirect("login")
 
 
 class ArticleCreateView(TagMeArgumentMixin, CreateView):

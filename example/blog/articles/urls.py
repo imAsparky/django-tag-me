@@ -2,7 +2,9 @@
 
 from django.urls import path
 from .views import (
-    index,
+    login,
+    logout,
+    landing,
     ArticleCreateView,
     ArticleListView,
     ArticleUpdateView,
@@ -15,26 +17,36 @@ app_name = "articles"
 urlpatterns = [
     path(
         "",
-        index,
-        name="index",
+        login,
+        name="login",
     ),
     path(
-        "create/article",
+        "logout/",
+        logout,
+        name="logout",
+    ),
+    path(
+        "landing/",
+        landing,
+        name="landing",
+    ),
+    path(
+        "create/article/",
         ArticleCreateView.as_view(),
         name="create-article",
     ),
     path(
-        "list/article",
+        "list/article/",
         ArticleListView.as_view(),
         name="list-articles",
     ),
     path(
-        "update/article/<int:pk>",
+        "update/article/<int:pk>/",
         ArticleUpdateView.as_view(),
         name="update-article",
     ),
     path(
-        "create/author",
+        "create/author/",
         AuthorCreateView.as_view(),
         name="create-author",
     ),
