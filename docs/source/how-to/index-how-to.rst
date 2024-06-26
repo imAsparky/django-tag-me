@@ -16,3 +16,4 @@ How-To
    quickstart.rst
    how-to-tag-parser
    how-to-custom-list
+   how-to-contributing
