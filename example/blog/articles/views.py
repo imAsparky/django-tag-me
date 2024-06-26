@@ -10,21 +10,12 @@ from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic import ListView
 
 from tag_me.db.mixins import TagMeArgumentMixin
-from tag_me.forms import (
-    UserTagCreateForm,
-    # UserTagDetailForm,
-    # UserTagDeleteForm,
-    UserTagListForm,
-    # UserTagUpdateForm,
-)
+
 from .forms import (
     ArticleCreateForm,
     ArticleListForm,
     ArticleUpdateForm,
     AuthorCreateForm,
-)
-from tag_me.models import (
-    UserTag,
 )
 
 
