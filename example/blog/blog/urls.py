@@ -22,8 +22,9 @@ from django.urls import (
 )
 
 urlpatterns = [
+    path("tag_me/", include("tag_me.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path("", include("articles.urls")),
-    path("tag_me/", include("tag_me.urls")),
+    path("tags", include("tags.urls")),  # example tags management
 ]

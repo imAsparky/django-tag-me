@@ -1,6 +1,12 @@
-============
-Contributing
-============
+.. highlight:: rst
+.. index:: contributing ; Index
+
+
+.. _how-to-contributing:
+
+=============================
+Contributing to django-tag-me
+=============================
 
 Contributions are welcome, and they are greatly appreciated! Every little bit
 helps, and credit will always be given.
