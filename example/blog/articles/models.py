@@ -36,8 +36,8 @@ class Article(models.Model):
     """Article model"""
 
     class Meta:
-        verbose_name = "Blog Article"
-        verbose_name_plural = "Blog Articles"
+        verbose_name = "Article"
+        verbose_name_plural = "Articles"
 
     class ArticleTags(models.TextChoices):
         """An example using choices to constrain tag list"""
