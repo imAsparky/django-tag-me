@@ -6,6 +6,7 @@ document.addEventListener("alpine:init", () => {
         selected: obj.selected,
         selectedElms: [],
         show: false,
+        canAddNewTag: false,
         search: '',
         open() {
             this.show = true
@@ -42,23 +43,19 @@ document.addEventListener("alpine:init", () => {
 
             // searching for the given value
             this.$watch("search", (e => {
-                this.options = []
                 const options = document.getElementById(this.elementId).options;
-                Object.values(options).filter((el) => {
+                this.options = Object.values(options).filter((el) => {
                     var reg = new RegExp(this.search, 'gi');
                     return el.dataset.search.match(reg)
-                }).forEach((el) => {
-                    let newel = {
+                }).map((el) => {
+                    return {
                         value: el.value,
                         text: el.innerText,
                         search: el.dataset.search,
                         selected: Object.values(this.selected).includes(el.value)
-                    }
-                    this.options.push(newel);
-
-                })
-
-
+                    };
+                });
+                this.canAddNewTag = this.options.length === 0;
             }));
         },
         createNewTag() {
