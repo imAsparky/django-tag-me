@@ -2,22 +2,13 @@
 
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView
 from django.views.generic import ListView
+from django.views.generic.edit import CreateView
 
 from tag_me.db.mixins import TagMeArgumentMixin
 
-from .forms import (
-    ArticleCreateForm,
-    ArticleListForm,
-    AuthorCreateForm,
-)
-
-
-from .models import (
-    Article,
-    Author,
-)
+from .forms import ArticleCreateForm, ArticleListForm, AuthorCreateForm
+from .models import Article, Author
 
 
 def index(request):

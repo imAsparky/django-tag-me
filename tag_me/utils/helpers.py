@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from tag_me.models import TaggedFieldModel, UserTag, TagMeSynchronise
+from tag_me.models import TaggedFieldModel, TagMeSynchronise, UserTag
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

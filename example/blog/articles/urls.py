@@ -1,12 +1,8 @@
 """django-tag-me urls"""
 
 from django.urls import path
-from .views import (
-    index,
-    ArticleCreateView,
-    ArticleListView,
-    AuthorCreateView,
-)
+
+from .views import ArticleCreateView, ArticleListView, AuthorCreateView, index
 
 app_label = "articles"
 app_name = "articles"

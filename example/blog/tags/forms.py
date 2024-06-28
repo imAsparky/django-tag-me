@@ -1,12 +1,10 @@
 """example tags forms."""
 
 from django.db.models.fields import forms
-from tag_me.db.forms.mixins import TagMeModelFormMixin
-from tag_me.models import (
-    UserTag,
-    TaggedFieldModel,
-)
 from django.utils.translation import pgettext_lazy as _
+
+from tag_me.db.forms.mixins import TagMeModelFormMixin
+from tag_me.models import TaggedFieldModel, UserTag
 
 
 class UserTagListForm(forms.ModelForm):

@@ -3,6 +3,7 @@
 from django.urls import include, path
 
 from .views import UserTagCreateView, UserTagListView
+
 # from .views import fnc
 
 app_label = "tag_me"

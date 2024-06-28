@@ -5,18 +5,13 @@ from django.shortcuts import redirect, render
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
+
 from tag_me.db.mixins import TagMeArgumentMixin
-from .forms import (
-    # UserTagCreateForm,
-    # UserTagDetailForm,
-    # UserTagDeleteForm,
-    UserTagListForm,
+from tag_me.models import TaggedFieldModel, UserTag
+
+from .forms import (  # UserTagCreateForm,; UserTagDetailForm,; UserTagDeleteForm,; UserTagUpdateForm,
     TaggedFieldsListForm,
-    # UserTagUpdateForm,
-)
-from tag_me.models import (
-    UserTag,
-    TaggedFieldModel,
+    UserTagListForm,
 )
 
 

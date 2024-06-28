@@ -42,7 +42,5 @@ class TestTag(TestCase):
             name=st_name,
         )
 
-        # print(f"NAME: {st_name}")
-
         assert slugify(tag.name) in tag.slug
         assert len(tag.slug) >= 8
