@@ -2,11 +2,12 @@
 
 import random
 import unicodedata
+
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase
-
+from hypothesis import given
+from hypothesis import strategies as st
 from hypothesis.extra.django import TestCase
-from hypothesis import given, strategies as st
 
 #
 from tag_me.models import UserTag
@@ -133,7 +134,6 @@ class TestBasicTagParsing(TestCase):
         ]
 
         result = parse_tags(tag_string)
-        print(result)
         assert result == expected_tags
 
     def test_empty_tag_with_single_space(self):

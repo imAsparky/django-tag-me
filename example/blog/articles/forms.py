@@ -7,10 +7,7 @@ from tag_me.db.forms.mixins import TagMeModelFormMixin
 from tag_me.widgets import TagMeSelectMultipleWidget
 
 # from tag_me.forms import TagMeModelForm
-from .models import (
-    Article,
-    Author,
-)
+from .models import Article, Author
 
 
 class AuthorCreateForm(TagMeModelFormMixin, forms.ModelForm):

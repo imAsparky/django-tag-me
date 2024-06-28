@@ -1,12 +1,18 @@
 """tag-me app custom model charfield."""
 
+import logging
+
 from django.contrib.admin.widgets import AdminTextInputWidget
+from django.contrib.contenttypes.models import ContentType
 from django.core import validators
+from django.db import OperationalError
 from django.db.models.fields import CharField
 
 from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
-from tag_me.widgets import TagMeSelectMultipleWidget
 from tag_me.utils.collections import FieldTagListFormatter
+from tag_me.widgets import TagMeSelectMultipleWidget
+
+logger = logging.getLogger(__name__)
 
 
 class TagMeCharField(CharField):
@@ -141,6 +147,18 @@ class TagMeCharField(CharField):
         else:
             model_verbose_name = "** No Model **"
 
+        # This try block allows the first migration to run without blocking.
+        # If this is not here then when we try to retrieve the content type
+        # before the initial migration, it stops everything and wont let you proceed.
+        try:
+            content_type = ContentType.objects.get_for_model(self.model)
+        except OperationalError as e:
+            msg = f"{str(e)}: Please check you have run migrations, if so has this table been deleted from your data base?\nWe have added an UNSAVED content type as a placeholder for you django-tag-me display.\nPlease resolve this error before using this feature as unintended consequences may occur!"
+            content_type = ContentType(
+                app_label=self.model._meta.app_label,
+                model=self.model._meta.model_name,
+            )
+            logger.error(msg)
         # Conditional widget configuration
         if "django.contrib.admin.widgets" in str(widget):
             # Admin-specific widget setup
@@ -161,6 +179,7 @@ class TagMeCharField(CharField):
                 "required": False,
                 "widget": TagMeSelectMultipleWidget(
                     attrs={
+                        "content_type": content_type,
                         "model_verbose_name": model_verbose_name,
                         "field_name": self.name,
                         "field_verbose_name": self.verbose_name,

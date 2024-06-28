@@ -1,10 +1,11 @@
 """django-tag-me article models"""
 
+from django.contrib.auth.models import AbstractUser, User
 from django.db import models
-from tag_me.db.models.fields import TagMeCharField
-from django.contrib.auth.models import AbstractUser
 from django.utils.translation import pgettext_lazy as _
-from django.contrib.auth.models import User
+
+from tag_me.db.models.fields import TagMeCharField
+
 # class BlogUser(AbstractUser):
 #     pass
 

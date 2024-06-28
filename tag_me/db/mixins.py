@@ -1,10 +1,11 @@
 """django-tag-me view mixins"""
 
 import logging
-from django.db.models import Model
-from django.views.generic.edit import FormMixin
+
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Model
 from django.http import HttpRequest
+from django.views.generic.edit import FormMixin
 
 from tag_me.db.forms.mixins import TagMeModelFormMixin
 
@@ -21,7 +22,7 @@ class TagMeArgumentMixin(FormMixin):
 
     def get_form(self, form_class=None):
         """
-        Overrides the get_form method to pass the user and model_verbose_name directly.
+        Overrides the get_form method to pass the model_verbose_name directly.
         """
         if form_class is None:
             form_class = self.get_form_class()
@@ -31,8 +32,13 @@ class TagMeArgumentMixin(FormMixin):
             logger.exception(msg)
             raise ImproperlyConfigured(msg)
 
+        form_kwargs = self.get_form_kwargs()
+
+        # Check if user is already in form_kwargs (potentially from another mixin or view)
+        if "user" not in form_kwargs:
+            form_kwargs["user"] = self.request.user
+        form_kwargs["model_verbose_name"] = (self.model._meta.verbose_name,)
+
         return form_class(
-            user=self.request.user,
-            model_verbose_name=self.model._meta.verbose_name,
             **self.get_form_kwargs(),
         )

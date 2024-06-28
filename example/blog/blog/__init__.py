@@ -1,7 +1,8 @@
-from django.core.management.base import BaseCommand
-from django.core.management import call_command
-from django.db import connection
 import os
+
+from django.core.management import call_command
+from django.core.management.base import BaseCommand
+from django.db import connection
 
 
 class Command(BaseCommand):
@@ -16,7 +17,9 @@ class Command(BaseCommand):
 
         # 2. Apply migrations
         call_command("migrate")
-        self.stdout.write(self.style.SUCCESS("Migrations applied successfully."))
+        self.stdout.write(
+            self.style.SUCCESS("Migrations applied successfully.")
+        )
 
         # 3. Load fixture data
         fixture_path = "blog/management/fixtures/tag_me_fixtures.json"

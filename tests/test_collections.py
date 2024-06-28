@@ -5,11 +5,9 @@ import unittest.mock as mock
 
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
-from hypothesis import (
-    given,
-    settings as h_settings,
-    strategies as st,
-)
+from hypothesis import given
+from hypothesis import settings as h_settings
+from hypothesis import strategies as st
 
 from tag_me.utils.collections import FieldTagListFormatter
 

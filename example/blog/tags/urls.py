@@ -1,14 +1,11 @@
 """example tags management"""
 
 from django import urls
-from django.urls import (
-    include,
-    path,
-)
+from django.urls import include, path
 from tags.views import (
-    tags_dashboard,
-    ListAllUserTagsView,
     ListAllTaggedFieldView,
+    ListAllUserTagsView,
+    tags_dashboard,
 )
 
 app_label = "tags"

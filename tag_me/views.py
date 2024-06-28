@@ -3,17 +3,14 @@
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
+
 from tag_me.db.mixins import TagMeArgumentMixin
-from .forms import (
+
+from .forms import (  # UserTagDetailForm,; UserTagDeleteForm,; UserTagUpdateForm,
     UserTagCreateForm,
-    # UserTagDetailForm,
-    # UserTagDeleteForm,
     UserTagListForm,
-    # UserTagUpdateForm,
 )
-from .models import (
-    UserTag,
-)
+from .models import UserTag
 
 
 class UserTagCreateView(TagMeArgumentMixin, CreateView):

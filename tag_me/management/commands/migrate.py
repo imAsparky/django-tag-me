@@ -1,8 +1,11 @@
 """Custom migrate command"""
+
 from io import StringIO
 
 from django.core.management import call_command
-from django.core.management.commands.migrate import Command as CoreMigrateCommand
+from django.core.management.commands.migrate import (
+    Command as CoreMigrateCommand,
+)
 
 
 class Command(CoreMigrateCommand):

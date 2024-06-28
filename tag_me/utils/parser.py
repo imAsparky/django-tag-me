@@ -4,7 +4,6 @@ import unicodedata
 from typing import Callable
 
 from django.conf import settings
-
 from django.utils.module_loading import import_string
 
 from tag_me.models import UserTag

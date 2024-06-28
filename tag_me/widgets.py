@@ -8,10 +8,7 @@ from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
-from tag_me.utils.helpers import (
-    get_user_field_choices_as_list_or_queryset,
-)
-
+from tag_me.utils.helpers import get_user_field_choices_as_list_or_queryset
 
 User = get_user_model()
 

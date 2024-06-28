@@ -21,12 +21,12 @@ from hypothesis.extra.django import TestCase
 
 from tag_me.models import TaggedFieldModel, UserTag
 from tag_me.utils.helpers import (  # update_models_with_tagged_fields_table,
-    get_user_field_choices_as_list_tuples,
     get_model_content_type,
     get_model_tagged_fields_choices,
     get_model_tagged_fields_field_and_verbose,
     get_models_with_tagged_fields,
     get_models_with_tagged_fields_choices,
+    get_user_field_choices_as_list_tuples,
     update_models_with_tagged_fields_table,
 )
 
