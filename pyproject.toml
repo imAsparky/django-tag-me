@@ -39,6 +39,10 @@ dev=[
   "pyright",
   "pytest",
 ]
+build=[
+  "python-semantic-release",
+  "twine"
+]
 
 [tool.flit.module]
 name = "tag_me"
