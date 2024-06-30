@@ -39,6 +39,7 @@ The lightweight and amazing dropdown has been adapted to work with tags from htt
    :titlesonly:
 
    how-to/index-how-to
+   reference/index-reference
 
 
 

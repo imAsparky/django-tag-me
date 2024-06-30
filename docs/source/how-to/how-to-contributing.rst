@@ -122,7 +122,7 @@ Set up the example project:
    .. code-block:: bash
 
     $ cd example/blog
-    $ ./manage.py reset_and_seed_blog
+    $ ./manage.py nuke  #this command will delete db, migrate and load fixtures.
 
 This command will create a SQLite database, apply migrations, and load initial data for testing.
 
