@@ -22,19 +22,20 @@ Installation
 
 .. code-block:: bash
 
-   pip install git+https://github.com/imAsparky/django-tag-me.git
+   pip install django-tag-me
 
 |
 
 
-**Add `tag-me` to your installed apps.
+**Add `tag-me` to your installed apps.**
+
 |
 
 .. code-block:: python
 
     INSTALLED_APPS = [
     "tag_me",
-]
+    ]
 
 |
 
@@ -147,19 +148,28 @@ Tagging allows you to associate flexible keywords or categories with your model 
 
 .. important::
 
-   Use of the custom 'tag-me' model form is required for the tags widget to function correctly.
+   Use of the custom 'tag-me' form mixin is required for the tags widget to function correctly.
+
+See below for an example.
 
 |
 
 .. code-block:: python
 
-   from tag_me.forms import TagMeModelForm
+   from django import forms
+   from tag_me.db.forms.mixins import TagMeModelFormMixin
+   from tag_me.widgets import TagMeSelectMultipleWidget
    from .models import MyModel
 
-   class MyModelForm(TagMeModelForm):
+   class MyModelForm(TagMeModelFormMixin, forms.ModelForm):
 
        class Meta:
+           model = MyModel
            fields = ['my_tagged_field']
+
+       widgets = {
+            "my_tagged_field": TagMeSelectMultipleWidget(),
+        }
 
 |
 
@@ -167,47 +177,28 @@ Tagging allows you to associate flexible keywords or categories with your model 
 
 |
 
-.. note::
+.. important::
 
-    For convenience, use the custom 'tag-me' views. Alternatively, you can use standard Django views, but you'll need to override the `get_form_kwargs` method to provide necessary information to the form.
+    Use of the custom 'tag-me' view mixin is required for the tags widget to function correctly.
 
-    See below for an example.
+See below for an example.
 
 |
 
 .. code-block:: python
 
-    from tag_me.views.generic import TagMeCreateView
+    from django.views.generic import CreateView
+    from tag_me.db.mixins import TagMeViewMixin
     from .forms import MyModelForm
     from .models import MyModel
 
-    class MyModelCreateView(TagMeCreateView)
+    class MyModelCreateView(TagMeViewMixin, CreateView)
         model = MyModel
         form_class = MyModelForm
         etc ...
 
 |
 
-Alternatively, override `get_form_kwargs` in your view to supply the user the custom form.
-
-|
-
-.. code-block:: python
-
-    def get_form_kwargs(self):
-    """This method adds form keyword arguments.
-
-    Adding kwargs here makes them available in the forms.  The view passes
-    the kwargs to forms where they can be popped out in __init__
-    """
-
-    kwargs = super().get_form_kwargs()
-    # Add user_id to kwargs
-    kwargs["user"] = self.request.user
-
-    return kwargs
-
-|
 
 Creating Tags
 =============
