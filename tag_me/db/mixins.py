@@ -3,7 +3,6 @@
 import logging
 
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Model
 from django.http import HttpRequest
 from django.views.generic.edit import FormMixin
 
@@ -12,23 +11,23 @@ from tag_me.db.forms.mixins import TagMeModelFormMixin
 logger = logging.getLogger(__name__)
 
 
-class TagMeArgumentMixin(FormMixin):
+class TagMeViewMixin(FormMixin):
     """
-    Mixin for Django CBVs to pass arguments directly to the TagMeModelForm's __init__.
+    Mixin for Django CBVs to handle forms with tagged fields.
+    Passes the model's verbose name and current user to the TagMeModelForm.
     """
 
     request: HttpRequest
-    # model: Model
 
     def get_form(self, form_class=None):
         """
-        Overrides the get_form method to pass the model_verbose_name directly.
+        Overrides the get_form method to pass the user and model_verbose_name.
         """
         if form_class is None:
             form_class = self.get_form_class()
 
         if not issubclass(form_class, TagMeModelFormMixin):
-            msg = f"The form {form_class} used with TagMeArgumentMixin must inherit from TagMeModelFormMixin."
+            msg = f"The form {form_class} used with TagMeViewMixin must inherit from TagMeModelFormMixin."
             logger.exception(msg)
             raise ImproperlyConfigured(msg)
 
