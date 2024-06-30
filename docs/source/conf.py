@@ -10,7 +10,7 @@ project = "Django Tag Me"
 copyright = "2023, Mark Sevelj"
 author = "Mark Sevelj"
 
-__version__ = "0.4.2"
+__version__ = "0.1.0"
 # The full version, including alpha/beta/rc tags.
 release = __version__
 
@@ -28,6 +28,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinx.ext.todo",
+    "sphinx.ext.graphviz",
 ]
 
 exclude_patterns = ["_build", "build", "Thumbs.db", ".DS_Store"]
