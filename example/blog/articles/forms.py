@@ -34,13 +34,17 @@ class ArticleCreateForm(TagMeModelFormMixin, forms.ModelForm):
             "tag",
             "author",
             "article",
+            # "user_tag",
         ]
         labels = {
             "author": "Author",
             "article": "Article",
-            "tag": "Tags",
+            "tag": "Tags", 
+            # "user_tag": "User Tag",
         }
-        forms.widgets = {}
+        widgets = {
+        "user_tag": TagMeSelectMultipleWidget(),
+        }
 
 
 class ArticleListForm(forms.ModelForm):
@@ -52,9 +56,11 @@ class ArticleListForm(forms.ModelForm):
             "tag",
             "author",
             "article",
+            "user_tag",
         ]
         labels = {
             "author": "Author",
             "article": "Article",
             "tag": "Tags",
+            "user_tag": "User Tag",
         }

@@ -30,7 +30,7 @@
   {% if article_list %}  {# Check if items exist #}
     <ul>
       {% for item in article_list %}
-    <li>Author Name: {{ item.author.name}} | Article: {{item.article}} | Tags: {{item.tag}} </li>  {# Display each item #}
+    <li>Author Name: {{ item.author.name}} | Article: {{item.article}} | Tags: {{item.tag}} | User Tags: {{item.user_tag}} </li>  {# Display each item #}
       {% endfor %}
     </ul>
   {% else %}
