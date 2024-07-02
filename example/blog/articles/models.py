@@ -1,6 +1,8 @@
 """django-tag-me article models"""
 
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
+
 from django.db import models
 from django.utils.translation import pgettext_lazy as _
 
@@ -9,7 +11,8 @@ from tag_me.db.models.fields import TagMeCharField
 # class BlogUser(AbstractUser):
 #     pass
 
-
+User = get_user_model()
+print(f'USER IS {User}')
 class Author(models.Model):
     """Author model"""
 
@@ -79,6 +82,7 @@ class Article(models.Model):
         max_length=255,
         null=True,
         blank=True,
+        choices=ArticleTags.choices,
         verbose_name="Article User Tag",
         help_text="A tag for the Article",
     )

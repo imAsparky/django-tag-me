@@ -29,7 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+AUTH_USER_MODEL = 'tags.BlogUser'
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,11 +39,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "articles",
     "blog",
     "tags",
     "tag_me",
     "django_extensions",
-    "articles",
 ]
 
 MIDDLEWARE = [
