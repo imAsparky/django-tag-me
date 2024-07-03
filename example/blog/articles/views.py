@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView
 
-from tag_me.db.mixins import TagMeArgumentMixin
+from tag_me.db.mixins import TagMeViewMixin
 
 from .forms import ArticleCreateForm, ArticleListForm, AuthorCreateForm
 from .models import Article, Author
@@ -15,7 +15,7 @@ def index(request):
     return render(request, "index.html", {})
 
 
-class ArticleCreateView(TagMeArgumentMixin, CreateView):
+class ArticleCreateView(TagMeViewMixin, CreateView):
     """Article creation view"""
 
     model = Article
