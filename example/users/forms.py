@@ -11,7 +11,10 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = CustomUser
-        fields = UserCreationForm.Meta.fields + ("user_type",)
+        fields = UserCreationForm.Meta.fields + (
+            "user_type",
+            "image_url",
+        )
 
         error_messages = {
             "username": {
@@ -25,3 +28,7 @@ class CustomUserChangeForm(UserChangeForm):
 
     class Meta(UserChangeForm.Meta):
         model = CustomUser
+        fields = UserCreationForm.Meta.fields + (
+            "user_type",
+            "image_url",
+        )

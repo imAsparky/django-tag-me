@@ -128,3 +128,11 @@ class CustomUser(AbstractUser):
         default=CustomUserType.FREE,
         help_text="Displays the users current user type.",
     )
+    image_url = models.URLField(
+        max_length=250,
+        verbose_name=_(
+            "Image URL",
+        ),
+        null=True,
+        blank=True,
+    )
