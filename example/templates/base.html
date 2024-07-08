@@ -1,0 +1,55 @@
+
+{% load tailwind_tags %}
+{% load static %}
+{% load django_htmx %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% block head_title %}{% endblock %}</title>
+    <script defer src="https://unpkg.com/alpinejs@3.8.1/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.6.1" integrity="sha384-tvG/2mnCFmGQzYC1Oh3qxQ7CkQ9kMzYjWZSNtrRZygHPDDqottzEJsqS4oUVodhW" crossorigin="anonymous"></script>
+    {% django_htmx_script %}
+    <script src="https://cdn.tailwindcss.com"></script>   
+    
+    
+    {% block extra_head %}
+    {% endblock extra_head%}
+  </head>
+  {% comment %} https://www.mattlayman.com/blog/2021/how-to-htmx-django/ {% endcomment %}
+  <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+   {% block body %}
+    {% if messages %}
+    <div>
+      <strong>Messages:</strong>
+      <ul>
+        {% for message in messages %}
+        <li>{{message}}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    
+    
+    
+    <div>
+      <strong>Menu:</strong>
+      <ul>
+        {% if user.is_authenticated %}
+        <li><a href="{% url 'account_email' %}">Change E-mail</a></li>
+        <li><a href="{% url 'account_logout' %}">Sign Out</a></li>
+        {% else %}
+        <li><a href="{% url 'account_login' %}">Sign In</a></li>
+        <li><a href="{% url 'account_signup' %}">Sign Up</a></li>
+        {% endif %}
+      </ul>
+    </div>
+    {% block content %}
+    {% endblock content %}
+
+    {% endblock body %}
+
+    {% block extra_body %}
+    {% endblock extra_body %}
+  </body>
+</html>
+
