@@ -1,7 +1,6 @@
 """Initialise example Core App Generic Views."""
 
 from core.views.generic.base import HtmxTemplateView
-
 from core.views.generic.detail import HtmxDetailView
 from core.views.generic.edit import (
     HtmxCreateView,

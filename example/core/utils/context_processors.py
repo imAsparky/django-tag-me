@@ -1,9 +1,7 @@
 """Django context processors."""
 
 import environ
-
 from django.conf import settings
-
 from users.models import CustomUser
 
 env = environ.FileAwareEnv()
@@ -20,20 +18,14 @@ def export_vars(request) -> dict:
     An example of how to access the environment variable in the template using
     just the data dict key to pass the CSS file location to the template.
 
-    
+
     <link rel="stylesheet" href="{{ CSS }}">
-    
+
 
     """
 
     data: dict = {}
 
     data["PROJECT_NAME"] = "Example"
-
-    
-
-    
-    
-
 
     return data

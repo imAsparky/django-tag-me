@@ -1,11 +1,11 @@
 """blog Url's file."""
 
-from django.urls import include, path
+from django.urls import path
 
 from .views import (
-    dashboard,
-    author,
     all_tags,
+    author,
+    dashboard,
     user_tags,
 )
 

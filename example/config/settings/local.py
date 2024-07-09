@@ -1,4 +1,5 @@
 """Django local settings for example project."""
+
 import logging
 
 # from django.core.exceptions import ImproperlyConfigured
