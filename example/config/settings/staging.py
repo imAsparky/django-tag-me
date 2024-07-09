@@ -90,7 +90,9 @@ INTERNAL_IPS = env.list(
 # log Level settings
 LOGGING["loggers"][""]["level"] = DJANGO_LOGGING_LEVEL  # noqa: F405
 LOGGING["handlers"]["stdout"]["level"] = DJANGO_LOGGING_LEVEL  # noqa: F405
-LOGGING["handlers"]["rotated_logs"]["level"] = DJANGO_LOGGING_LEVEL  # noqa: F405
+LOGGING["handlers"]["rotated_logs"][
+    "level"
+] = DJANGO_LOGGING_LEVEL  # noqa: F405
 LOGGING["handlers"]["rotated_logs"]["filename"] = DJANGO_LOG_FILE  # noqa: F405
 
 

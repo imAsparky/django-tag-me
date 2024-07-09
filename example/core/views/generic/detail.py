@@ -1,8 +1,7 @@
 """example Core App Generic Views Detail."""
 
-from django.views.generic import DetailView
-
 from core.views.generic.base import HtmxTemplateResponseMixin
+from django.views.generic import DetailView
 
 
 class HtmxDetailView(HtmxTemplateResponseMixin, DetailView):

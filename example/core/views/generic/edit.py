@@ -1,8 +1,7 @@
 """example Core App Generic Views Edit."""
 
-from django.views.generic import CreateView, DeleteView, FormView, UpdateView
-
 from core.views.generic.base import HtmxTemplateResponseMixin
+from django.views.generic import CreateView, DeleteView, FormView, UpdateView
 
 
 class HtmxCreateView(HtmxTemplateResponseMixin, CreateView):

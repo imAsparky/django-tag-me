@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 # Tests for the create_user function
 def test_create_user_ok(new_user):
     """Test a default user is created."""
@@ -41,7 +42,9 @@ def test_create_user_errors_raised_ok():
 
     # Empty email.
     with pytest.raises(ValueError):
-        User.objects.create_user(email="", password="new_userpw", username="new_user")
+        User.objects.create_user(
+            email="", password="new_userpw", username="new_user"
+        )
 
     # Empty password.
     with pytest.raises(ValueError):
@@ -58,7 +61,9 @@ def test_create_superuser_ok(new_superuser):
     """
     # User input.
     assert new_superuser.username == "new_user"
-    assert new_superuser.password != "new_userpw"  # should be a hashed password
+    assert (
+        new_superuser.password != "new_userpw"
+    )  # should be a hashed password
     assert new_superuser.email == "new_user@newuser.com"
 
     # Automatically added defaults.

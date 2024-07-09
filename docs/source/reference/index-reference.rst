@@ -23,3 +23,4 @@ Reference
    ref-form-mixin
    ref-cstm-migrate
    ref-cstm-tags
+   ref-sync-model

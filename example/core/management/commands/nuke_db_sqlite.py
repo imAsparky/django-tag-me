@@ -1,4 +1,5 @@
 """A Django command line tool to delete migration files and dbsqlite in local development."""
+
 import os
 import subprocess  # nosec
 from pathlib import Path
@@ -168,9 +169,9 @@ class Command(BaseCommand):
 
                             _migration_files_for_deletion.append(file_path)
 
-                    _delete_migrations[
-                        app_name
-                    ] = _migration_files_for_deletion
+                    _delete_migrations[app_name] = (
+                        _migration_files_for_deletion
+                    )
 
             for app_name, migration_file_path in _delete_migrations.items():
                 if migration_file_path:

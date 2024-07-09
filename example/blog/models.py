@@ -1,12 +1,11 @@
 """django-tag-me blog models"""
 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import pgettext_lazy as _
 from users.models import CustomUser
-from django.contrib.auth import get_user_model
 
 from tag_me.db.models.fields import TagMeCharField
-
 
 User = get_user_model()
 

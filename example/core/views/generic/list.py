@@ -1,8 +1,7 @@
 """example Core App Generic Views List."""
 
-from django.views.generic import ListView
-
 from core.views.generic.base import HtmxTemplateResponseMixin
+from django.views.generic import ListView
 
 
 class HtmxListView(HtmxTemplateResponseMixin, ListView):
