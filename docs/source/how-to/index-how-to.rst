@@ -17,3 +17,4 @@ How-To
    how-to-tag-parser
    how-to-custom-list
    how-to-contributing
+   how-to-tag-sync
