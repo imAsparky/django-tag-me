@@ -4,9 +4,9 @@
 
 .. _ref-sync-models:
 
-==============================
-The ``TagMeSynchronise`` Model
-==============================
+======================
+TagMeSynchronise Model
+======================
 
 The ``TagMeSynchronise`` model is a core component of the django-tag-me library, responsible for managing tag synchronization configuration. It provides the mechanism to automatically propagate tags across related models based on field-level configurations.
 
