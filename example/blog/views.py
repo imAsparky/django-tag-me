@@ -3,10 +3,22 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
+from tag_me.db.mixins import TagMeViewMixin
+from .models import (
+    Article,
+    Author,
+)
 
-# from .models import ()
+
+class ArticleTagsCreateView(TagMeViewMixin, CreateView):
+    """Article tags creation"""
+
+    model = (Article,)
+    template_name = "articles/create_article_tag.html"
+    success_url = reverse_lazy("blog:user-tags")
 
 
 def dashboard(request):

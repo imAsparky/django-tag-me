@@ -26,9 +26,8 @@ def update_models_with_tagged_fields_table() -> None:
 
     """
     for model in get_models_with_tagged_fields():
-        content = ContentType.objects.get_for_model(
-            model, for_concrete_model=True
-        )
+        print(f"{model}    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        content = ContentType.objects.get_for_model(model, for_concrete_model=True)
 
         model_name = content.model_class().__name__
         model_verbose_name = content.model_class()._meta.verbose_name
@@ -61,6 +60,7 @@ def update_models_with_tagged_fields_table() -> None:
                             logger.info(
                                 f"\tUpdated {obj} : {field[0]}"
                             )  # Log an updated entry
+                            print(f"\tUpdated {obj} : {field[0]}")
         update_fields_that_should_be_synchronised()
 
 
@@ -79,9 +79,7 @@ def update_fields_that_should_be_synchronised():
 
     # Get a list of unique content IDs from existing TaggedFieldModel instances
     model_content_ids = (
-        TaggedFieldModel.objects.all()
-        .values_list("content_id", flat=True)
-        .distinct()
+        TaggedFieldModel.objects.all().values_list("content_id", flat=True).distinct()
     )
 
     # Retrieve ContentType models for further processing
@@ -131,18 +129,14 @@ def get_model_tagged_fields_field_and_verbose(
     if not model_verbose_name:
         model_verbose_name = ""  # Allow filtering by any model
 
-    _tagged_field_list_choices = [
-        (None, None)
-    ]  # Placeholder for 'no selection' option
+    _tagged_field_list_choices = [(None, None)]  # Placeholder for 'no selection' option
 
     for model in get_models_with_tagged_fields():
         if (
             model._meta.verbose_name == model_verbose_name
         ):  # Check if we want this model
             for field in model._meta.fields:
-                if issubclass(
-                    type(field), TagMeCharField
-                ):  # Find our tagged fields
+                if issubclass(type(field), TagMeCharField):  # Find our tagged fields
                     label = str(
                         model._meta.get_field(field.name).verbose_name.title()
                     )  # Get a nicely formatted label
@@ -182,17 +176,13 @@ def get_models_with_tagged_fields() -> list[models.Model]:
         # else:
         #     break
 
-        models = ContentType.objects.filter(
-            app_label=app
-        )  # Get models from the app
+        models = ContentType.objects.filter(app_label=app)  # Get models from the app
 
         for model in models:
             for field in model.model_class()._meta.fields:
                 # if type(field) is TaggedFieldJSONField:
 
-                if issubclass(
-                    type(field), TagMeCharField
-                ):  # Check for tagged field
+                if issubclass(type(field), TagMeCharField):  # Check for tagged field
                     _tagged_field_models.append(model.model_class())
                     break  # No need to check other fields in this model
 
@@ -252,18 +242,12 @@ def get_model_tagged_fields_choices(
     if not feature_name:
         feature_name = ""  # Allow filtering by any model
 
-    _tagged_field_list_choices = [
-        (None, None)
-    ]  # Placeholder for 'no selection' option
+    _tagged_field_list_choices = [(None, None)]  # Placeholder for 'no selection' option
 
     for model in get_models_with_tagged_fields():
-        if (
-            model._meta.verbose_name == feature_name
-        ):  # Check if we want this model
+        if model._meta.verbose_name == feature_name:  # Check if we want this model
             for field in model._meta.fields:
-                if issubclass(
-                    type(field), TagMeCharField
-                ):  # Find tagged fields
+                if issubclass(type(field), TagMeCharField):  # Find tagged fields
                     label = str(
                         model._meta.get_field(field.name).verbose_name.title()
                     )  # Get a nicely formatted label
@@ -373,8 +357,6 @@ def get_user_field_choices_as_list_tuples(
     )  # Get the tags as a QuerySet (efficient)
 
     for user_tag in user_tags:
-        choices.append(
-            (user_tag.name, user_tag.name)
-        )  # Build a tuple (value, label)
+        choices.append((user_tag.name, user_tag.name))  # Build a tuple (value, label)
 
     return choices

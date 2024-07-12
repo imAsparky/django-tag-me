@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
+from tag_me.models import TaggedFieldModel
 from tag_me.utils.helpers import get_user_field_choices_as_list_or_queryset
 
 User = get_user_model()
@@ -52,6 +53,12 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         model_verbose_name = self.attrs.pop("model_verbose_name", None)
         _tag_choices = self.attrs.pop("_tag_choices", None)
         user = self.attrs.pop("user", None)
+        tagged_field_row = self.attrs.pop("tagged_field", None)
+
+        tagged_field = UserTag.objects.filter(
+            user=user,
+            tagged_field=tagged_field_row,
+        ).first()
 
         permitted_to_add_tags = True
         if "display_number_selected" not in self.attrs:
@@ -93,6 +100,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             # "options": json.dumps(options),
             "display_number_selected": self.attrs["display_number_selected"],
             "permitted_to_add_tags": permitted_to_add_tags,
+            "tagged_field": tagged_field,
         }
 
         return mark_safe(render_to_string(self.template_name, context))

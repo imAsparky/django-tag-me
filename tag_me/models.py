@@ -228,9 +228,7 @@ class TagMeSynchronise(models.Model):
                         )
 
         else:
-            logger.info(
-                "You have no field tags listed that require synchronising"
-            )
+            logger.info("You have no field tags listed that require synchronising")
 
 
 class TaggedFieldModel(models.Model):
@@ -253,6 +251,18 @@ class TaggedFieldModel(models.Model):
             "Verbose name",
             "Tagged Field Models",
         )
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "content",
+                    "model_name",
+                    "model_verbose_name",
+                    "field_name",
+                    "field_verbose_name",
+                ],
+                name="unique_tagged_field_model",
+            ),
+        ]
 
     content = models.ForeignKey(
         ContentType,
@@ -275,7 +285,7 @@ class TaggedFieldModel(models.Model):
     )
 
     def __str__(self):
-        return f"{self.model_verbose_name}"
+        return f"{self.model_verbose_name}- {self.field_verbose_name}"
 
 
 # A store for synchronised tags, that are yet to be saved
@@ -342,7 +352,7 @@ class UserTag(TagBase):
             models.Index(
                 fields=[
                     "user",
-                    "content_type_id",
+                    # "content_type_id",
                 ]
             ),
         ]
@@ -350,9 +360,7 @@ class UserTag(TagBase):
             models.UniqueConstraint(
                 fields=[
                     "user",
-                    "content_type_id",
-                    "field_name",
-                    "name",
+                    "tagged_field",
                 ],
                 name="unique_user_field_tag",
             )
@@ -362,6 +370,18 @@ class UserTag(TagBase):
             "field_name",
             "name",
         ]
+
+    tagged_field = models.ForeignKey(
+        TaggedFieldModel,
+        blank=True,
+        null=True,
+        related_name="tagged_field",
+        on_delete=models.CASCADE,
+        verbose_name=_(
+            "Verbose name",
+            "Tagged Field",
+        ),
+    )
 
     user = models.ForeignKey(
         User,
@@ -374,28 +394,18 @@ class UserTag(TagBase):
             "User",
         ),
     )
-    content_type = models.ForeignKey(
-        ContentType,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-        related_name="user_tag_content_id",
-        verbose_name=_(
-            "Verbose name",
-            "Content ID",
-        ),
-        default=None,
-    )
+
     model_verbose_name = models.CharField(
         blank=True,
         null=True,
         max_length=255,
         verbose_name=_(
             "Verbose name",
-            "Feature",
+            "Model verbose",
         ),
         default=None,
     )
+
     comment = models.CharField(
         blank=True,
         null=True,
@@ -405,14 +415,26 @@ class UserTag(TagBase):
             "Comment",
         ),
     )
+
     field_name = models.CharField(
         blank=True,
         null=True,
         max_length=255,
         verbose_name=_(
             "Verbose name",
-            "Field",
+            "Field name",
         ),
+    )
+
+    field_verbose_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Field verbose",
+        ),
+        default=None,
     )
 
     def __str__(self) -> str:

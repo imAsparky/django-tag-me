@@ -20,9 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-p2-uuelnlqal^nix5bofcu-_5(k27xm@+&kahi@gj_9+#tpucq"
-)
+SECRET_KEY = "django-insecure-p2-uuelnlqal^nix5bofcu-_5(k27xm@+&kahi@gj_9+#tpucq"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -53,7 +51,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "blog.urls"
+ROOT_URLCONF = "urls"
 
 TEMPLATES = [
     {
@@ -73,7 +71,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "blog.wsgi.application"
+# WSGI_APPLICATION = "blog.wsgi.application"
 
 
 # Database
