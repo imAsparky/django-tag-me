@@ -26,7 +26,6 @@ def update_models_with_tagged_fields_table() -> None:
 
     """
     for model in get_models_with_tagged_fields():
-        print(f"{model}    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         content = ContentType.objects.get_for_model(model, for_concrete_model=True)
 
         model_name = content.model_class().__name__
@@ -202,12 +201,12 @@ def get_models_with_tagged_fields_choices() -> list[tuple]:
 
     :return: A list of tuples ready to be used in forms to select models.
     """
-    from tag_me.db.models.fields import TagMeCharField
+    from tag_me.db.models.fields import TagMeCharField, TagMeBase
 
     _tagged_field_model_choices = [(None, None)]
     for model in get_models_with_tagged_fields():
         for field in model._meta.fields:
-            if issubclass(type(field), TagMeCharField):
+            if issubclass(type(field), TagMeBase):
                 label = model._meta.verbose_name  # User-friendly model name
                 value = label
                 _tagged_field_model_choices.append(

@@ -24,4 +24,8 @@ class Command(CoreMigrateCommand):
             "tags",
             stdout=out,
         )
+        call_command(
+            "add_user_tags",
+            stdout=out,
+        )
         return out.getvalue()
