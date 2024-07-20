@@ -9,11 +9,11 @@ from django.utils.module_loading import import_string
 from tag_me.models import UserTag
 
 bidi_control_chars = [
-    "\u202A",  # LRE (Left-to-Right Embedding)
-    "\u202B",  # RLE (Right-to-Left Embedding)
-    "\u202C",  # PDF (Pop Directional Formatting)
-    "\u202D",  # LRO (Left-to-Right Override)
-    "\u202E",  # RLO (Right-to-Left Override)
+    "\u202a",  # LRE (Left-to-Right Embedding)
+    "\u202b",  # RLE (Right-to-Left Embedding)
+    "\u202c",  # PDF (Pop Directional Formatting)
+    "\u202d",  # LRO (Left-to-Right Override)
+    "\u202e",  # RLO (Right-to-Left Override)
 ]
 device_control_chars = [chr(i) for i in range(0, 32)]
 information_separator_chars = ["\x1f", "\x1e", "\x1d"]
@@ -227,7 +227,7 @@ def split_strip(string: str, delimiter: str = ",") -> list[str]:
     return [w for w in words if w]
 
 
-def _edit_string_for_tags(tags: list[UserTag] = None) -> str:
+def _edit_string_for_tags(tags: list[UserTag] = []) -> str:
     """
     Formats a list of tags into a user-editable string representation.
     Ensures the original tags can be accurately reconstructed from the
@@ -251,7 +251,7 @@ def _edit_string_for_tags(tags: list[UserTag] = None) -> str:
     """
     names = []
     for tag in tags:
-        name = tag.name
+        name = tag.tags
         if "," in name or " " in name:
             names.append('"%s"' % name)
         else:
@@ -260,7 +260,7 @@ def _edit_string_for_tags(tags: list[UserTag] = None) -> str:
 
 
 def get_func(
-    key: str = None,
+    key: str = "",
     default: Callable = None,
 ) -> Callable:
     """Retrieves a function to be executed, either from settings or a default.
@@ -288,7 +288,7 @@ def get_func(
     return default if func_path is None else import_string(func_path)
 
 
-def parse_tags(tag_string: list[str] | str = None) -> Callable | list[str]:
+def parse_tags(tag_string: list[str] | str = "") -> Callable | list[str]:
     """
     Delegates tag parsing to a dynamically selected function.
 
@@ -307,7 +307,7 @@ def parse_tags(tag_string: list[str] | str = None) -> Callable | list[str]:
     return func(tag_string)
 
 
-def edit_string_for_tags(tags: list = None) -> str:
+def edit_string_for_tags(tags: list = []) -> str:
     """
     Formats a list of tags into a string suitable for user editing.
 
