@@ -2,6 +2,7 @@
 
 import logging
 
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 from django.views.generic.edit import FormMixin
@@ -37,7 +38,19 @@ class TagMeViewMixin(FormMixin):
         if "user" not in form_kwargs:
             form_kwargs["user"] = self.request.user
         form_kwargs["model_verbose_name"] = (self.model._meta.verbose_name,)
-
+        form_kwargs["model_obj"] = self.model
         return form_class(
-            **self.get_form_kwargs(),
+            **form_kwargs,
         )
+
+    def get_initial(self):
+        """Return the initial data to use for forms on this view."""
+        initial = super().get_initial()
+        initial["user"] = self.request.user
+        initial["content_type"] = ContentType.objects.get_for_model(
+            self.model, for_concrete_model=True
+        )
+        initial["model_verbose_name"] = self.model.__dict__["_meta"].__dict__[
+            "verbose_name"
+        ]
+        return initial

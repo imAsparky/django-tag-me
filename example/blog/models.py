@@ -38,6 +38,9 @@ class Author(models.Model):
         verbose_name="Biography",
     )
 
+    def __str__(self):
+        return self.pen_name
+
 
 class Article(models.Model):
     """Article model"""
@@ -81,10 +84,19 @@ class Article(models.Model):
         verbose_name="Article Tag",
         help_text="A tag for the Article",
     )
+
     user_tag = TagMeCharField(
         max_length=255,
         null=True,
         blank=True,
         verbose_name="Article User Tag",
         help_text="A tag for the Article",
+    )
+
+    user_tag2 = TagMeCharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="Article User Tag 2",
+        help_text="A tag2 for the Article",
     )

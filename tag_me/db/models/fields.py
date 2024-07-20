@@ -9,6 +9,7 @@ from django.db import OperationalError
 from django.db.models.fields import CharField
 
 from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
+from tag_me.models import TaggedFieldModel
 from tag_me.utils.collections import FieldTagListFormatter
 from tag_me.widgets import TagMeSelectMultipleWidget
 
@@ -51,6 +52,7 @@ class TagMeCharField(CharField):
         self.formatter = FieldTagListFormatter()
         # Used to pass choices as a list to widget attrs.
         self._tag_choices: list = []
+        self.tag_type: str = "user"
         if self.choices:
             tag_choices_list = []
             # Convert choice labels to a list.
@@ -59,6 +61,7 @@ class TagMeCharField(CharField):
             self.formatter.clear()
             self.formatter.add_tags(tag_choices_list)
             self._tag_choices = self.formatter.toList()
+            self.tag_type = "system"
             self.choices = None  # Disable Django choices machinery.
 
     def from_db_value(self, value, expression, connection):
@@ -151,14 +154,15 @@ class TagMeCharField(CharField):
         # If this is not here then when we try to retrieve the content type
         # before the initial migration, it stops everything and wont let you proceed.
         try:
-            content_type = ContentType.objects.get_for_model(self.model)
+            tagged_field = TaggedFieldModel.objects.filter(
+                content=ContentType.objects.get_for_model(self.model),
+                field_name=self.name,
+            ).first()
         except OperationalError as e:
-            msg = f"{str(e)}: Please check you have run migrations, if so has this table been deleted from your data base?\nWe have added an UNSAVED content type as a placeholder for you django-tag-me display.\nPlease resolve this error before using this feature as unintended consequences may occur!"
-            content_type = ContentType(
-                app_label=self.model._meta.app_label,
-                model=self.model._meta.model_name,
-            )
+            msg = f"{str(e)}: Please check you have run migrations, if so has the TaggedFieldModel table been deleted from your data base?\nWe have added an UNSAVED Tagged Field type as a placeholder for you django-tag-me display.\nPlease resolve this error before using this feature as unintended consequences may occur!"
+            tagged_field = TaggedFieldModel()
             logger.error(msg)
+
         # Conditional widget configuration
         if "django.contrib.admin.widgets" in str(widget):
             # Admin-specific widget setup
@@ -179,7 +183,7 @@ class TagMeCharField(CharField):
                 "required": False,
                 "widget": TagMeSelectMultipleWidget(
                     attrs={
-                        "content_type": content_type,
+                        "tagged_field": tagged_field,
                         "model_verbose_name": model_verbose_name,
                         "field_name": self.name,
                         "field_verbose_name": self.verbose_name,

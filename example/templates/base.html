@@ -7,28 +7,31 @@
   <head>
     <title>{% block head_title %}{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.8.1/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.13.1/dist/cdn.min.js"></script>
+    <script src="{% static 'tag_me/tag_me_multi_select.js' %}"></script>
+
     {% django_htmx_script %}
     <script src="https://cdn.tailwindcss.com"></script>   
-    
-    
+
+
     {% block extra_head %}
     {% endblock extra_head%}
   </head>
   {% comment %} https://www.mattlayman.com/blog/2021/how-to-htmx-django/ {% endcomment %}
   <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-   {% block body %}
+    {% block body %}
     {% block content %}
     {% if messages %}
-  <div class="bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3" role="alert">
-    <p class="font-bold">Messages:</p>
-    <ul class="list-disc list-inside">
-      {% for message in messages %}
+    <div class="bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3" role="alert">
+      <p class="font-bold">Messages:</p>
+      <ul class="list-disc list-inside">
+        {% for message in messages %}
         <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-{% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
     {% endblock content %}
 

@@ -29,14 +29,13 @@ def update_models_with_tagged_fields_table() -> None:
         content = ContentType.objects.get_for_model(
             model, for_concrete_model=True
         )
-
         model_name = content.model_class().__name__
         model_verbose_name = content.model_class()._meta.verbose_name
-
         for field in get_model_tagged_fields_field_and_verbose(
-            model_verbose_name=model_verbose_name,
+            model_name=model_name,
+            return_field_objects_only=True,
         ):
-            match field[0]:
+            match field:
                 case None:  # Ignore if specific field name is missing
                     # We test for None because the first tuple returned is None
                     pass
@@ -46,21 +45,23 @@ def update_models_with_tagged_fields_table() -> None:
                         created,
                     ) = TaggedFieldModel.objects.update_or_create(
                         content=content,
-                        field_name=field[0],
-                        field_verbose_name=field[1],
+                        field_name=field.name,
+                        field_verbose_name=field.verbose_name,
                         model_name=model_name,
                         model_verbose_name=model_verbose_name,
+                        tag_type=field.tag_type,
                     )  # Add or update the database entry
 
                     match created:
                         case True:
                             logger.info(
-                                f"\tCreated {obj} : {field[0]}"
+                                f"\tCreated {obj} : {field}"
                             )  # Log a new entry
                         case False:
                             logger.info(
-                                f"\tUpdated {obj} : {field[0]}"
+                                f"\tUpdated {obj} : {field}"
                             )  # Log an updated entry
+                            print(f"\tUpdated {obj} : {field}")
         update_fields_that_should_be_synchronised()
 
 
@@ -72,7 +73,6 @@ def update_fields_that_should_be_synchronised():
     attribute set to True. If found, it updates the 'TagMeSynchronise' model (named 'default')
     to ensure that tags applied to those fields will be synchronised across relevant content types.
     """
-    from tag_me.models import TaggedFieldModel, TagMeSynchronise
 
     # Retrieve or create the default synchronization configuration
     sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
@@ -110,7 +110,9 @@ def update_fields_that_should_be_synchronised():
 
 
 def get_model_tagged_fields_field_and_verbose(
-    model_verbose_name: str = None,
+    model_verbose_name: str = "",
+    model_name: str = "",
+    return_field_objects_only: bool = False,
 ) -> list[tuple]:
     """Prepares a list of tagged field names and labels for forms.
 
@@ -128,16 +130,14 @@ def get_model_tagged_fields_field_and_verbose(
     """
     from tag_me.db.models.fields import TagMeCharField
 
-    if not model_verbose_name:
-        model_verbose_name = ""  # Allow filtering by any model
-
     _tagged_field_list_choices = [
         (None, None)
     ]  # Placeholder for 'no selection' option
-
+    _field_objects = []
     for model in get_models_with_tagged_fields():
         if (
             model._meta.verbose_name == model_verbose_name
+            or model.__name__ == model_name
         ):  # Check if we want this model
             for field in model._meta.fields:
                 if issubclass(
@@ -150,12 +150,30 @@ def get_model_tagged_fields_field_and_verbose(
                     _tagged_field_list_choices.append(
                         (value, label),
                     )  # Add it to the list
+                    _field_objects.append(field)
+
+    if return_field_objects_only:
+        return _field_objects
 
     return _tagged_field_list_choices
 
 
 def get_models_with_tagged_fields() -> list[models.Model]:
-    # Check if the project has a custom list of apps for efficiency
+    """Retrieves Django models containing at least one `TagMeCharField` field.
+
+    This function searches through your project's installed apps, filtering out
+    models that do not contain any fields of the type `TagMeCharField`.
+
+    The search scope is determined by the ``PROJECT_APPS`` setting. If it's defined,
+    only those apps are searched. Otherwise, all apps in ``INSTALLED_APPS`` are considered.
+
+    Returns:
+        list[models.Model]: A list of Django model classes that have at least one
+            ``TagMeCharField`` field.
+
+    Raises:
+        ImportError: If the `tag_me.db.models.fields` module cannot be imported.
+    """
     from tag_me.db.models.fields import TagMeCharField
 
     # Check if the project has a custom list of apps for efficiency
@@ -167,29 +185,12 @@ def get_models_with_tagged_fields() -> list[models.Model]:
 
     _tagged_field_models = []  # Stores the models we find
     for app in PROJECT_APPS:
-        # Left for reference, can be deleted any time.
-        # we dont want the testing models in the users options
-        # if (
-        #     app != "testing_core"
-        #     and settings.SETTINGS_MODULE != "config.settings.test"
-        # ):
-        #     app = app
-
-        # # we want the testing models in the test environment for users options # noqa: E501
-        # elif settings.SETTINGS_MODULE == "config.settings.test":
-        #     app = app
-
-        # else:
-        #     break
-
         models = ContentType.objects.filter(
             app_label=app
         )  # Get models from the app
 
         for model in models:
             for field in model.model_class()._meta.fields:
-                # if type(field) is TaggedFieldJSONField:
-
                 if issubclass(
                     type(field), TagMeCharField
                 ):  # Check for tagged field
@@ -230,7 +231,7 @@ def get_models_with_tagged_fields_choices() -> list[tuple]:
 
 
 def get_model_tagged_fields_choices(
-    feature_name: str = None,
+    feature_name: str = "",
 ) -> list[tuple]:
     """Prepares a list of tagged field options for forms, with optional filtering.
 
@@ -276,7 +277,7 @@ def get_model_tagged_fields_choices(
 
 
 def get_model_content_type(
-    model_verbose_name: str = None,
+    model_verbose_name: str = "",
 ) -> ContentType | None:
     """Finds the Django ContentType object representing a model.
 
@@ -306,9 +307,9 @@ def get_model_content_type(
 
 
 def get_user_field_choices_as_list_or_queryset(
-    model_verbose_name: str = None,
-    field_name: str = None,
-    user: User = None,
+    model_verbose_name: str = "",
+    field_name: str = "",
+    user: User = User,
     return_list: bool = True,
 ) -> list | models.QuerySet:
     """Fetches tag choices for a specific user, field, and model.
@@ -327,7 +328,6 @@ def get_user_field_choices_as_list_or_queryset(
     :return: Defaults to a List. optional Django QuerySet representing tag choices.
 
     """
-
     choices = UserTag.objects.filter(
         model_verbose_name=model_verbose_name,
         field_name=field_name,
@@ -335,15 +335,15 @@ def get_user_field_choices_as_list_or_queryset(
     )
 
     if return_list:
-        return choices.values_list("name", flat=True)
+        return choices.values_list("tags", flat=True)
     else:
         return choices
 
 
 def get_user_field_choices_as_list_tuples(
-    model_verbose_name: str = None,
-    field_name: str = None,
-    user: User = None,
+    model_verbose_name: str = "",
+    field_name: str = "",
+    user: User = User,
 ) -> list[tuple]:
     """Prepares a list of tag choices suitable for a user's form field.
 
@@ -373,8 +373,16 @@ def get_user_field_choices_as_list_tuples(
     )  # Get the tags as a QuerySet (efficient)
 
     for user_tag in user_tags:
-        choices.append(
-            (user_tag.name, user_tag.name)
-        )  # Build a tuple (value, label)
+        for tag in user_tag.tags.split(","):
+            choices.append((tag, tag))  # Build a tuple (value, label)
 
     return choices
+
+
+"""
+from tag_me.utils import helpers
+mvb=UserTag.objects.get(id=1).model_verbose_name
+fld=UserTag.objects.get(id=1).field_name
+user=UserTag.objects.get(id=1).user
+tags=helpers.get_user_field_choices_as_list_tuples(model_verbose_name=mvb, field_name=fld, user=user)
+"""

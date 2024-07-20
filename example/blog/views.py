@@ -3,10 +3,32 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
-# from .models import ()
+from tag_me.db.mixins import TagMeViewMixin
+
+from .forms import ArticleTagsCreateForm, ArticleTagsUpdateForm
+from .models import Article, Author
+
+
+class ArticleTagsCreateView(TagMeViewMixin, CreateView):
+    """Article tags creation"""
+
+    model = Article
+    form_class = ArticleTagsCreateForm
+    template_name = "blog/create_article_tag.html"
+    success_url = reverse_lazy("blog:user-tags")
+
+
+class ArticleTagsUpdateView(TagMeViewMixin, UpdateView):
+    """Article tags update"""
+
+    model = Article
+    form_class = ArticleTagsUpdateForm
+    template_name = "blog/create_article_tag.html"
+    success_url = reverse_lazy("blog:user-tags")
 
 
 def dashboard(request):

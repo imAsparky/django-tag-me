@@ -56,10 +56,10 @@ class TagBase(models.Model):
             "Tags ABC",
         )
 
-    name = models.CharField(
+    tags = models.CharField(
         verbose_name=_(
             "Verbose name",
-            "Name",
+            "tags",
         ),
         blank=False,
         null=False,
@@ -80,12 +80,20 @@ class TagBase(models.Model):
         allow_unicode=True,
     )
 
+    @property
+    def model_class_name(self):
+        return self.__class__.__name__
+
+    @property
+    def model_class_verbose_name(self):
+        return self._meta.verbose_name
+
     def save(self, *args, **kwargs):
         """Ported from django-taggit
         https://github.com/jazzband/django-taggit/tree/master
         """
         if self._state.adding and not self.slug:
-            self.slug = self.slugify(self.name)
+            # self.slug = self.slugify(self.tags)
             using = kwargs.get("using") or router.db_for_write(
                 type(self), instance=self
             )
@@ -104,7 +112,8 @@ class TagBase(models.Model):
         else:
             return super().save(*args, **kwargs)
 
-    def slugify(self, tag: str = None) -> str:
+    @staticmethod
+    def slugify(tag: str = "") -> str:
         if getattr(settings, "TAGS_STRIP_UNICODE_WHEN_SLUGIFYING", False):
             slug = slugify(
                 unidecode(tag)
@@ -253,6 +262,18 @@ class TaggedFieldModel(models.Model):
             "Verbose name",
             "Tagged Field Models",
         )
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "content",
+                    "model_name",
+                    "model_verbose_name",
+                    "field_name",
+                    "field_verbose_name",
+                ],
+                name="unique_tagged_field_model",
+            ),
+        ]
 
     content = models.ForeignKey(
         ContentType,
@@ -273,9 +294,23 @@ class TaggedFieldModel(models.Model):
     field_verbose_name = models.CharField(
         max_length=128,
     )
+    tag_type = models.CharField(
+        verbose_name=_(
+            "Verbose name",
+            "tags",
+        ),
+        blank=False,
+        null=False,
+        default="user",
+        max_length=20,
+        help_text=_(
+            "Help",
+            "This is the tag type, default is 'user'.",
+        ),
+    )
 
     def __str__(self):
-        return f"{self.model_verbose_name}"
+        return f"{self.model_verbose_name}- {self.field_verbose_name}"
 
 
 # A store for synchronised tags, that are yet to be saved
@@ -342,7 +377,8 @@ class UserTag(TagBase):
             models.Index(
                 fields=[
                     "user",
-                    "content_type_id",
+                    "tagged_field",
+                    "tags",
                 ]
             ),
         ]
@@ -350,9 +386,7 @@ class UserTag(TagBase):
             models.UniqueConstraint(
                 fields=[
                     "user",
-                    "content_type_id",
-                    "field_name",
-                    "name",
+                    "tagged_field",
                 ],
                 name="unique_user_field_tag",
             )
@@ -360,8 +394,20 @@ class UserTag(TagBase):
         ordering = [
             "model_verbose_name",
             "field_name",
-            "name",
+            "tags",
         ]
+
+    tagged_field = models.ForeignKey(
+        TaggedFieldModel,
+        blank=True,
+        null=True,
+        related_name="tagged_field",
+        on_delete=models.CASCADE,
+        verbose_name=_(
+            "Verbose name",
+            "Tagged Field",
+        ),
+    )
 
     user = models.ForeignKey(
         User,
@@ -374,28 +420,39 @@ class UserTag(TagBase):
             "User",
         ),
     )
-    content_type = models.ForeignKey(
-        ContentType,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-        related_name="user_tag_content_id",
-        verbose_name=_(
-            "Verbose name",
-            "Content ID",
-        ),
-        default=None,
-    )
     model_verbose_name = models.CharField(
         blank=True,
         null=True,
         max_length=255,
         verbose_name=_(
             "Verbose name",
-            "Feature",
+            "Model verbose",
         ),
         default=None,
     )
+
+    model_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Model name",
+        ),
+        default=None,
+    )
+
+    model_verbose_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Model verbose name",
+        ),
+        default=None,
+    )
+
     comment = models.CharField(
         blank=True,
         null=True,
@@ -405,18 +462,30 @@ class UserTag(TagBase):
             "Comment",
         ),
     )
+
     field_name = models.CharField(
         blank=True,
         null=True,
         max_length=255,
         verbose_name=_(
             "Verbose name",
-            "Field",
+            "Field name",
         ),
     )
 
+    field_verbose_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Field verbose",
+        ),
+        default=None,
+    )
+
     def __str__(self) -> str:
-        return f"{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.name}"
+        return f"{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.tags}"
 
     def save(self, sync_tags_save: bool = False, *args, **kwargs):
         """
@@ -454,7 +523,7 @@ class UserTag(TagBase):
                             )[0].model_verbose_name,
                             comment="Tag created with automatic tag synchronising.",  # noqa: E501
                             field_name=self.field_name,
-                            name=self.name,
+                            tags=self.tags,
                             slug=self.slug + "-" + str(content_id),
                         )
                     )
@@ -498,3 +567,17 @@ class UserTag(TagBase):
 
 
         """
+
+
+class SystemTag(TagBase):
+    """System Tag"""
+
+    class Meta:
+        verbose_name = _(
+            "Verbose name",
+            "System Tag",
+        )
+        verbose_name_plural = _(
+            "Verbose name",
+            "System Tags",
+        )

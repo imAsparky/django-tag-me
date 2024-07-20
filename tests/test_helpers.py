@@ -54,6 +54,11 @@ class TestTagHelpers(TestCase):
             "migrate",
             stdout=self.out_migration,
         )
+
+        _model = "TaggedFieldTestModel"
+        _field_1 = "tagged_field_1"
+        _field_2 = "tagged_field_2"
+
         self.tag_string1 = '"apple ball cat'
         self.tag_string1_result = [
             "apple",
@@ -79,35 +84,41 @@ class TestTagHelpers(TestCase):
             password="pw_user3",
             email="user3@email.com",
         )
+        # Add all the users to the UserTag table.
+        call_command(
+            "add_user_tags",
+            stdout=self.out_migration,
+        )
 
-        self.user1_tag1 = UserTag.objects.create(
+        self.model_1_field_1 = TaggedFieldModel.objects.get(
+            model_name=_model,
+            field_name=_field_1,
+        )
+        self.model_1_field_2 = TaggedFieldModel.objects.get(
+            model_name=_model,
+            field_name=_field_2,
+        )
+
+        self.user1_tag1 = UserTag.objects.get(
+            tagged_field=self.model_1_field_1,
             user=self.user1,
-            name="User1 Tag1",
-            content_type=get_model_content_type(
-                model_verbose_name="Tagged Field Test Model",
-            ),
-            model_verbose_name="Tagged Field Test Model",
-            field_name="tagged_field_1",
         )
-        self.user2_tag1 = UserTag.objects.create(
-            user=self.user2,
-            name="User2 Tag1",
-            content_type=get_model_content_type(
-                model_verbose_name="Tagged Field Test Model",
-            ),
-            model_verbose_name="Tagged Field Test Model",
-            field_name="tagged_field_1",
-        )
+        self.user1_tag1.tags = "User1 Tag1"
+        self.user1_tag1.save()
 
-        self.user3_tag1 = UserTag.objects.create(
-            user=self.user3,
-            name="User3 Tag1",
-            content_type=get_model_content_type(
-                model_verbose_name="Tagged Field Test Model",
-            ),
-            model_verbose_name="Tagged Field Test Model",
-            field_name="tagged_field_1",
+        self.user2_tag1 = UserTag.objects.get(
+            tagged_field=self.model_1_field_1,
+            user=self.user2,
         )
+        self.user2_tag1.tags = "User2 Tag1"
+        self.user2_tag1.save()
+
+        self.user3_tag1 = UserTag.objects.get(
+            tagged_field=self.model_1_field_1,
+            user=self.user3,
+        )
+        self.user3_tag1.tags = "User3 Tag1"
+        self.user3_tag1.save()
 
     def test_get_model_tagged_fields_field_and_verbose_empty_verbose(self):
         fields = get_model_tagged_fields_field_and_verbose(
@@ -183,6 +194,7 @@ class TestTagHelpers(TestCase):
             field_name="tagged_field_1",
             user=self.user2,
         )
+
         choices_3 = get_user_field_choices_as_list_tuples(
             model_verbose_name="Tagged Field Test Model",
             field_name="tagged_field_1",
@@ -192,7 +204,7 @@ class TestTagHelpers(TestCase):
         assert self.user1_tag1 in choices_all and choices_1
         assert self.user2_tag1 in choices_all and choices_2
         assert self.user3_tag1 in choices_all and choices_3
-
+        #
         assert self.user1_tag1 not in choices_2 and choices_3
         assert self.user2_tag1 not in choices_1 and choices_3
         assert self.user3_tag1 not in choices_1 and choices_2

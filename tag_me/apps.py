@@ -1,10 +1,11 @@
 """django-tag-me Apps file."""
 
-from typing import override
+# from typing import override
 
 from django.apps import AppConfig
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+
 # from django.utils.translation.trans_real import settings
 
 
@@ -16,7 +17,7 @@ class DjangoTagMeConfig(AppConfig):
     verbose_name = _("Django Tag Me")
     verbose_name_plural = _("Django Tag Me")
 
-    @override
+    # @override
     def ready(self):
         super().ready()
 

@@ -18,10 +18,13 @@ class Command(CoreMigrateCommand):
 
     def handle(self, *args, **options):
         super().handle(*args, **options)
-
         out = StringIO()
         call_command(
             "tags",
+            stdout=out,
+        )
+        call_command(
+            "add_user_tags",
             stdout=out,
         )
         return out.getvalue()

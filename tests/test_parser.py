@@ -49,9 +49,9 @@ class TestTagsStringEdit(TestCase):
             email="user1@email.com",
         )
         assert user.username == "User1"
-        tag1 = UserTag.objects.create(name="tag1")
-        tag2 = UserTag.objects.create(name="tag,2")
-        tag3 = UserTag.objects.create(name="tag 3")
+        tag1 = UserTag.objects.create(tags="tag1")
+        tag2 = UserTag.objects.create(tags="tag,2")
+        tag3 = UserTag.objects.create(tags="tag 3")
 
         tag_list = [
             tag1,

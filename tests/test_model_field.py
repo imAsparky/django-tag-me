@@ -479,7 +479,7 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
     #     assert f.to_python(null_tags) == "Not Null, Still Not Null"
 
 
-class TestTagMeCharFieldOtherMethods(SimpleTestCase):
+class TestTagMeCharFieldOtherMethods(TestCase):
     """Test other overridden Charfield Methods"""
 
     def test_default_form_field_form_class_widget(self):

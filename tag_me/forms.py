@@ -13,22 +13,28 @@ class UserTagCreateForm(TagMeModelFormMixin, forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
-            "content_type",
+            # "content_type",
             "model_verbose_name",
             "field_name",
-            "name",  # This is the tag.
+            "tags",
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
             ),
-            "content_type": _(
-                "Label",
-                "Application",
-            ),
+            # "content_type": _(
+            #     "Label",
+            #     "Application",
+            # ),
             "model_verbose_name": _(
                 "Label",
                 "Feature",
@@ -37,10 +43,14 @@ class UserTagCreateForm(TagMeModelFormMixin, forms.ModelForm):
                 "Label",
                 "Field",
             ),
-            "name": _(
+            "tags": _(
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -50,22 +60,28 @@ class UserTagDetailForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            # "tagged_field",
             "user",
-            "content_type",
+            # "content_type",
             "model_verbose_name",
             "field_name",
-            "name",  # This is the tag.
+            "tags",  # This is the tag.
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
             ),
-            "content_type": _(
-                "Label",
-                "Application",
-            ),
+            # "content_type": _(
+            #     "Label",
+            #     "Application",
+            # ),
             "model_verbose_name": _(
                 "Label",
                 "Feature",
@@ -74,10 +90,14 @@ class UserTagDetailForm(forms.ModelForm):
                 "Label",
                 "Field",
             ),
-            "name": _(
+            "tags": _(
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -87,22 +107,28 @@ class UserTagListForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
-            "content_type",
+            # "content_type",
             "model_verbose_name",
             "field_name",
-            "name",  # This is the tag.
+            "tags",
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
             ),
-            "content_type": _(
-                "Label",
-                "Application",
-            ),
+            # "content_type": _(
+            #     "Label",
+            #     "Application",
+            # ),
             "model_verbose_name": _(
                 "Label",
                 "Feature",
@@ -111,10 +137,14 @@ class UserTagListForm(forms.ModelForm):
                 "Label",
                 "Field",
             ),
-            "name": _(
+            "tags": _(
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -124,22 +154,29 @@ class UserTagUpdateForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
-            "content_type",
+            # "content_type",
             "model_verbose_name",
             "field_name",
-            "name",  # This is the tag.
+            "tags",
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
             ),
-            "content_type": _(
-                "Label",
-                "Application",
-            ),
+            #             "content_type": _(
+            # /044   0003_usertag_tagged_field.py
+            #                 "Label",
+            #                 "Application",
+            #             ),
             "model_verbose_name": _(
                 "Label",
                 "Feature",
@@ -148,10 +185,14 @@ class UserTagUpdateForm(forms.ModelForm):
                 "Label",
                 "Field",
             ),
-            "name": _(
+            "tags": _(
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -161,22 +202,28 @@ class UserTagDeleteForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
-            "content_type",
+            # "content_type",
             "model_verbose_name",
             "field_name",
-            "name",  # This is the tag.
+            "tags",  # This is the tag.
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
             ),
-            "content_type": _(
-                "Label",
-                "Application",
-            ),
+            # "content_type": _(
+            #     "Label",
+            #     "Application",
+            # ),
             "model_verbose_name": _(
                 "Label",
                 "Feature",
@@ -185,8 +232,12 @@ class UserTagDeleteForm(forms.ModelForm):
                 "Label",
                 "Field",
             ),
-            "name": _(
+            "tags": _(
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
