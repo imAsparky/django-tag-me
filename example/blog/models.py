@@ -38,6 +38,9 @@ class Author(models.Model):
         verbose_name="Biography",
     )
 
+    def __str__(self):
+        return self.pen_name
+
 
 class Article(models.Model):
     """Article model"""

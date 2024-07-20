@@ -6,18 +6,28 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
+
 from tag_me.db.mixins import TagMeViewMixin
-from .models import (
-    Article,
-    Author,
-)
+
+from .forms import ArticleTagsCreateForm, ArticleTagsUpdateForm
+from .models import Article, Author
 
 
 class ArticleTagsCreateView(TagMeViewMixin, CreateView):
     """Article tags creation"""
 
-    model = (Article,)
-    template_name = "articles/create_article_tag.html"
+    model = Article
+    form_class = ArticleTagsCreateForm
+    template_name = "blog/create_article_tag.html"
+    success_url = reverse_lazy("blog:user-tags")
+
+
+class ArticleTagsUpdateView(TagMeViewMixin, UpdateView):
+    """Article tags update"""
+
+    model = Article
+    form_class = ArticleTagsUpdateForm
+    template_name = "blog/create_article_tag.html"
     success_url = reverse_lazy("blog:user-tags")
 
 

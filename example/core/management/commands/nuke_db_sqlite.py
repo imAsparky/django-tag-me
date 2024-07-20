@@ -7,6 +7,8 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from tag_me.management.commands import migrate as tag_me_migrate
+
 
 class Command(BaseCommand):
     """
