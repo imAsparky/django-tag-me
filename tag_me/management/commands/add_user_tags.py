@@ -1,15 +1,12 @@
 """Management command to add user Tagged Fields to the usertag table."""
 
 import logging
-from django.contrib.auth import get_user_model
+
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, LabelCommand
 
-from tag_me.models import (
-    TagBase,
-    TaggedFieldModel,
-    UserTag,
-)
+from tag_me.models import TagBase, TaggedFieldModel, UserTag
 
 logger = logging.getLogger(__name__)
 
