@@ -13,14 +13,20 @@ class UserTagCreateForm(TagMeModelFormMixin, forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
             # "content_type",
             "model_verbose_name",
             "field_name",
-            "tags",  # This is the tag.
+            "tags",
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
@@ -41,6 +47,10 @@ class UserTagCreateForm(TagMeModelFormMixin, forms.ModelForm):
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -50,14 +60,20 @@ class UserTagDetailForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            # "tagged_field",
             "user",
             # "content_type",
             "model_verbose_name",
             "field_name",
             "tags",  # This is the tag.
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
@@ -78,6 +94,10 @@ class UserTagDetailForm(forms.ModelForm):
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -87,14 +107,20 @@ class UserTagListForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
             # "content_type",
             "model_verbose_name",
             "field_name",
-            "tags",  # This is the tag.
+            "tags",
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
@@ -115,6 +141,10 @@ class UserTagListForm(forms.ModelForm):
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -124,14 +154,20 @@ class UserTagUpdateForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
             # "content_type",
             "model_verbose_name",
             "field_name",
-            "tags",  # This is the tag.
+            "tags",
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
@@ -153,6 +189,10 @@ class UserTagUpdateForm(forms.ModelForm):
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }
 
 
@@ -162,14 +202,20 @@ class UserTagDeleteForm(forms.ModelForm):
     class Meta:
         model = UserTag
         fields = [
+            "tagged_field",
             "user",
             # "content_type",
             "model_verbose_name",
             "field_name",
             "tags",  # This is the tag.
+            # "tag_type",
         ]
 
         labels = {
+            "tagged_field": _(
+                "Label",
+                "Tagged Field",
+            ),
             "user": _(
                 "Label",
                 "User",
@@ -190,4 +236,8 @@ class UserTagDeleteForm(forms.ModelForm):
                 "Label",
                 "Tag name",
             ),
+            # "tag_type": _(
+            #     "Label",
+            #     "Tag type",
+            # ),
         }

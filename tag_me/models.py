@@ -70,21 +70,6 @@ class TagBase(models.Model):
         ),
     )
 
-    tag_type = models.CharField(
-        verbose_name=_(
-            "Verbose name",
-            "tags",
-        ),
-        blank=False,
-        null=False,
-        default="user",
-        max_length=20,
-        help_text=_(
-            "Help",
-            "This is the tag type, default is 'user'.",
-        ),
-    )
-
     slug = models.SlugField(
         verbose_name=_(
             "Verbose name",
@@ -94,6 +79,14 @@ class TagBase(models.Model):
         max_length=100,
         allow_unicode=True,
     )
+
+    @property
+    def model_class_name(self):
+        return self.__class__.__name__
+
+    @property
+    def model_class_verbose_name(self):
+        return self._meta.verbose_name
 
     def save(self, *args, **kwargs):
         """Ported from django-taggit
@@ -244,7 +237,9 @@ class TagMeSynchronise(models.Model):
                         )
 
         else:
-            logger.info("You have no field tags listed that require synchronising")
+            logger.info(
+                "You have no field tags listed that require synchronising"
+            )
 
 
 class TaggedFieldModel(models.Model):
@@ -298,6 +293,20 @@ class TaggedFieldModel(models.Model):
 
     field_verbose_name = models.CharField(
         max_length=128,
+    )
+    tag_type = models.CharField(
+        verbose_name=_(
+            "Verbose name",
+            "tags",
+        ),
+        blank=False,
+        null=False,
+        default="user",
+        max_length=20,
+        help_text=_(
+            "Help",
+            "This is the tag type, default is 'user'.",
+        ),
     )
 
     def __str__(self):
@@ -411,7 +420,6 @@ class UserTag(TagBase):
             "User",
         ),
     )
-
     model_verbose_name = models.CharField(
         blank=True,
         null=True,
@@ -419,6 +427,28 @@ class UserTag(TagBase):
         verbose_name=_(
             "Verbose name",
             "Model verbose",
+        ),
+        default=None,
+    )
+
+    model_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Model name",
+        ),
+        default=None,
+    )
+
+    model_verbose_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Model verbose name",
         ),
         default=None,
     )
