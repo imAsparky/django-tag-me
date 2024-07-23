@@ -75,6 +75,7 @@ class TagBase(models.Model):
             "Verbose name",
             "slug",
         ),
+        editable=False,
         unique=True,
         max_length=100,
         allow_unicode=True,
@@ -237,9 +238,7 @@ class TagMeSynchronise(models.Model):
                         )
 
         else:
-            logger.info(
-                "You have no field tags listed that require synchronising"
-            )
+            logger.info("You have no field tags listed that require synchronising")
 
 
 class TaggedFieldModel(models.Model):
@@ -397,10 +396,12 @@ class UserTag(TagBase):
             "tags",
         ]
 
+    objects = models.Manager()
     tagged_field = models.ForeignKey(
         TaggedFieldModel,
         blank=True,
         null=True,
+        editable=False,
         related_name="tagged_field",
         on_delete=models.CASCADE,
         verbose_name=_(
@@ -413,6 +414,7 @@ class UserTag(TagBase):
         User,
         blank=True,
         null=True,
+        editable=False,
         related_name="user_tags",
         on_delete=models.CASCADE,
         verbose_name=_(
@@ -424,6 +426,7 @@ class UserTag(TagBase):
         blank=True,
         null=True,
         max_length=255,
+        editable=False,
         verbose_name=_(
             "Verbose name",
             "Model verbose",
@@ -434,21 +437,11 @@ class UserTag(TagBase):
     model_name = models.CharField(
         blank=True,
         null=True,
+        editable=False,
         max_length=255,
         verbose_name=_(
             "Verbose name",
             "Model name",
-        ),
-        default=None,
-    )
-
-    model_verbose_name = models.CharField(
-        blank=True,
-        null=True,
-        max_length=255,
-        verbose_name=_(
-            "Verbose name",
-            "Model verbose name",
         ),
         default=None,
     )
@@ -466,6 +459,7 @@ class UserTag(TagBase):
     field_name = models.CharField(
         blank=True,
         null=True,
+        editable=False,
         max_length=255,
         verbose_name=_(
             "Verbose name",
@@ -476,6 +470,7 @@ class UserTag(TagBase):
     field_verbose_name = models.CharField(
         blank=True,
         null=True,
+        editable=False,
         max_length=255,
         verbose_name=_(
             "Verbose name",

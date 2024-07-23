@@ -6,17 +6,21 @@ from .views import (
     SynchronisedTagFieldListView,
     TagFieldListView,
     TagManagementView,
-    UserTagCreateView,
-    UserTagDeleteView,
-    UserTagDetailView,
+    # UserTagCreateView,
+    # UserTagDeleteView,
+    # UserTagDetailView,
     UserTagListView,
-    UserTagUpdateView,
+    UserTagEditView,
+    WidgetAddUserTagView,
+    try_widget,
 )
 
 # from .views import fnc
 
 app_label = "tag_me"
 app_name = "tag_me"
+
+urlpatterns: list = []
 
 mgmtpatterns = [
     path(
@@ -36,32 +40,28 @@ mgmtpatterns = [
     ),
 ]
 
-urlpatterns = [
-    path(
-        "create/tag/",
-        UserTagCreateView.as_view(),
-        name="create-tag",
-    ),
-    path(
-        "delete/tag/<int:pk>/",
-        UserTagDeleteView.as_view(),
-        name="delete-tag",
-    ),
-    path(
-        "detail/tag/<int:pk>/",
-        UserTagDetailView.as_view(),
-        name="detail-tag",
-    ),
+tagpatterns = [
     path(
         "list/tag/",
         UserTagListView.as_view(),
         name="list-tags",
     ),
     path(
-        "update/tag/<int:pk>/",
-        UserTagUpdateView.as_view(),
-        name="update-tag",
+        "edit/tag/<int:pk>/",
+        UserTagEditView.as_view(),
+        name="edit-tag",
+    ),
+    path(
+        "add/tag/<int:pk>/",
+        WidgetAddUserTagView.as_view(),
+        name="add-tag",
+    ),
+    path(
+        "try/",
+        try_widget,
+        name="try-widget",
     ),
 ]
 
 urlpatterns.extend(mgmtpatterns)
+urlpatterns.extend(tagpatterns)
