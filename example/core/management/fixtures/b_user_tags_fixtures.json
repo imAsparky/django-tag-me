@@ -1,0 +1,190 @@
+[
+{
+    "model": "tag_me.tagmesynchronise",
+    "pk": 1,
+    "fields": {
+        "name": "default",
+        "synchronise": {}
+    }
+},
+{
+    "model": "tag_me.taggedfieldmodel",
+    "pk": 1,
+    "fields": {
+        "content": 16,
+        "model_name": "Article",
+        "model_verbose_name": "Blog Article",
+        "field_name": "tag",
+        "field_verbose_name": "Article Tag",
+        "tag_type": "system"
+    }
+},
+{
+    "model": "tag_me.taggedfieldmodel",
+    "pk": 2,
+    "fields": {
+        "content": 16,
+        "model_name": "Article",
+        "model_verbose_name": "Blog Article",
+        "field_name": "user_tag",
+        "field_verbose_name": "Article User Tag",
+        "tag_type": "user"
+    }
+},
+{
+    "model": "tag_me.taggedfieldmodel",
+    "pk": 3,
+    "fields": {
+        "content": 16,
+        "model_name": "Article",
+        "model_verbose_name": "Blog Article",
+        "field_name": "user_tag2",
+        "field_verbose_name": "Article User Tag 2",
+        "tag_type": "user"
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 1,
+    "fields": {
+        "tags": "tag1-1",
+        "slug": "1-r859qa17",
+        "tagged_field": 1,
+        "user": 1,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "tag",
+        "field_verbose_name": "Article Tag",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 2,
+    "fields": {
+        "tags": "tag1-1",
+        "slug": "1-4wqdz120",
+        "tagged_field": 2,
+        "user": 1,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "user_tag",
+        "field_verbose_name": "Article User Tag",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 3,
+    "fields": {
+        "tags": "tag1-1",
+        "slug": "1-2rd9x3b7",
+        "tagged_field": 3,
+        "user": 1,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "user_tag2",
+        "field_verbose_name": "Article User Tag 2",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 4,
+    "fields": {
+        "tags": "tag1-2",
+        "slug": "2-bc792256",
+        "tagged_field": 1,
+        "user": 2,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "tag",
+        "field_verbose_name": "Article Tag",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 5,
+    "fields": {
+        "tags": "tag1-2",
+        "slug": "2-29br02bz",
+        "tagged_field": 2,
+        "user": 2,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "user_tag",
+        "field_verbose_name": "Article User Tag",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 6,
+    "fields": {
+        "tags": "tag1-2",
+        "slug": "2-32b81w2c",
+        "tagged_field": 3,
+        "user": 2,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "user_tag2",
+        "field_verbose_name": "Article User Tag 2",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 7,
+    "fields": {
+        "tags": "tag1-3",
+        "slug": "3-b3rcr3qy",
+        "tagged_field": 1,
+        "user": 3,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "tag",
+        "field_verbose_name": "Article Tag",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 8,
+    "fields": {
+        "tags": "tag1-3",
+        "slug": "3-4d8qq9rr",
+        "tagged_field": 2,
+        "user": 3,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "user_tag",
+        "field_verbose_name": "Article User Tag",
+        "meta": {}
+    }
+},
+{
+    "model": "tag_me.usertag",
+    "pk": 9,
+    "fields": {
+        "tags": "tag1-3",
+        "slug": "3-73wc03wc",
+        "tagged_field": 3,
+        "user": 3,
+        "model_verbose_name": "Blog Article",
+        "model_name": null,
+        "comment": null,
+        "field_name": "user_tag2",
+        "field_verbose_name": "Article User Tag 2",
+        "meta": {}
+    }
+}
+]
