@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-  {% block content %}
+{% block content %}
 <nav class="bg-gray-900" x-data="{ mobileMenuOpen: false, profileMenuOpen: false, currentPath: '{{ request.path }}' }">
   <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
     <div class="relative flex h-16 items-center justify-between">
@@ -31,6 +31,18 @@
         <div class="hidden sm:ml-6 sm:block">
           <div class="flex space-x-4">
             <a 
+              href="{% url 'tag_me:try-widget' %}" 
+              hx-get="{% url 'tag_me:try-widget' %}"
+              hx-target="#htmx-container"
+              hx-trigger="click"
+              @click="currentPath = '{% url 'tag_me:try-widget' %}'"
+              :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'tag_me:try-widget' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'tag_me:try-widget' %}' }" 
+              class="rounded-md px-3 py-2 text-sm font-medium"
+              aria-current="page"
+            >
+              Try Tags
+            </a>
+            <a 
               href="{% url 'blog:author' %}" 
               hx-get="{% url 'blog:author' %}"
               hx-target="#htmx-container"
@@ -55,12 +67,11 @@
               All Tags
             </a>
             <a 
-              href="{% url 'blog:user-tags' %}" 
-              hx-get="{% url 'blog:user-tags' %}"
+              hx-get="{% url 'tag_me:list-tags' %}"
               hx-target="#htmx-container"
               hx-trigger="click"
-              @click="currentPath = '{% url 'blog:user-tags' %}'"
-              :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'blog:user-tags' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'blog:user-tags' %}' }" 
+              @click="currentPath = '{% url 'tag_me:list-tags' %}'"
+              :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'tag_me:list-tags' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'tag_me:list-tags' %}' }" 
               class="rounded-md px-3 py-2 text-sm font-medium"
               class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page"
             >
@@ -109,6 +120,18 @@
   <div :class="{ 'block': mobileMenuOpen, 'hidden': !mobileMenuOpen }" class="sm:hidden" id="mobile-menu">
     <div class="space-y-1 px-2 pb-3 pt-2">
       <a 
+        href="{% url 'tag_me:try-widget' %}" 
+        hx-get="{% url 'tag_me:try-widget' %}"
+        hx-target="#htmx-container"
+        hx-trigger="click"
+        @click="currentPath = '{% url 'tag_me:try-widget' %}'"
+        :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'tag_me:try-widget' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'tag_me:try-widget' %}' }" 
+        class="rounded-md px-3 py-2 text-sm font-medium"
+        aria-current="page"
+      >
+        Try Tags
+      </a>
+      <a 
         href="{% url 'blog:author' %}" 
         hx-get="{% url 'blog:author' %}"
         hx-target="#htmx-container"
@@ -134,12 +157,12 @@
         All Tags
       </a>
       <a 
-        href="{% url 'blog:user-tags' %}" 
-        hx-get="{% url 'blog:user-tags' %}"
+        href="{% url 'tag_me:list-tags' %}" 
+        hx-get="{% url 'tag_me:list-tags' %}"
         hx-target="#htmx-container"
         hx-trigger="click"
-        @click="currentPath = '{% url 'blog:user-tags' %}'"
-        :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'blog:user-tags' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'blog:user-tags' %}' }" 
+        @click="currentPath = '{% url 'tag_me:list-tags' %}'"
+        :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'tag_me:list-tags' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'tag_me:list-tags' %}' }" 
         class="rounded-md px-3 py-2 text-sm font-medium"
 
         aria-current="page"
@@ -158,7 +181,7 @@
 
 <div
   id='htmx-container'
-    class="pt-6 flex justify-center items center min-w-screen min-h-screen flex dark:bg-gray-900"
+  class="pt-6 flex justify-center items center min-w-screen min-h-screen flex dark:bg-gray-900"
 >
 
 </div>

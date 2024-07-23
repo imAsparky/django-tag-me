@@ -1,0 +1,50 @@
+{% load i18n %}
+{% load tag_filters %}
+<div class="px-4 sm:px-6 lg:px-8">
+  <div class="sm:flex sm:items-center">
+    {% if object_list %}
+    <div class="sm:flex-auto">
+      <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-300">Tagged Model Fields</h1>
+      <p class="mt-2 text-sm text-gray-700 dark:text-gray-500">A list of all the tagged fields in your project.</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="mt-8 flow-root">
+    <div class="-mx-4 -my-2 sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle">
+        {% if  object_list %}
+        <table class="min-w-full border-separate border-spacing-0">
+          <thead>
+            <tr>
+              <th scope="col" class="sticky top-0 z-10 hidden border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter lg:table-cell">Feature</th>
+              <th scope="col" class="sticky top-0 z-10 border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">Tagged Item</th>
+              <th scope="col" class="sticky top-0 z-10 border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">Tags</th>
+              <th scope="col" class="sticky top-0 z-10 border-b border-gray-300 bg-white bg-opacity-75 py-3.5 pl-3 pr-4 backdrop-blur backdrop-filter sm:pr-6 lg:pr-8">
+                <span class="sr-only">Add Tag</span>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for item in object_list %}
+            <tr>
+              <td class="hidden whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500 lg:table-cell">{{ item.model_verbose_name }}</td>
+              <td class="whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500">{{ item.field_verbose_name }}</td>
+              <td class="whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500">{{ item.tags}}</td>
+              <td class="relative whitespace-nowrap border-b border-gray-200 py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-8 lg:pr-8">
+                <a href="{% url 'tag_me:edit-tag' item.id %}" class="text-indigo-600 hover:text-indigo-900">Edit Tags {{ item.id }}<span class="sr-only">{{ item.field_verbose_name }}</span></a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p
+        class="relative whitespace-nowrap border border-gray-200 py-4 pl-3 pr-4 text-gray-500, dark:text-gray-300 text-center text-sm font-medium sm:pr-8 lg:pr-8"
+      >No tagged fields found.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+

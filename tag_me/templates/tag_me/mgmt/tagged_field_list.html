@@ -38,7 +38,7 @@
               <td class="whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500">{{ item.field_verbose_name }}</td>
               <td class="whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500">{{ item.tag_type}}</td>
               <td class="relative whitespace-nowrap border-b border-gray-200 py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-8 lg:pr-8">
-                <a href="#" class="text-indigo-600 hover:text-indigo-900">Add Tag<span class="sr-only">, {{ item.field_verbose_name }}</span></a>
+                <a href="#" class="text-indigo-600 hover:text-indigo-900">Add Tag<span class="sr-only">{{ item.field_verbose_name }}</span></a>
               </td>
             </tr>
             {% endfor %}

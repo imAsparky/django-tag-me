@@ -31,6 +31,7 @@ class Command(BaseCommand):
 
             user_tags = []
             for user in users:
+                tags = f"tag1-{user.id}"
                 for field in tagged_fields:
                     user_tags.append(
                         UserTag(
@@ -40,6 +41,7 @@ class Command(BaseCommand):
                             field_name=field.field_name,
                             field_verbose_name=field.field_verbose_name,
                             slug=TagBase.slugify(tag=str(user.id)),
+                            tags=tags,
                         )
                     )
             # Bulk create UserTag objects

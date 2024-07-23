@@ -24,7 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("", account.views.LoginView.as_view(), name="login"),
-    path("tag_me/", include("tag_me.urls"), name="tag_me"),
+    path("tag_me/", include("tag_me.urls", namespace="tag_me")),
     path("blog/", include("blog.urls", namespace="blog")),
 ]
 

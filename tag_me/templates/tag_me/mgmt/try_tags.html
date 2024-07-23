@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div x-data="{ tags: ['tag1','tag2'], newTag: 'tag3', message: null }">
+  <div 
+    x-cloak 
+    x-show="message"
+    :class="{ 'bg-green-200 text-green-800': message?.success, 'bg-red-200 text-red-800': message?.error }"  
+    class="p-2 rounded-md mb-2"
+  >
+    <span x-text="message?.text"></span>  
+  </div>
+
+  <input type="text" x-model="newTag" @keydown.enter="addTag">
+  <button @click="addTag">Add Tag</button>
+
+  <ul>
+    <template x-for="tag in tags" >
+      <li x-text="tag"></li>
+    </template>
+  </ul>
+
+  <script>
+  // Base64 encoding function
+    function base64Encode(obj) {
+      return btoa(JSON.stringify(obj));
+    }
+  function addTag() {
+    const encodedTag = base64Encode(this.newTag);
+
+    fetch('{% url "tag_me:add-tag" 1 %}', {  // Replace with your actual URL and item ID
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: new URLSearchParams({
+      'encoded_tag': encodedTag
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            this.message = { success: true, text: "Tags updated successfully!" };
+            this.tags = data.tags;  // Update the tags array with the response data
+            this.newTag = '';  // Clear the input
+        } else {
+            this.message = { error: true, text: data.error || "Error updating tags. Please try again." };
+        }
+    })
+    .catch(error => {
+        this.message = { error: true, text: "An error occurred while communicating with the server." };
+    });
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  </script>
+</div>
+{% endblock %}
