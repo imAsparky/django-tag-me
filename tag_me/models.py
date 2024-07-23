@@ -479,6 +479,17 @@ class UserTag(TagBase):
         default=None,
     )
 
+    meta = models.JSONField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Field meta data",
+        ),
+        default=dict,
+    )
+
     def __str__(self) -> str:
         return f"{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.tags}"
 
