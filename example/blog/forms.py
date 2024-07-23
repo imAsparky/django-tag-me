@@ -7,7 +7,7 @@ from tag_me.db.forms.mixins import TagMeModelFormMixin
 from .models import Article
 
 
-class ArticleTagsCreateForm(TagMeModelFormMixin, forms.ModelForm):
+class ArticleCreateForm(TagMeModelFormMixin, forms.ModelForm):
     """Article tags creation form"""
 
     class Meta:
@@ -15,7 +15,7 @@ class ArticleTagsCreateForm(TagMeModelFormMixin, forms.ModelForm):
         fields = "__all__"
 
 
-class ArticleTagsUpdateForm(TagMeModelFormMixin, forms.ModelForm):
+class ArticleUpdateForm(TagMeModelFormMixin, forms.ModelForm):
     """Article tags creation form"""
 
     class Meta:

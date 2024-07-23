@@ -8,26 +8,19 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
 from tag_me.db.mixins import TagMeViewMixin
-
-from .forms import ArticleTagsCreateForm, ArticleTagsUpdateForm
+from .forms import (
+    ArticleCreateForm,
+    ArticleUpdateForm,
+)
 from .models import Article, Author
 
 
-class ArticleTagsCreateView(TagMeViewMixin, CreateView):
+class ArticleCreateView(TagMeViewMixin, CreateView):
     """Article tags creation"""
 
     model = Article
-    form_class = ArticleTagsCreateForm
-    template_name = "blog/create_article_tag.html"
-    success_url = reverse_lazy("blog:user-tags")
-
-
-class ArticleTagsUpdateView(TagMeViewMixin, UpdateView):
-    """Article tags update"""
-
-    model = Article
-    form_class = ArticleTagsUpdateForm
-    template_name = "blog/create_article_tag.html"
+    form_class = ArticleCreateForm
+    template_name = "blog/create_article.html"
     success_url = reverse_lazy("blog:user-tags")
 
 
