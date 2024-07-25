@@ -1,11 +1,26 @@
 // code by https://github.com/alexpechkarev/alpinejs-multiselect/
+function base64Encode(obj) {
+    return btoa(JSON.stringify(obj));
+}
 document.addEventListener("alpine:init", () => {
+    function createOptionElementFromTag(selectElement, tag) {
+      // DEPRECATED
+      // Find a way to add tags directly to alpineTagMeMultiSelect
+      // instead of creatingn <option> elements first
+      const option = document.createElement('option');
+      option.setAttribute('data-search', tag)
+      option.setAttribute('value', tag)
+      option.innerText = tag;
+
+      selectElement.appendChild(option);
+    }
     Alpine.data("alpineTagMeMultiSelect", (obj) => ({
         elementId: obj.elementId,
         options: [],
         selected: obj.selected,
         selectedElms: [],
         show: false,
+        canAddNewTag: false,
         search: '',
         open() {
             this.show = true
@@ -42,24 +57,46 @@ document.addEventListener("alpine:init", () => {
 
             // searching for the given value
             this.$watch("search", (e => {
-                this.options = []
                 const options = document.getElementById(this.elementId).options;
-                Object.values(options).filter((el) => {
+                this.options = Object.values(options).filter((el) => {
                     var reg = new RegExp(this.search, 'gi');
                     return el.dataset.search.match(reg)
-                }).forEach((el) => {
-                    let newel = {
+                }).map((el) => {
+                    return {
                         value: el.value,
                         text: el.innerText,
                         search: el.dataset.search,
                         selected: Object.values(this.selected).includes(el.value)
-                    }
-                    this.options.push(newel);
-
-                })
-
-
+                    };
+                });
+                this.canAddNewTag = this.options.length === 0;
             }));
+        },
+        createNewTag() {
+          this.canAddNewTag = false; // Remove 'add' button on clicking of 'add' button
+
+          const selectElement = document.getElementById(this.elementId);
+          fetch(obj.createTagAPI, {
+            method: 'POST',
+            body: new URLSearchParams([
+              ['encoded_tag', base64Encode(this.search)],
+              ['csrfmiddlewaretoken', getCookie('csrftoken')],
+            ]),
+          })
+            .then(r => r.status === 200 ? r.json() : { is_error: true, error_status: r.status_code, response: r })
+            .then(data => {
+              if (data.is_error) {
+                console.log(data.response);
+                console.error(`Did not expect HTTP status code when creating tag: ${data.error_status}.`);
+              } else {
+                selectElement.innerHTML = ''; // Remove all options in select element
+                data.tags.forEach(tag =>
+                  // Repopulate select element with options from tags
+                  createOptionElementFromTag(selectElement, tag));
+
+                this.clear(); // Clear search input
+              }
+            });
         },
         // clear search field
         clear() {

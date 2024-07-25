@@ -1,10 +1,29 @@
 <!-- Define component with preselected options -->
 {# elementId must be the same as select id #}
+<script>
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 <div
   x-data="alpineTagMeMultiSelect(
-      {selected: {{ values }},
-      elementId: 'id_{{ name }}'}
-      )"
+    {
+      selected: {{ values }},
+      elementId: 'id_{{ name }}',
+      createTagAPI: '{% url 'tag_me:add-tag' 2 %}',
+    })"
   class="w-full"
 >
     <!-- Select Options -->
@@ -210,6 +229,9 @@
                                   placeholder=""
                                 >
                                 <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+                                    <kbd x-show="canAddNewTag" class="inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400 mr-2" x-on:click="createNewTag()">
+                                        Add
+                                    </kbd>
                                     <kbd class="inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400 mr-2" x-on:click="clear()">
                                         Esc
                                     </kbd>
