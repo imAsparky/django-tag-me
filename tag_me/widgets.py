@@ -83,6 +83,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                 model_verbose_name=model_verbose_name,
                 field_name=field_name,
                 user=User.objects.get(username=user),
+                return_list=True,
             )
 
         values: list = []
