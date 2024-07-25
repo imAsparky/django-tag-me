@@ -13,6 +13,7 @@ class ArticleCreateForm(TagMeModelFormMixin, forms.ModelForm):
     class Meta:
         model = Article
         fields = "__all__"
+        exclude = ["tag", "user_tag2"]
 
 
 class ArticleUpdateForm(TagMeModelFormMixin, forms.ModelForm):
