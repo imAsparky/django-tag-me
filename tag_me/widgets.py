@@ -6,6 +6,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from tag_me.models import UserTag
@@ -59,6 +60,8 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             tagged_field=_tagged_field,
         ).first()
 
+        add_tag_url = reverse("tag_me:add-tag", args=[tagged_field.id])
+
         permitted_to_add_tags = True
         if "display_number_selected" not in self.attrs:
             self.attrs["display_number_selected"] = (
@@ -101,6 +104,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             "display_number_selected": self.attrs["display_number_selected"],
             "permitted_to_add_tags": permitted_to_add_tags,
             "tagged_field": tagged_field,
+            "add_tag_url": add_tag_url,
         }
 
         return mark_safe(render_to_string(self.template_name, context))
