@@ -22,7 +22,7 @@ function getCookie(name) {
     {
       selected: {{ values }},
       elementId: 'id_{{ name }}',
-      createTagAPI: '{% url 'tag_me:add-tag' 2 %}',
+      addTagURL: '{{ add_tag_url }}',
     })"
   class="w-full"
 >

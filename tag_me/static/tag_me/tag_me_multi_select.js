@@ -15,12 +15,13 @@ document.addEventListener("alpine:init", () => {
       selectElement.appendChild(option);
     }
     Alpine.data("alpineTagMeMultiSelect", (obj) => ({
+        addTagURL: obj.addTagURL,
         elementId: obj.elementId,
-        options: [],
         selected: obj.selected,
+        canAddNewTag: false,
+        options: [],
         selectedElms: [],
         show: false,
-        canAddNewTag: false,
         search: '',
         open() {
             this.show = true
@@ -76,7 +77,7 @@ document.addEventListener("alpine:init", () => {
           this.canAddNewTag = false; // Remove 'add' button on clicking of 'add' button
 
           const selectElement = document.getElementById(this.elementId);
-          fetch(obj.createTagAPI, {
+          fetch(this.addTagURL, {
             method: 'POST',
             body: new URLSearchParams([
               ['encoded_tag', base64Encode(this.search)],
