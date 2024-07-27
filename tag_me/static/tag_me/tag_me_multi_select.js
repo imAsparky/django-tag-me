@@ -17,6 +17,7 @@ document.addEventListener("alpine:init", () => {
     Alpine.data("alpineTagMeMultiSelect", (obj) => ({
         addTagURL: obj.addTagURL,
         elementId: obj.elementId,
+        permitted_to_add_tags: obj.permitted_to_add_tags,
         selected: obj.selected,
         canAddNewTag: false,
         options: [],

@@ -1,5 +1,6 @@
 """tag-me app custom form widget."""
 
+import json
 from typing import override
 
 from django import forms
@@ -10,7 +11,6 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from tag_me.models import UserTag
-from tag_me.utils.helpers import get_user_field_choices_as_list_or_queryset
 
 User = get_user_model()
 
@@ -49,20 +49,10 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # elsewhere.
         css_class = self.attrs.get("css_class", None)
         field_verbose_name = self.attrs.pop("field_verbose_name", None)
-        field_name = self.attrs.pop("field_name", None)
-        model_verbose_name = self.attrs.pop("model_verbose_name", None)
         _tag_choices = self.attrs.pop("_tag_choices", None)
-        user = self.attrs.pop("user", None)
         _tagged_field = self.attrs.pop("tagged_field", None)
+        user = self.attrs.pop("user", None)
 
-        tagged_field = UserTag.objects.filter(
-            user=user,
-            tagged_field=_tagged_field,
-        ).first()
-
-        add_tag_url = reverse("tag_me:add-tag", args=[tagged_field.id])
-
-        permitted_to_add_tags = True
         if "display_number_selected" not in self.attrs:
             self.attrs["display_number_selected"] = (
                 settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
@@ -73,6 +63,9 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         else:
             self.template_name = settings.DJ_TAG_ME_THEMES[self.attrs["theme"]]
 
+        add_tag_url = ""
+        permitted_to_add_tags = True
+
         # Call the parent class render (essential for Widget functionality)
         super().render(name, value, attrs, renderer)
 
@@ -82,19 +75,18 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             permitted_to_add_tags = False
         else:
             # Dynamically fetch user and field specific choices as a list.
-            self.choices = get_user_field_choices_as_list_or_queryset(
-                model_verbose_name=model_verbose_name,
-                field_name=field_name,
-                user=User.objects.get(username=user),
-                return_list=True,
-            )
+            user_tags = UserTag.objects.filter(
+                user=user,
+                tagged_field=_tagged_field,
+            ).first()
+            self.choices = [tag.strip() for tag in user_tags.tags.split(",")]
+            add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
 
         values: list = []
         match value:
             case str():
                 for val in value.rstrip(",").split(","):
                     values.append(val.strip())
-
         context = {
             "name": name,
             "verbose_name": field_verbose_name,
@@ -102,87 +94,8 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             "choices": self.choices,
             # "options": json.dumps(options),
             "display_number_selected": self.attrs["display_number_selected"],
-            "permitted_to_add_tags": permitted_to_add_tags,
-            "tagged_field": tagged_field,
+            "permitted_to_add_tags": json.dumps(permitted_to_add_tags),
             "add_tag_url": add_tag_url,
         }
 
         return mark_safe(render_to_string(self.template_name, context))
-
-
-#  -----------  Code for refactor and removal of <select> in html  -----------
-
-# options_list = get_user_field_choices_as_list_tuples(
-#     model_verbose_name=model_verbose_name,
-#     field_name=field_name,
-#     user=User.objects.get(username=user),
-# )
-
-# print(f"\n\nWIDGET VALUES: {value}  {type(value)}")
-# print(f"\n\nWIDGET CHOICES: {self.choices}  {type(self.choices)}")
-
-# # ... (Code for generating the HTML output, default Django select) ...
-# output = [f'<select multiple name="{name}" class={css_class}>']
-# for option_value, option_label in self.choices:
-#     selected = option_value in value
-#     output.append(
-#         '<option value="{}" {}>{}</option>'.format(
-#             option_value, "selected" if selected else "", option_label
-#         )
-#     )
-# output.append("</select>")
-
-# options: dict = []
-# option: dict = {}
-# for option in options_list:
-#     options.append(
-#         {
-#             "value": option,
-#             "text": option,
-#             "search": option,
-#             "selected": option in value,
-#         }
-#     )
-
-# ----------------------------------------------------------------------------
-
-# @override
-# def optgroups(self, name, value, attrs=None):
-#     """Return a list of optgroups for this widget."""
-#     groups = []
-#     has_selected = False
-#
-#     for index, (option_value, option_label) in enumerate(self.choices):
-#         if option_value is None:
-#             option_value = ""
-#
-#         subgroup = []
-#         if isinstance(option_label, (list, tuple)):
-#             group_name = option_value
-#             subindex = 0
-#             choices = option_label
-#         else:
-#             group_name = None
-#             subindex = None
-#             choices = [(option_value, option_label)]
-#         groups.append((group_name, subgroup, index))
-#
-#         for subvalue, sublabel in choices:
-#             selected = (
-#                 not has_selected or self.allow_multiple_selected
-#             ) and str(subvalue) in value[0]
-#             has_selected |= selected
-#             subgroup.append(
-#                 self.create_option(
-#                     name,
-#                     subvalue,
-#                     sublabel,
-#                     selected,
-#                     index,
-#                     subindex=subindex,
-#                     attrs=attrs,
-#                 )
-#             )
-#             if subindex is not None:
-#                 subindex += 1
-#     return groups
