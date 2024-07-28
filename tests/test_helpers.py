@@ -27,6 +27,8 @@ from tag_me.utils.helpers import (  # update_models_with_tagged_fields_table,
     get_models_with_tagged_fields,
     get_models_with_tagged_fields_choices,
     get_user_field_choices_as_list_tuples,
+)
+from tag_me.utils.tag_mgmt_system import (
     update_models_with_tagged_fields_table,
 )
 
@@ -149,9 +151,7 @@ class TestTagHelpers(TestCase):
     def test_get_models_with_tagged_fields_choices(self):
         choices = get_models_with_tagged_fields_choices()
 
-        assert "('Tagged Field Test Model', 'Tagged Field Test Model')" in str(
-            choices
-        )
+        assert "('Tagged Field Test Model', 'Tagged Field Test Model')" in str(choices)
 
     def test_get_model_tagged_fields_choices_with_feature_name(self):
         choices1 = get_model_tagged_fields_choices(
