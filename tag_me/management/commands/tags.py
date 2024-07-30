@@ -5,7 +5,10 @@ import logging
 from django.conf import settings
 from django.core.management.base import BaseCommand, LabelCommand
 
-from tag_me.utils.helpers import update_models_with_tagged_fields_table
+from tag_me.utils.tag_mgmt_system import (
+    update_models_with_tagged_fields_table,
+    generate_user_tag_table_records,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +35,7 @@ class Command(BaseCommand):
         try:
             self.stdout.write("    Updating Tagged Models Table.")
             update_models_with_tagged_fields_table()
+            generate_user_tag_table_records()
             self.stdout.write(
                 self.style.SUCCESS(
                     "    SUCCESS: Tagged Models Table,"
