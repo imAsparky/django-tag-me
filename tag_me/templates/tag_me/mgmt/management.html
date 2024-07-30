@@ -49,6 +49,19 @@
                 Tagged Fields List
               </a>
               <a 
+                href="{% url 'tag_me:list-tags' %}" 
+                hx-get="{% url 'tag_me:list-tags' %}"
+                hx-target="#tag-htmx-container"
+                hx-trigger="click"
+                @click="currentPath = '{% url 'tag_me:list-tags' %}'"
+                :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'tag_me:list-tags' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'tag_me:list-tags' %}' }" 
+                class="rounded-md px-3 py-2 text-sm font-medium"
+                class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page"
+              >
+                Users Tags List
+              </a>
+
+              <a 
                 href="{% url 'tag_me:sync-tagged-field-list' %}" 
                 hx-get="{% url 'tag_me:sync-tagged-field-list' %}"
                 hx-target="#tag-htmx-container"

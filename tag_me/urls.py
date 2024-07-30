@@ -3,30 +3,36 @@
 from django.urls import path
 
 from .views import (
+    MgmtUserTagListView,
     SynchronisedTagFieldListView,
     TagFieldListView,
+    TaggedFieldEditView,
     TagManagementView,
-    # UserTagCreateView,
-    # UserTagDeleteView,
-    # UserTagDetailView,
-    UserTagListView,
     UserTagEditView,
+    UserTagListView,
     WidgetAddUserTagView,
-    try_widget,
 )
-
-# from .views import fnc
 
 app_label = "tag_me"
 app_name = "tag_me"
 
 urlpatterns: list = []
 
-mgmtpatterns = [
+mgmt_urls = [
     path(
         "mgmt/",
         TagManagementView.as_view(),
         name="tag-mgmt",
+    ),
+    path(
+        "list/tag/",
+        MgmtUserTagListView.as_view(),
+        name="list-tags",
+    ),
+    path(
+        "tagged-field-edit/<int:pk>/",
+        TaggedFieldEditView.as_view(),
+        name="tagged-field-edit",
     ),
     path(
         "tagged-field-list/",
@@ -40,11 +46,11 @@ mgmtpatterns = [
     ),
 ]
 
-tagpatterns = [
+tag_urls = [
     path(
-        "list/tag/",
+        "list/tag/<uuid:pk>/",
         UserTagListView.as_view(),
-        name="list-tags",
+        name="list-user-tags",
     ),
     path(
         "edit/tag/<int:pk>/",
@@ -56,12 +62,7 @@ tagpatterns = [
         WidgetAddUserTagView.as_view(),
         name="add-tag",
     ),
-    path(
-        "try/",
-        try_widget,
-        name="try-widget",
-    ),
 ]
 
-urlpatterns.extend(mgmtpatterns)
-urlpatterns.extend(tagpatterns)
+urlpatterns.extend(mgmt_urls)
+urlpatterns.extend(tag_urls)

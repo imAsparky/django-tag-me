@@ -63,7 +63,7 @@ class TagBase(models.Model):
         ),
         blank=False,
         null=False,
-        max_length=50,
+        max_length=255,
         help_text=_(
             "Help",
             "This is the tag",
@@ -208,7 +208,6 @@ class TagMeSynchronise(models.Model):
             expected minimum.
         """
         logger = logging.getLogger(__name__)
-
         if self.synchronise.items():
             for k, v in self.synchronise.items():
                 match len(v):
@@ -277,21 +276,26 @@ class TaggedFieldModel(models.Model):
     content = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
+        editable=False,
     )
 
     model_name = models.CharField(
         max_length=128,
+        editable=False,
     )
     model_verbose_name = models.CharField(
         max_length=128,
+        editable=False,
     )
 
     field_name = models.CharField(
         max_length=128,
+        editable=False,
     )
 
     field_verbose_name = models.CharField(
         max_length=128,
+        editable=False,
     )
     tag_type = models.CharField(
         verbose_name=_(
@@ -302,14 +306,28 @@ class TaggedFieldModel(models.Model):
         null=False,
         default="user",
         max_length=20,
+        editable=False,
         help_text=_(
             "Help",
             "This is the tag type, default is 'user'.",
         ),
     )
+    default_tags = models.CharField(
+        verbose_name=_(
+            "Verbose name",
+            "Default tags for field.",
+        ),
+        blank=True,
+        null=True,
+        max_length=255,
+        help_text=_(
+            "Help",
+            "These are generated for each new user to get them started.",
+        ),
+    )
 
     def __str__(self):
-        return f"{self.model_verbose_name}- {self.field_verbose_name}"
+        return f"{self.model_verbose_name} - {self.field_verbose_name}"
 
 
 # A store for synchronised tags, that are yet to be saved

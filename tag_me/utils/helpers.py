@@ -1,112 +1,17 @@
 import logging
+import os
+import sys
+
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from tag_me.models import TaggedFieldModel, TagMeSynchronise, UserTag
+from tag_me.models import UserTag
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
-
-
-def update_models_with_tagged_fields_table() -> None:
-    """Updates the Tagged Field Models table for managing tagged fields.
-
-    This function helps manage the models and fields in your Django project
-    that use the custom 'TagMeCharField' for tagging.  Specifically, it does
-    the following:
-
-    1. Finds all the models that have fields using 'TagMeCharField'.
-    2. Looks at each 'TagMeCharField' within these models.
-    3. Adds or updates information about each tagged field in the
-        'TaggedFieldModel' table.  This provides a centralized way to see which
-        models and fields use tags.
-
-    """
-    for model in get_models_with_tagged_fields():
-        content = ContentType.objects.get_for_model(
-            model, for_concrete_model=True
-        )
-        model_name = content.model_class().__name__
-        model_verbose_name = content.model_class()._meta.verbose_name
-        for field in get_model_tagged_fields_field_and_verbose(
-            model_name=model_name,
-            return_field_objects_only=True,
-        ):
-            match field:
-                case None:  # Ignore if specific field name is missing
-                    # We test for None because the first tuple returned is None
-                    pass
-                case _:
-                    (
-                        obj,
-                        created,
-                    ) = TaggedFieldModel.objects.update_or_create(
-                        content=content,
-                        field_name=field.name,
-                        field_verbose_name=field.verbose_name,
-                        model_name=model_name,
-                        model_verbose_name=model_verbose_name,
-                        tag_type=field.tag_type,
-                    )  # Add or update the database entry
-
-                    match created:
-                        case True:
-                            logger.info(
-                                f"\tCreated {obj} : {field}"
-                            )  # Log a new entry
-                        case False:
-                            logger.info(
-                                f"\tUpdated {obj} : {field}"
-                            )  # Log an updated entry
-                            print(f"\tUpdated {obj} : {field}")
-        update_fields_that_should_be_synchronised()
-
-
-def update_fields_that_should_be_synchronised():
-    """
-    Updates the synchronization configuration to include fields marked for tag synchronization.
-
-    This function scans all models and checks for fields that have the 'synchronise'
-    attribute set to True. If found, it updates the 'TagMeSynchronise' model (named 'default')
-    to ensure that tags applied to those fields will be synchronised across relevant content types.
-    """
-
-    # Retrieve or create the default synchronization configuration
-    sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
-
-    # Get a list of unique content IDs from existing TaggedFieldModel instances
-    model_content_ids = (
-        TaggedFieldModel.objects.all()
-        .values_list("content_id", flat=True)
-        .distinct()
-    )
-
-    # Retrieve ContentType models for further processing
-    models_for_sync = ContentType.objects.filter(
-        id__in=model_content_ids
-    )  # Get models_for_sync from the list of content_id's
-
-    # Flag to track changes to the sync config
-    sync_updated: bool = False
-    for model in models_for_sync:
-        for field in model.model_class()._meta.fields:
-            # Check if the field has the 'synchronise' attribute, and it's set
-            # to True
-            if hasattr(field, "synchronise") and field.synchronise:
-                # Ensure the field is registered for synchronization
-                if not sync.synchronise.get(field.name, False):
-                    sync.synchronise[field.name] = []
-                # Add the ContentType ID to the sync list for this field
-                if model.id not in sync.synchronise[field.name]:
-                    sync.synchronise[field.name].append(model.id)
-                    sync_updated = True
-
-    # Save the updated synchronization configuration if changes were made
-    if sync_updated:
-        sync.save()
 
 
 def get_model_tagged_fields_field_and_verbose(
@@ -130,9 +35,7 @@ def get_model_tagged_fields_field_and_verbose(
     """
     from tag_me.db.models.fields import TagMeCharField
 
-    _tagged_field_list_choices = [
-        (None, None)
-    ]  # Placeholder for 'no selection' option
+    _tagged_field_list_choices = [(None, None)]  # Placeholder for 'no selection' option
     _field_objects = []
     for model in get_models_with_tagged_fields():
         if (
@@ -140,9 +43,7 @@ def get_model_tagged_fields_field_and_verbose(
             or model.__name__ == model_name
         ):  # Check if we want this model
             for field in model._meta.fields:
-                if issubclass(
-                    type(field), TagMeCharField
-                ):  # Find our tagged fields
+                if issubclass(type(field), TagMeCharField):  # Find our tagged fields
                     label = str(
                         model._meta.get_field(field.name).verbose_name.title()
                     )  # Get a nicely formatted label
@@ -185,15 +86,11 @@ def get_models_with_tagged_fields() -> list[models.Model]:
 
     _tagged_field_models = []  # Stores the models we find
     for app in PROJECT_APPS:
-        models = ContentType.objects.filter(
-            app_label=app
-        )  # Get models from the app
+        models = ContentType.objects.filter(app_label=app)  # Get models from the app
 
         for model in models:
             for field in model.model_class()._meta.fields:
-                if issubclass(
-                    type(field), TagMeCharField
-                ):  # Check for tagged field
+                if issubclass(type(field), TagMeCharField):  # Check for tagged field
                     _tagged_field_models.append(model.model_class())
                     break  # No need to check other fields in this model
 
@@ -253,18 +150,12 @@ def get_model_tagged_fields_choices(
     if not feature_name:
         feature_name = ""  # Allow filtering by any model
 
-    _tagged_field_list_choices = [
-        (None, None)
-    ]  # Placeholder for 'no selection' option
+    _tagged_field_list_choices = [(None, None)]  # Placeholder for 'no selection' option
 
     for model in get_models_with_tagged_fields():
-        if (
-            model._meta.verbose_name == feature_name
-        ):  # Check if we want this model
+        if model._meta.verbose_name == feature_name:  # Check if we want this model
             for field in model._meta.fields:
-                if issubclass(
-                    type(field), TagMeCharField
-                ):  # Find tagged fields
+                if issubclass(type(field), TagMeCharField):  # Find tagged fields
                     label = str(
                         model._meta.get_field(field.name).verbose_name.title()
                     )  # Get a nicely formatted label
@@ -377,6 +268,32 @@ def get_user_field_choices_as_list_tuples(
             choices.append((tag, tag))  # Build a tuple (value, label)
 
     return choices
+
+
+def stdout_with_optional_color(message, color_code=None):
+    """
+    30	Black
+    31	Red
+    32	Green
+    33	Yellow
+    34	Blue
+    35	Magenta
+    36	Cyan
+    37	White
+    90	Bright Black (Gray)
+    91	Bright Red
+    92	Bright Green
+    93	Bright Yellow
+    94	Bright Blue
+    95	Bright Magenta
+    96	Bright Cyan
+    97	Bright White
+    """
+    if (
+        color_code is not None and sys.stdout.isatty() and os.name != "nt"
+    ):  # Check if TTY and not Windows
+        message = f"\033[{color_code}m{message}\033[0m"
+    sys.stdout.write(message + "\n")
 
 
 """
