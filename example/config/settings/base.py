@@ -43,7 +43,7 @@ ACCOUNT_USERNAME_BLACKLIST = username_blacklist
 
 # Logging Settings
 DJANGO_LOG_FILE = "logging/rotating.log"
-DJANGO_LOGGING_LEVEL = "WARNING"
+DJANGO_LOGGING_LEVEL = "DEBUG"
 # Send an email to ADMINS if this logger level triggered
 DJANGO_LOGGING_MAIL_ADMINS = "CRITICAL"
 # Add list of people to receive emails on system errors.
