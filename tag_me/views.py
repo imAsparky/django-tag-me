@@ -1,35 +1,48 @@
 """django-tag-me Views file."""
 
-import json
 import base64
+import json
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import TemplateView
 from django.views.generic.edit import UpdateView
 from django.views.generic.list import ListView
-
-from tag_me.utils.collections import FieldTagListFormatter
+from tag_me.forms import (
+    TaggedFieldEditForm,
+    UserTagEditForm,
+    UserTagListForm,
+)
 from tag_me.models import (
     TaggedFieldModel,
     TagMeSynchronise,
     UserTag,
 )
-
-from .forms import (
-    UserTagListForm,
-    UserTagEditForm,
-)
-
-
-def try_widget(request):
-    return render(request, "tag_me/mgmt/try_tags.html")
+from tag_me.utils.collections import FieldTagListFormatter
 
 
 class TagManagementView(TemplateView):
     """Tag management dashboard"""
 
     template_name = "tag_me/mgmt/management.html"
+
+
+class TaggedFieldEditView(UpdateView):
+    """Edit the default tags available for users."""
+
+    model = TaggedFieldModel
+    form_class = TaggedFieldEditForm
+    template_name = "tag_me/mgmt/edit_model_fields.html"
+    success_url = reverse_lazy("tag_me:tag-mgmt")
+
+    def form_valid(self, form):
+        default_tags = FieldTagListFormatter(form.cleaned_data["default_tags"])
+        form.cleaned_data["default_tags"] = default_tags.toCSV()
+
+        return super().form_valid(form)
 
 
 class TagFieldListView(ListView):
@@ -52,7 +65,20 @@ class UserTagListView(ListView):
     model = UserTag
     form_class = UserTagListForm
     template_name = "tag_me/mgmt/list_user_tag.html"
-    success_url = "/"
+    success_url = reverse_lazy("tag_me:tag-mgmt")
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        object_list = UserTag.objects.filter(user=self.kwargs["pk"])
+        return super().get_context_data(object_list=object_list, **kwargs)
+
+
+class MgmtUserTagListView(ListView):
+    """List user tags."""
+
+    model = UserTag
+    form_class = UserTagListForm
+    template_name = "tag_me/mgmt/mgmt_list_user_tag.html"
+    success_url = reverse_lazy("tag_me:tag-mgmt")
 
 
 class UserTagEditView(UpdateView):
@@ -61,7 +87,7 @@ class UserTagEditView(UpdateView):
     model = UserTag
     form_class = UserTagEditForm
     template_name = "tag_me/mgmt/edit_user_tag.html"
-    success_url = "/"
+    success_url = reverse_lazy("tag_me:tag-mgmt")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -76,9 +102,11 @@ class UserTagEditView(UpdateView):
 
 
 class WidgetAddUserTagView(View):
+    """Add tags from the TagMeCharfield widget."""
+
     def post(self, request, *args, **kwargs):
-        encoded_data = None
-        user_tag = None
+        """Handles POST requests to add tags to a UserTag instance."""
+
         encoded_data = request.POST.get("encoded_tag")
 
         if not encoded_data:
@@ -86,7 +114,10 @@ class WidgetAddUserTagView(View):
 
         try:
             data = json.loads(base64.urlsafe_b64decode(encoded_data).decode("utf-8"))
-            user_tag = UserTag.objects.get(id=self.kwargs["pk"])
+            try:
+                user_tag = UserTag.objects.get(id=self.kwargs["pk"])
+            except ObjectDoesNotExist:
+                return JsonResponse({"error": "UserTag not found"}, status=404)
             all_tags = FieldTagListFormatter(user_tag.tags)
             all_tags.add_tags(data)
             user_tag.tags = all_tags.toCSV()
@@ -98,5 +129,5 @@ class WidgetAddUserTagView(View):
                     "tags": all_tags.toList(),
                 }
             )
-        except (json.JSONDecodeError, base64.binascii.Error, user_tag.DoesNotExist):
-            return JsonResponse({"error": "Invalid or corrupted data"}, status=400)
+        except (json.JSONDecodeError, base64.binascii.Error) as e:
+            return JsonResponse({"error": f"Error decoding data: {e}"}, status=400)
