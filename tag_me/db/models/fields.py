@@ -43,12 +43,13 @@ class TagMeCharField(CharField):
                         constructor.
         """
         super().__init__(*args, **kwargs)
+
+        if self.max_length is None:
+            self.max_length = 255
+
         self.synchronise = synchronise
         self.db_collation = db_collation
-        if self.max_length is not None:
-            self.validators.append(
-                validators.MaxLengthValidator(self.max_length)
-            )
+        self.validators.append(validators.MaxLengthValidator(self.max_length))
         self.formatter = FieldTagListFormatter()
         # Used to pass choices as a list to widget attrs.
         self._tag_choices: list = []
