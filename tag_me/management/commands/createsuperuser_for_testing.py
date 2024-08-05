@@ -33,7 +33,9 @@ class Command(BaseCommand):
                 logger = logging.getLogger(__name__)
                 logger.error("Failed to delete the testing superuser.")
             finally:
-                if not User.objects.filter(username=options["username"]).exists():
+                if not User.objects.filter(
+                    username=options["username"]
+                ).exists():
                     print(
                         f"This username {options['username']} was deleted successfully."  # noqa: E501
                     )
