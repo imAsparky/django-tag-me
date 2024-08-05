@@ -4,8 +4,8 @@
   <div class="sm:flex sm:items-center">
     {% if object_list %}
     <div class="sm:flex-auto">
-      <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-300">Management: All User Tags</h1>
-      <p class="mt-2 text-sm text-gray-700 dark:text-gray-500">A list of all the users tagged fields in your project.</p>
+      <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-300">Your Tags</h1>      
+      <p class="mt-2 text-sm text-gray-700 dark:text-gray-500">Edit your tags here.</p>
     </div>
     {% endif %}
   </div>
@@ -16,8 +16,6 @@
         <table class="min-w-full border-separate border-spacing-0">
           <thead>
             <tr>
-              <th scope="col" class="sticky top-0 z-10 hidden border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter lg:table-cell">ID</th>
-              <th scope="col" class="sticky top-0 z-10 hidden border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter lg:table-cell">User</th>
               <th scope="col" class="sticky top-0 z-10 hidden border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter lg:table-cell">Feature</th>
               <th scope="col" class="sticky top-0 z-10 border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">Tagged Item</th>
               <th scope="col" class="sticky top-0 z-10 border-b border-gray-300 bg-white bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">Tags</th>
@@ -30,8 +28,6 @@
           <tbody>
             {% for item in object_list %}
             <tr>
-              <td class="hidden whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500 lg:table-cell">{{ item.id }}</td>
-              <td class="hidden whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500 lg:table-cell">{{ item.user }}</td>
               <td class="hidden whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500 lg:table-cell">{{ item.model_verbose_name }}</td>
               <td class="whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500">{{ item.field_verbose_name }}</td>
               <td class="whitespace-nowrap border-b border-gray-200 px-3 py-4 text-sm text-gray-500">{{ item.tags}}</td>
