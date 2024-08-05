@@ -1,15 +1,9 @@
 """tag-me app custom form widget."""
 
-import json
-from typing import override
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.template.loader import render_to_string
-from django.urls import reverse
-from django.utils.safestring import mark_safe
-
 from tag_me.models import UserTag
 
 User = get_user_model()
@@ -18,7 +12,7 @@ User = get_user_model()
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
     allow_multiple_selected = True
 
-    @override
+    # @override
     def render(self, name, value, attrs=None, renderer=None) -> str:
         """Renders a multiple select HTML element with dynamically generated choices.  # noqa: E501
 
@@ -49,6 +43,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # elsewhere.
         css_class = self.attrs.get("css_class", None)
         field_verbose_name = self.attrs.pop("field_verbose_name", None)
+
         _tag_choices = self.attrs.pop("_tag_choices", None)
         _tagged_field = self.attrs.pop("tagged_field", None)
         user = self.attrs.pop("user", None)
@@ -79,7 +74,11 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                 user=user,
                 tagged_field=_tagged_field,
             ).first()
-            self.choices = [tag.strip() for tag in user_tags.tags.split(",")]
+
+            if user_tags.tags:
+                self.choices = [tag.strip() for tag in user_tags.tags.split(",")]
+            else:
+                self.choices = []
             add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
 
         values: list = []

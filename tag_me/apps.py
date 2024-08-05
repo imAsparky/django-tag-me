@@ -21,6 +21,9 @@ class DjangoTagMeConfig(AppConfig):
     def ready(self):
         super().ready()
 
+        if not hasattr(settings, "DJ_TAG_ME_USE_CUSTOM_MIGRATE"):
+            settings.DJ_TAG_ME_USE_CUSTOM_MIGRATE: bool = False  # type: ignore[attr-defined]
+
         if not hasattr(settings, "PROJECT_APPS"):
             settings.PROJECT_APPS: list = settings.INSTALLED_APPS  # type: ignore[attr-defined]
         if not hasattr(settings, "DJ_TAG_ME_THEMES"):
