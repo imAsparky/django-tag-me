@@ -31,7 +31,7 @@ class TestTagMeCharField(TestCase):
         f2 = TagMeCharField(max_length=1234)
         f2.model = UserTag()
 
-        assert None is f1.formfield().max_length
+        assert 255 == f1.formfield().max_length
         assert 1234 == f2.formfield().max_length
 
     def test_emoji(self):
@@ -76,10 +76,13 @@ class TestMethods(SimpleTestCase):
     def test_deconstruct(self):
         f = TagMeCharField()
         *_, kwargs = f.deconstruct()
-        assert {} == kwargs
+        assert {"max_length": 255} == kwargs
         f = TagMeCharField(db_collation="utf8_esperanto_ci")
         *_, kwargs = f.deconstruct()
-        assert {"db_collation": "utf8_esperanto_ci"} == kwargs
+        assert {
+            "db_collation": "utf8_esperanto_ci",
+            "max_length": 255,
+        } == kwargs
 
 
 class TestValidation(SimpleTestCase):

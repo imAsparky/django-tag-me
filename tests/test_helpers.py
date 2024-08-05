@@ -44,10 +44,15 @@ class TestTagHelpers(TestCase):
     def setUp(self):
         # make sure all migrations are up to date
         self.out_makemigration = StringIO()
+        import logging
 
+        logger = logging.getLogger(__name__)
         call_command(
             "makemigrations",
             stdout=self.out_makemigration,
+        )
+        logger.info(
+            f"----------- MAKE MIGRATION: {self.out_makemigration.getvalue()}"
         )
 
         # Run migrations so the tags management commads are run
@@ -56,6 +61,7 @@ class TestTagHelpers(TestCase):
             "migrate",
             stdout=self.out_migration,
         )
+        logger.info(f"----------- MIGRATION: {self.out_migration.getvalue()}")
 
         _model = "TaggedFieldTestModel"
         _field_1 = "tagged_field_1"
@@ -86,10 +92,15 @@ class TestTagHelpers(TestCase):
             password="pw_user3",
             email="user3@email.com",
         )
-        # Add all the users to the UserTag table.
+        # # Add all the users to the UserTag table.
+        self.out_add_user_tags = StringIO()
         call_command(
             "add_user_tags",
-            stdout=self.out_migration,
+            stdout=self.out_add_user_tags,
+        )
+
+        logger.info(
+            f"----------- ADD USER ADD USER TAGS: {self.out_add_user_tags.getvalue()}"
         )
 
         self.model_1_field_1 = TaggedFieldModel.objects.get(
@@ -151,7 +162,9 @@ class TestTagHelpers(TestCase):
     def test_get_models_with_tagged_fields_choices(self):
         choices = get_models_with_tagged_fields_choices()
 
-        assert "('Tagged Field Test Model', 'Tagged Field Test Model')" in str(choices)
+        assert "('Tagged Field Test Model', 'Tagged Field Test Model')" in str(
+            choices
+        )
 
     def test_get_model_tagged_fields_choices_with_feature_name(self):
         choices1 = get_model_tagged_fields_choices(

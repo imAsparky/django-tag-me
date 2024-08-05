@@ -57,7 +57,7 @@ class TagMeCharField(CharField):
         if self.choices:
             tag_choices_list = []
             # Convert choice labels to a list.
-            for label, value in self.choices:
+            for label, _ in self.choices:
                 tag_choices_list.append(str(label))
             self.formatter.clear()
             self.formatter.add_tags(tag_choices_list)

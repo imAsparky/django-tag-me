@@ -1,25 +1,26 @@
 """Users need to be added to the UserTag table."""
 
 import logging
+
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import (
-    DataError,
     DatabaseError,
+    DataError,
     IntegrityError,
     transaction,
 )
-from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model
 
 from tag_me.models import (
     TagBase,
     TaggedFieldModel,
-    UserTag,
     TagMeSynchronise,
+    UserTag,
 )
 from tag_me.utils.helpers import (
-    get_models_with_tagged_fields,
     get_model_tagged_fields_field_and_verbose,
+    get_models_with_tagged_fields,
     stdout_with_optional_color,
 )
 
@@ -59,21 +60,16 @@ def generate_user_tag_table_records(
             * If a general database error occurs during record creation.
     """
     stdout_with_optional_color(
-        message="Commencing generation of the user tags data.", color_code=36
+        message="tag-me user tag generation tool is running", color_code=36
     )
     try:
         if user:
             users = [user]
             stdout_with_optional_color(
-                message="Starting to generate user tag table rows for a newly created user!",
+                message=f"A single user < {user.username} > requires updating",
                 color_code=96,
             )
-            print(f"USERS ARE {users}")
         else:
-            stdout_with_optional_color(
-                message="Starting to generate user tag table rows for multiple users!",
-                color_code=96,
-            )
             # Get all unique users from UserTag
             existing_user_ids = UserTag.objects.values_list(
                 "user_id", flat=True
@@ -81,22 +77,28 @@ def generate_user_tag_table_records(
 
             # Get all users who are NOT in existing_user_ids
             users = User.objects.exclude(id__in=existing_user_ids)
-            if not users:
+
+        user_count = len(users)
+        match user_count:
+            case 0:
                 stdout_with_optional_color(
                     message="Nothing to do, all users are in the UserTag table!\nExiting user tag table generation tool...",
                     color_code=33,
                 )
                 return
-
-            stdout_with_optional_color(
-                message=f"Generating UserTag rows for {users.count()} users!",
-                color_code=36,
-            )
+            case 1:
+                stdout_with_optional_color(
+                    message=f"Generating UserTag rows for {user_count} user!",
+                    color_code=36,
+                )
+            case _:
+                stdout_with_optional_color(
+                    message=f"Generating UserTag rows for {user_count} users!",
+                    color_code=36,
+                )
         tagged_fields = TaggedFieldModel.objects.all()
         user_tags = []
-        print(f"USERS ARE {users}")
         for user in users:
-            print("ITERATING ADDING USERS")
             for field in tagged_fields:
                 user_tags.append(
                     UserTag(
@@ -112,8 +114,8 @@ def generate_user_tag_table_records(
                     )
                 )
             with transaction.atomic():
-                # Bulk create UserTag objects
-                UserTag.objects.bulk_create(user_tags, ignore_conflicts=False)
+                # Note: Bulk create UserTag objects, ignoring conflicts due to unique constraints.
+                UserTag.objects.bulk_create(user_tags, ignore_conflicts=True)
 
         stdout_with_optional_color(
             message=f"    SUCCESS: Added {len(user_tags)} user tags rows in to the UserTag table for {len(users)} users!",
@@ -125,7 +127,9 @@ def generate_user_tag_table_records(
         if "duplicate key value violates unique constraint" in str(e):
             # Extract the conflicting value or field(s) if possible
             logger.exception(msg="IntegrityError")
-            raise ValidationError(f"Duplicate value found for UserTag: {str(e)}")
+            raise ValidationError(
+                f"Duplicate value found for UserTag: {str(e)}"
+            )
         else:
             raise
 
@@ -157,7 +161,9 @@ def update_models_with_tagged_fields_table() -> None:
 
     """
     for model in get_models_with_tagged_fields():
-        content = ContentType.objects.get_for_model(model, for_concrete_model=True)
+        content = ContentType.objects.get_for_model(
+            model, for_concrete_model=True
+        )
         model_name = content.model_class().__name__
         model_verbose_name = content.model_class()._meta.verbose_name
         for field in get_model_tagged_fields_field_and_verbose(
@@ -169,9 +175,6 @@ def update_models_with_tagged_fields_table() -> None:
                     # We test for None because the first tuple returned is None
                     pass
                 case _:
-                    print(
-                        f"UPDATE CREATE {model_name} {field.name} $$$$$$$$$$$$$$$$$$$$$"
-                    )
                     (
                         obj,
                         created,
@@ -186,12 +189,13 @@ def update_models_with_tagged_fields_table() -> None:
 
                     match created:
                         case True:
-                            logger.info(f"\tCreated {obj} : {field}")  # Log a new entry
+                            logger.info(
+                                f"\n-- Created {obj} : {field}"
+                            )  # Log a new entry
                         case False:
                             logger.info(
-                                f"\tUpdated {obj} : {field}"
+                                f"\n-- Updated {obj} : {field}"
                             )  # Log an updated entry
-                            print(f"\tUpdated {obj} : {field}")
         update_fields_that_should_be_synchronised()
 
 
@@ -209,7 +213,9 @@ def update_fields_that_should_be_synchronised():
 
     # Get a list of unique content IDs from existing TaggedFieldModel instances
     model_content_ids = (
-        TaggedFieldModel.objects.all().values_list("content_id", flat=True).distinct()
+        TaggedFieldModel.objects.all()
+        .values_list("content_id", flat=True)
+        .distinct()
     )
 
     # Retrieve ContentType models for further processing

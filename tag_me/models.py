@@ -61,8 +61,9 @@ class TagBase(models.Model):
             "Verbose name",
             "tags",
         ),
-        blank=False,
-        null=False,
+        default="",
+        blank=True,
+        null=True,
         max_length=255,
         help_text=_(
             "Help",
@@ -94,7 +95,7 @@ class TagBase(models.Model):
         https://github.com/jazzband/django-taggit/tree/master
         """
         if self._state.adding and not self.slug:
-            # self.slug = self.slugify(self.tags)
+            self.slug = self.slugify(self.tags)
             using = kwargs.get("using") or router.db_for_write(
                 type(self), instance=self
             )
@@ -237,7 +238,9 @@ class TagMeSynchronise(models.Model):
                         )
 
         else:
-            logger.info("You have no field tags listed that require synchronising")
+            logger.info(
+                "You have no field tags listed that require synchronising"
+            )
 
 
 class TaggedFieldModel(models.Model):

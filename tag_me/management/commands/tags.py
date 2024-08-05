@@ -34,14 +34,22 @@ class Command(BaseCommand):
 
         try:
             self.stdout.write("    Updating Tagged Models Table.")
+
             update_models_with_tagged_fields_table()
+
             generate_user_tag_table_records()
+
             self.stdout.write(
                 self.style.SUCCESS(
                     "    SUCCESS: Tagged Models Table,"
                     " and Synchronised Fields updated."
                 )
             )
+            from tag_me.models import TagMeSynchronise
+
+            sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
+            sync.check_field_sync_list_lengths()
+
         except Exception as e:
             logger.error(
                 "Tags Table Update Error",
@@ -54,9 +62,10 @@ class Command(BaseCommand):
                 )
             )
 
-        finally:
-            # Ensure synchronization configuration check is performed and logged.
-            from tag_me.models import TagMeSynchronise
-
-            sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
-            sync.check_field_sync_list_lengths()
+        # finally:
+        #     print("TAGS.PY OK, STARTING FINALLY")
+        #     # Ensure synchronization configuration check is performed and logged.
+        #     from tag_me.models import TagMeSynchronise
+        #
+        #     sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
+        #     sync.check_field_sync_list_lengths()

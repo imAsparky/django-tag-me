@@ -1,16 +1,18 @@
 """django-tag-me Views file."""
 
 import base64
+import binascii
 import json
-from django.conf import settings
+import logging
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
-from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import TemplateView
 from django.views.generic.edit import UpdateView
 from django.views.generic.list import ListView
+
 from tag_me.forms import (
     TaggedFieldEditForm,
     UserTagEditForm,
@@ -22,6 +24,8 @@ from tag_me.models import (
     UserTag,
 )
 from tag_me.utils.collections import FieldTagListFormatter
+
+logger = logging.getLogger(__name__)
 
 
 class TagManagementView(TemplateView):
@@ -35,7 +39,7 @@ class TaggedFieldEditView(UpdateView):
 
     model = TaggedFieldModel
     form_class = TaggedFieldEditForm
-    template_name = "tag_me/mgmt/edit_model_fields.html"
+    template_name = "tag_me/mgmt/edit_tagged_fields.html"
     success_url = reverse_lazy("tag_me:tag-mgmt")
 
     def form_valid(self, form):
@@ -64,7 +68,7 @@ class UserTagListView(ListView):
 
     model = UserTag
     form_class = UserTagListForm
-    template_name = "tag_me/mgmt/list_user_tag.html"
+    template_name = "tag_me/user/list_user_tag.html"
     success_url = reverse_lazy("tag_me:tag-mgmt")
 
     def get_context_data(self, *, object_list=None, **kwargs):
@@ -77,7 +81,7 @@ class MgmtUserTagListView(ListView):
 
     model = UserTag
     form_class = UserTagListForm
-    template_name = "tag_me/mgmt/mgmt_list_user_tag.html"
+    template_name = "tag_me/mgmt/list_user_tag.html"
     success_url = reverse_lazy("tag_me:tag-mgmt")
 
 
@@ -86,7 +90,7 @@ class UserTagEditView(UpdateView):
 
     model = UserTag
     form_class = UserTagEditForm
-    template_name = "tag_me/mgmt/edit_user_tag.html"
+    template_name = "tag_me/user/edit_user_tag.html"
     success_url = reverse_lazy("tag_me:tag-mgmt")
 
     def get_context_data(self, **kwargs):
@@ -100,6 +104,9 @@ class UserTagEditView(UpdateView):
         usertag.save()
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+
 
 class WidgetAddUserTagView(View):
     """Add tags from the TagMeCharfield widget."""
@@ -110,10 +117,14 @@ class WidgetAddUserTagView(View):
         encoded_data = request.POST.get("encoded_tag")
 
         if not encoded_data:
-            return JsonResponse({"error": "Invalid or corrupted tag data"}, status=400)
+            return JsonResponse(
+                {"error": "Invalid or corrupted tag data"}, status=400
+            )
 
         try:
-            data = json.loads(base64.urlsafe_b64decode(encoded_data).decode("utf-8"))
+            data = json.loads(
+                base64.urlsafe_b64decode(encoded_data).decode("utf-8")
+            )
             try:
                 user_tag = UserTag.objects.get(id=self.kwargs["pk"])
             except ObjectDoesNotExist:
@@ -129,5 +140,8 @@ class WidgetAddUserTagView(View):
                     "tags": all_tags.toList(),
                 }
             )
-        except (json.JSONDecodeError, base64.binascii.Error) as e:
-            return JsonResponse({"error": f"Error decoding data: {e}"}, status=400)
+        except (json.JSONDecodeError, binascii.Error):
+            logger.exception("Error decoding tag data.")
+            return JsonResponse(
+                {"error": "Invalid or corrupted data"}, status=400
+            )

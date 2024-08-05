@@ -35,7 +35,9 @@ def get_model_tagged_fields_field_and_verbose(
     """
     from tag_me.db.models.fields import TagMeCharField
 
-    _tagged_field_list_choices = [(None, None)]  # Placeholder for 'no selection' option
+    _tagged_field_list_choices = [
+        (None, None)
+    ]  # Placeholder for 'no selection' option
     _field_objects = []
     for model in get_models_with_tagged_fields():
         if (
@@ -43,7 +45,9 @@ def get_model_tagged_fields_field_and_verbose(
             or model.__name__ == model_name
         ):  # Check if we want this model
             for field in model._meta.fields:
-                if issubclass(type(field), TagMeCharField):  # Find our tagged fields
+                if issubclass(
+                    type(field), TagMeCharField
+                ):  # Find our tagged fields
                     label = str(
                         model._meta.get_field(field.name).verbose_name.title()
                     )  # Get a nicely formatted label
@@ -86,11 +90,15 @@ def get_models_with_tagged_fields() -> list[models.Model]:
 
     _tagged_field_models = []  # Stores the models we find
     for app in PROJECT_APPS:
-        models = ContentType.objects.filter(app_label=app)  # Get models from the app
+        models = ContentType.objects.filter(
+            app_label=app
+        )  # Get models from the app
 
         for model in models:
             for field in model.model_class()._meta.fields:
-                if issubclass(type(field), TagMeCharField):  # Check for tagged field
+                if issubclass(
+                    type(field), TagMeCharField
+                ):  # Check for tagged field
                     _tagged_field_models.append(model.model_class())
                     break  # No need to check other fields in this model
 
@@ -150,12 +158,18 @@ def get_model_tagged_fields_choices(
     if not feature_name:
         feature_name = ""  # Allow filtering by any model
 
-    _tagged_field_list_choices = [(None, None)]  # Placeholder for 'no selection' option
+    _tagged_field_list_choices = [
+        (None, None)
+    ]  # Placeholder for 'no selection' option
 
     for model in get_models_with_tagged_fields():
-        if model._meta.verbose_name == feature_name:  # Check if we want this model
+        if (
+            model._meta.verbose_name == feature_name
+        ):  # Check if we want this model
             for field in model._meta.fields:
-                if issubclass(type(field), TagMeCharField):  # Find tagged fields
+                if issubclass(
+                    type(field), TagMeCharField
+                ):  # Find tagged fields
                     label = str(
                         model._meta.get_field(field.name).verbose_name.title()
                     )  # Get a nicely formatted label
