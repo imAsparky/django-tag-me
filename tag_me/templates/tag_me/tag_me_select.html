@@ -47,9 +47,9 @@ function getCookie(name) {
   <!-- original code by https://github.com/alexpechkarev/alpinejs-multiselect/ -->
 
   <div class="w-full flex flex-col items-center mx-auto"
-    @keyup.alt="toggle()"
-    @keyup.escape.prevent.stop="toggle()"
-    @click.away="toggle()"
+    @keyup.alt="close()"
+    @keyup.escape.prevent.stop="close()"
+    @click.away="close()"
   >
 
     <!-- Selected Tags -->
