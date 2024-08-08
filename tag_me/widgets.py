@@ -1,9 +1,13 @@
 """tag-me app custom form widget."""
 
-
+import json
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+
 from tag_me.models import UserTag
 
 User = get_user_model()
@@ -76,7 +80,9 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             ).first()
 
             if user_tags.tags:
-                self.choices = [tag.strip() for tag in user_tags.tags.split(",")]
+                self.choices = [
+                    tag.strip() for tag in user_tags.tags.split(",")
+                ]
             else:
                 self.choices = []
             add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])

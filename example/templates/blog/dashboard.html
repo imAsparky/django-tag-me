@@ -108,18 +108,6 @@
   <div :class="{ 'block': mobileMenuOpen, 'hidden': !mobileMenuOpen }" class="sm:hidden" id="mobile-menu">
     <div class="space-y-1 px-2 pb-3 pt-2">
       <a 
-        href="{% url 'tag_me:try-widget' %}" 
-        hx-get="{% url 'tag_me:try-widget' %}"
-        hx-target="#htmx-container"
-        hx-trigger="click"
-        @click="currentPath = '{% url 'tag_me:try-widget' %}'"
-        :class="{ 'bg-gray-800 text-white': currentPath == '{% url 'tag_me:try-widget' %}', 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white': currentPath != '{% url 'tag_me:try-widget' %}' }" 
-        class="rounded-md px-3 py-2 text-sm font-medium"
-        aria-current="page"
-      >
-        Try Tags
-      </a>
-      <a 
         href="{% url 'blog:author' %}" 
         hx-get="{% url 'blog:author' %}"
         hx-target="#htmx-container"

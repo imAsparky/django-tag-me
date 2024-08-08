@@ -17,5 +17,7 @@ urlpatterns = [
     path("", dashboard, name="dashboard"),
     path("author/", author, name="author"),
     path("all-tags/", all_tags, name="all-tags"),
-    path("create/article/", ArticleCreateView.as_view(), name="create-article"),
+    path(
+        "create/article/", ArticleCreateView.as_view(), name="create-article"
+    ),
 ]
