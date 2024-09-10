@@ -238,9 +238,7 @@ class TagMeSynchronise(models.Model):
                         )
 
         else:
-            logger.info(
-                "You have no field tags listed that require synchronising"
-            )
+            logger.info("You have no field tags listed that require synchronising")
 
 
 class TaggedFieldModel(models.Model):
@@ -514,13 +512,20 @@ class UserTag(TagBase):
     def __str__(self) -> str:
         return f"{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.tags}"
 
-    def save(self, sync_tags_save: bool = False, *args, **kwargs):
+    def save(
+        self,
+        name: str = "default",
+        sync_tags_save: bool = False,
+        *args,
+        **kwargs,
+    ):
         """
         Saves the model instance and optionally synchronises related tags.
 
         This method allows you to control whether related tags from synchronised
         content types will also be updated when the model saves.
-
+        :param name: The name of the syncronisation key to use.
+                                Defaults to default
         :param sync_tags_save: If True, tags on related content types configured
                                for synchronisation will be updated.  Defaults to False.
         :param args: Additional positional arguments passed to the superclass's save method.
@@ -530,70 +535,39 @@ class UserTag(TagBase):
         # We don't need to gather synchronising information if the save is
         # for synchronising tags.  The information has already been collected
         if not sync_tags_save:
-            sync = TagMeSynchronise.objects.get(name="default")
+            sync = TagMeSynchronise.objects.get(
+                name=name,
+            )
             # Check if tags should be synced for a specific field
             if self.field_name in sync.synchronise.keys():
-                # Get other objects with this tag (excluding the current one)
-                content_ids = copy.deepcopy(sync.synchronise[self.field_name])
-                content_ids.remove(self.content_type_id)
-                tagged_models = TaggedFieldModel.objects.filter(
-                    content_id__in=content_ids
-                ).distinct()
+                # Get other objects with this tag ( then exclude the current one)
+                content_ids = copy.deepcopy(
+                    sync.synchronise[self.field_name],
+                )
+                content_ids.remove(
+                    self.tagged_field.content_id,
+                )
+
                 for content_id in content_ids:
-                    syncing_model = ContentType.objects.get(id=content_id)
-                    add_synced_user_tags_list.append(
-                        UserTag(
-                            user=self.user,
-                            content_type=syncing_model,
-                            model_verbose_name=tagged_models.filter(
-                                content_id=content_id
-                            )[0].model_verbose_name,
-                            comment="Tag created with automatic tag synchronising.",  # noqa: E501
-                            field_name=self.field_name,
-                            tags=self.tags,
-                            slug=self.slug + "-" + str(content_id),
-                        )
+                    tagged_field_model = TaggedFieldModel.objects.get(
+                        content=content_id,
+                        model_name=ContentType.objects.get(id=content_id)
+                        .model_class()
+                        .__name__,
+                        field_name=self.field_name,
+                    )
+
+                    instance = UserTag.objects.get(
+                        user=self.user,
+                        tagged_field=tagged_field_model,
+                    )
+
+                    instance.tags = self.tags
+                    instance.save(
+                        sync_tags_save=True,
                     )
 
         super().save(*args, **kwargs)
-
-        if add_synced_user_tags_list:
-            # Bulk create the new synchronized tags
-            for tag in add_synced_user_tags_list:
-                add_synced_user_tags_list.remove(tag)
-                tag.save(sync_tags_save=True)
-        return
-
-    def nothing_here():
-        """acc._meta.__dict__["concrete_model"]
-                        ContentType.objects.get_for_model(model, for_concrete_model=True) # noqa: E501
-                        from django.contrib.contenttypes.models import ContentType # noqa: E501
-                        https://docs.djangoproject.com/en/4.1/ref/contrib/contenttypes/#methods-on-contenttype-instances # noqa: E501
-                        https://stackoverflow.com/questions/20895429/how-exactly-do-django-content-types-work # noqa: E501
-                        https://levelup.gitconnected.com/just-one-index-in-django-makes-your-app-15x-faster-742e2f13108e # noqa: E501
-                        'last_login' in [n.name for n in user._meta.fields]
-                        https://stackoverflow.com/questions/8702772/django-get-list-of-models-in-application # noqa: E501
-
-        user1=CustomUser.objects.first()
-        user2=CustomUser.objects.last()
-        pid=Trading.objects.first()
-        content=ContentType.objects.get_for_model(pid,for_concrete_model=True)
-        tag=UserTag(user=user1,content_type_id=content,content_model=content.model,name="First Tag",field='field-1') # noqa: E501
-        tag.save()
-        UserTag.objects.create(user=user1,content_type_id=content,content_model=content.model,name="First Tag",field='field-1') # noqa: E501
-                    UserTag.objects.create(user=user2,content_type_id=content,content_model=content.model,name="First Tag",field='field-1') # noqa: E501
-                    UserTag.objects.create(user=user1,name="First Tag",field='field-1') # noqa: E501
-                    https://stackoverflow.com/questions/59600494/what-is-pgettext-lazy-in-django # noqa: E501
-
-        >>> from django.contrib.contenttypes.models import ContentType
-        >>> ContentType.objects.filter(app_label="auth")
-        <QuerySet [<ContentType: group>, <ContentType: permission>, <ContentType: user>]> # noqa: E501
-        >>> [ct.model_class() for ct in ContentType.objects.filter(app_label="auth")] # noqa: E501
-        [<class 'django.contrib.auth.models.Group'>, <class 'django.contrib.auth.models.Permission'>, <class 'django.contrib.auth.models.User'>] # noqa: E501
-
-
-
-        """
 
 
 class SystemTag(TagBase):
