@@ -1,10 +1,10 @@
 """tag-me app custom form widget."""
 
 import json
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 

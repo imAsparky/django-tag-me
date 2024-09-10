@@ -1,4 +1,34 @@
 // code by https://github.com/alexpechkarev/alpinejs-multiselect/
+function monitorEscapeKeyAndListeners() {
+    window.addEventListener('keydown', (event) => {
+        console.log('ESCAPE LISTENER')
+        if (event.key === 'Escape') {
+            event.preventDefault(); // Prevent default behavior
+
+            let currentElement = event.target;
+            const listenerChain = []; 
+
+            while (currentElement) {
+                const listeners = getEventListeners(currentElement);
+                if (listeners && listeners.keydown) {
+                    const escapeListeners = listeners.keydown.filter(listener => 
+                        listener.listener && 
+                        listener.listener.toString().includes('event.key === \'Escape\'')
+                    );
+                    if (escapeListeners.length > 0) {
+                        listenerChain.push({
+                            element: currentElement,
+                            listeners: escapeListeners
+                        });
+                    }
+                }
+                currentElement = currentElement.parentElement;
+            }
+
+            console.log('Escape key pressed! Listener chain:', listenerChain);
+        }
+    });
+}
 function base64Encode(obj) {
     return btoa(JSON.stringify(obj));
 }
@@ -96,16 +126,16 @@ document.addEventListener("alpine:init", () => {
                   // Repopulate select element with options from tags
                   createOptionElementFromTag(selectElement, tag));
 
-                this.clear(); // Clear search input
+                this.clearSearch(); // Clear search input
               }
             });
         },
         // clear search field
-        clear() {
+        clearSearch() {
             this.search = ''
         },
         // deselect selected options
-        deselect() {
+        deselectTag() {
             setTimeout(() => {
                 this.selected = []
                 this.selectedElms = []
