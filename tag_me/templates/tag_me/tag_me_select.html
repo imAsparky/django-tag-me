@@ -22,7 +22,8 @@ function getCookie(name) {
   {
   addTagURL: '{{ add_tag_url }}',
   elementId: 'id_{{ name }}',
-  permitted_to_add_tags: {{ permitted_to_add_tags }},
+  permittedToAddTags: {{ permitted_to_add_tags }},
+  allowMultipleSelect: {{ allow_multiple_select }},
   search:'',
   selected: {{ values }},
   })"
@@ -44,7 +45,6 @@ function getCookie(name) {
     name='{{ name }}'
     x-bind:value="selectedValues()"
     class="hidden"
-    multiple
   >
     {% for tag in choices %}
     <option

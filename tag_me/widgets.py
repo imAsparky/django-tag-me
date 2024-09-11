@@ -5,6 +5,7 @@ import json
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
@@ -46,24 +47,24 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # The 'attrs' removed are for filtering choices and not required
         # elsewhere.
         css_class = self.attrs.get("css_class", None)
-        field_verbose_name = self.attrs.pop("field_verbose_name", None)
+        _field_verbose_name = self.attrs.pop("field_verbose_name", None)
+        _allow_multiple_select = self.attrs.pop("allow_multiple_select", True)
 
         _tag_choices = self.attrs.pop("_tag_choices", None)
         _tagged_field = self.attrs.pop("tagged_field", None)
         user = self.attrs.pop("user", None)
 
         if "display_number_selected" not in self.attrs:
-            self.attrs["display_number_selected"] = (
-                settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
-            )
+            _display_number_selected = settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
+
         # Get the template theme
         if "theme" not in self.attrs:
             self.template_name = settings.DJ_TAG_ME_THEMES["default"]
         else:
             self.template_name = settings.DJ_TAG_ME_THEMES[self.attrs["theme"]]
 
-        add_tag_url = ""
-        permitted_to_add_tags = True
+        _add_tag_url = ""
+        _permitted_to_add_tags = True
 
         # Call the parent class render (essential for Widget functionality)
         super().render(name, value, attrs, renderer)
@@ -71,7 +72,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         if _tag_choices:
             # Here we are using the choices set in the model charfield.
             self.choices = _tag_choices
-            permitted_to_add_tags = False
+            _permitted_to_add_tags = False
         else:
             # Dynamically fetch user and field specific choices as a list.
             user_tags = UserTag.objects.filter(
@@ -80,12 +81,10 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             ).first()
 
             if user_tags.tags:
-                self.choices = [
-                    tag.strip() for tag in user_tags.tags.split(",")
-                ]
+                self.choices = [tag.strip() for tag in user_tags.tags.split(",")]
             else:
                 self.choices = []
-            add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
+            _add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
 
         values: list = []
         match value:
@@ -93,14 +92,15 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                 for val in value.rstrip(",").split(","):
                     values.append(val.strip())
         context = {
-            "name": name,
-            "verbose_name": field_verbose_name,
-            "values": values,
+            "add_tag_url": _add_tag_url,
+            "allow_multiple_select": json.dumps(_allow_multiple_select),
             "choices": self.choices,
+            "display_number_selected": _display_number_selected,
+            "name": name,
+            "permitted_to_add_tags": json.dumps(_permitted_to_add_tags),
+            "verbose_name": _field_verbose_name,
+            "values": values,
             # "options": json.dumps(options),
-            "display_number_selected": self.attrs["display_number_selected"],
-            "permitted_to_add_tags": json.dumps(permitted_to_add_tags),
-            "add_tag_url": add_tag_url,
         }
 
         return mark_safe(render_to_string(self.template_name, context))
