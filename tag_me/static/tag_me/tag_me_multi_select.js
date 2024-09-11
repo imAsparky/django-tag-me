@@ -1,4 +1,4 @@
-// code by https://github.com/alexpechkarev/alpinejs-multiselect/
+// original code by https://github.com/alexpechkarev/alpinejs-multiselect/
 function monitorEscapeKeyAndListeners() {
     window.addEventListener('keydown', (event) => {
         console.log('ESCAPE LISTENER')
@@ -13,7 +13,7 @@ function monitorEscapeKeyAndListeners() {
                 if (listeners && listeners.keydown) {
                     const escapeListeners = listeners.keydown.filter(listener => 
                         listener.listener && 
-                        listener.listener.toString().includes('event.key === \'Escape\'')
+                            listener.listener.toString().includes('event.key === \'Escape\'')
                     );
                     if (escapeListeners.length > 0) {
                         listenerChain.push({
@@ -34,20 +34,21 @@ function base64Encode(obj) {
 }
 document.addEventListener("alpine:init", () => {
     function createOptionElementFromTag(selectElement, tag) {
-      // DEPRECATED
-      // Find a way to add tags directly to alpineTagMeMultiSelect
-      // instead of creatingn <option> elements first
-      const option = document.createElement('option');
-      option.setAttribute('data-search', tag)
-      option.setAttribute('value', tag)
-      option.innerText = tag;
+        // DEPRECATED
+        // Find a way to add tags directly to alpineTagMeMultiSelect
+        // instead of creatingn <option> elements first
+        const option = document.createElement('option');
+        option.setAttribute('data-search', tag)
+        option.setAttribute('value', tag)
+        option.innerText = tag;
 
-      selectElement.appendChild(option);
+        selectElement.appendChild(option);
     }
     Alpine.data("alpineTagMeMultiSelect", (obj) => ({
         addTagURL: obj.addTagURL,
         elementId: obj.elementId,
         permitted_to_add_tags: obj.permitted_to_add_tags,
+        allowMultipleSelect: obj.allowMultipleSelect,
         selected: obj.selected,
         canAddNewTag: false,
         options: [],
@@ -67,7 +68,7 @@ document.addEventListener("alpine:init", () => {
             return this.show === true
         },
         logOptions() {
-          console.log("Current Options Container:", this.options);
+            console.log("Current Options Container:", this.options);
         },
 
         // Initializing component
@@ -94,41 +95,41 @@ document.addEventListener("alpine:init", () => {
                     var reg = new RegExp(this.search, 'gi');
                     return el.dataset.search.match(reg)
                 }).map((el) => {
-                    return {
-                        value: el.value,
-                        text: el.innerText,
-                        search: el.dataset.search,
-                        selected: Object.values(this.selected).includes(el.value)
-                    };
-                });
+                        return {
+                            value: el.value,
+                            text: el.innerText,
+                            search: el.dataset.search,
+                            selected: Object.values(this.selected).includes(el.value)
+                        };
+                    });
                 this.canAddNewTag = this.options.length === 0;
             }));
         },
         createNewTag() {
-          this.canAddNewTag = false; // Remove 'add' button on clicking of 'add' button
+            this.canAddNewTag = false; // Remove 'add' button on clicking of 'add' button
 
-          const selectElement = document.getElementById(this.elementId);
-          fetch(this.addTagURL, {
-            method: 'POST',
-            body: new URLSearchParams([
-              ['encoded_tag', base64Encode(this.search)],
-              ['csrfmiddlewaretoken', getCookie('csrftoken')],
-            ]),
-          })
-            .then(r => r.status === 200 ? r.json() : { is_error: true, error_status: r.status_code, response: r })
-            .then(data => {
-              if (data.is_error) {
-                console.log(data.response);
-                console.error(`Did not expect HTTP status code when creating tag: ${data.error_status}.`);
-              } else {
-                selectElement.innerHTML = ''; // Remove all options in select element
-                data.tags.forEach(tag =>
-                  // Repopulate select element with options from tags
-                  createOptionElementFromTag(selectElement, tag));
+            const selectElement = document.getElementById(this.elementId);
+            fetch(this.addTagURL, {
+                method: 'POST',
+                body: new URLSearchParams([
+                    ['encoded_tag', base64Encode(this.search)],
+                    ['csrfmiddlewaretoken', getCookie('csrftoken')],
+                ]),
+            })
+                .then(r => r.status === 200 ? r.json() : { is_error: true, error_status: r.status_code, response: r })
+                .then(data => {
+                    if (data.is_error) {
+                        console.log(data.response);
+                        console.error(`Did not expect HTTP status code when creating tag: ${data.error_status}.`);
+                    } else {
+                        selectElement.innerHTML = ''; // Remove all options in select element
+                        data.tags.forEach(tag =>
+                            // Repopulate select element with options from tags
+                            createOptionElementFromTag(selectElement, tag));
 
-                this.clearSearch(); // Clear search input
-              }
-            });
+                        this.clearSearch(); // Clear search input
+                    }
+                });
         },
         // clear search field
         clearSearch() {
@@ -146,6 +147,10 @@ document.addEventListener("alpine:init", () => {
         },
         // select given option
         select(index, event) {
+            if (!this.allowMultipleSelect && this.selected.length === 1 ) {
+                alert("You've reached the maximum number of selections!");
+                return;
+            }
             if (!this.options[index].selected) {
                 this.options[index].selected = true;
                 this.options[index].element = event.target;
