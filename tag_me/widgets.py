@@ -49,8 +49,8 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         css_class = self.attrs.get("css_class", None)
         _field_verbose_name = self.attrs.pop("field_verbose_name", None)
         _allow_multiple_select = self.attrs.pop("allow_multiple_select", True)
-
-        _tag_choices = self.attrs.pop("_tag_choices", None)
+        _auto_select_new_tags = self.attrs.pop("auto_select_new_tags", True)
+        _tag_choices = self.attrs.pop("tag_choices", None)
         _tagged_field = self.attrs.pop("tagged_field", None)
         user = self.attrs.pop("user", None)
 
@@ -94,6 +94,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         context = {
             "add_tag_url": _add_tag_url,
             "allow_multiple_select": json.dumps(_allow_multiple_select),
+            "auto_select_new_tags": json.dumps(_auto_select_new_tags),
             "choices": self.choices,
             "display_number_selected": _display_number_selected,
             "name": name,

@@ -24,17 +24,13 @@ function getCookie(name) {
   elementId: 'id_{{ name }}',
   permittedToAddTags: {{ permitted_to_add_tags }},
   allowMultipleSelect: {{ allow_multiple_select }},
+  autoSelectNewTags: {{ auto_select_new_tags }},
   search:'',
   selected: {{ values }},
   })"
-  {# x-id="['hidden', 'pill','search', 'select','selected','tag-me-select']" #}
-  {# @click.away="close()" #}
-  {# @keyup.alt="close()" #}
-  {# @keyup.escape.prevent.stop="close()" #}
   x-on:keydown.prevent.stop.alt="close()"
   x-on:click.outside="close()"
   x-on:keydown.prevent.stop.excape="close()"
-  x-on:keydown.prevent.stop.space="toggle()"
   tabindex=0
   class="w-full"
 
@@ -234,7 +230,7 @@ function getCookie(name) {
                   >
                   <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
                     <kbd 
-                      x-show="canAddNewTag && permitted_to_add_tags" 
+                      x-show="canAddNewTag && permittedToAddTags" 
                       x-on:click="createNewTag()"
                       class="inline-flex items-center border border-gray-200 rounded px-2 text-sm font-sans font-medium text-gray-400 mr-2"
                     > 

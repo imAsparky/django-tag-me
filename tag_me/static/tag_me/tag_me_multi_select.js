@@ -1,56 +1,61 @@
 // original code by https://github.com/alexpechkarev/alpinejs-multiselect/
-function monitorEscapeKeyAndListeners() {
-    window.addEventListener('keydown', (event) => {
-        console.log('ESCAPE LISTENER')
-        if (event.key === 'Escape') {
-            event.preventDefault(); // Prevent default behavior
+//function monitorEscapeKeyAndListeners() {
+//    window.addEventListener('keydown', (event) => {
+//        console.log('ESCAPE LISTENER')
+//        if (event.key === 'Escape') {
+//            event.preventDefault(); // Prevent default behavior
+//
+//            let currentElement = event.target;
+//            const listenerChain = []; 
+//
+//            while (currentElement) {
+//                const listeners = getEventListeners(currentElement);
+//                if (listeners && listeners.keydown) {
+//                    const escapeListeners = listeners.keydown.filter(listener => 
+//                        listener.listener && 
+//                            listener.listener.toString().includes('event.key === \'Escape\'')
+//                    );
+//                    if (escapeListeners.length > 0) {
+//                        listenerChain.push({
+//                            element: currentElement,
+//                            listeners: escapeListeners
+//                        });
+//                    }
+//                }
+//                currentElement = currentElement.parentElement;
+//            }
+//
+//            console.log('Escape key pressed! Listener chain:', listenerChain);
+//        }
+//    });
+//}
 
-            let currentElement = event.target;
-            const listenerChain = []; 
-
-            while (currentElement) {
-                const listeners = getEventListeners(currentElement);
-                if (listeners && listeners.keydown) {
-                    const escapeListeners = listeners.keydown.filter(listener => 
-                        listener.listener && 
-                            listener.listener.toString().includes('event.key === \'Escape\'')
-                    );
-                    if (escapeListeners.length > 0) {
-                        listenerChain.push({
-                            element: currentElement,
-                            listeners: escapeListeners
-                        });
-                    }
-                }
-                currentElement = currentElement.parentElement;
-            }
-
-            console.log('Escape key pressed! Listener chain:', listenerChain);
-        }
-    });
-}
 function base64Encode(obj) {
     return btoa(JSON.stringify(obj));
 }
+
 document.addEventListener("alpine:init", () => {
     function createOptionElementFromTag(selectElement, tag) {
         // DEPRECATED
         // Find a way to add tags directly to alpineTagMeMultiSelect
-        // instead of creatingn <option> elements first
+        // instead of creating <option> elements first
+        let addTag = String(tag).trim()
         const option = document.createElement('option');
-        option.setAttribute('data-search', tag)
-        option.setAttribute('value', tag)
-        option.innerText = tag;
+        option.setAttribute('data-search', addTag);
+        option.setAttribute('value', addTag);
+        option.innerText = addTag;
 
         selectElement.appendChild(option);
     }
     Alpine.data("alpineTagMeMultiSelect", (obj) => ({
         addTagURL: obj.addTagURL,
         elementId: obj.elementId,
-        permitted_to_add_tags: obj.permitted_to_add_tags,
+        permittedToAddTags: obj.permittedToAddTags,
         allowMultipleSelect: obj.allowMultipleSelect,
         selected: obj.selected,
         canAddNewTag: false,
+        autoSelectNewTags: obj.autoSelectNewTags,
+        newTagsArray: [],
         options: [],
         selectedElms: [],
         show: false,
@@ -106,9 +111,10 @@ document.addEventListener("alpine:init", () => {
             }));
         },
         createNewTag() {
-            this.canAddNewTag = false; // Remove 'add' button on clicking of 'add' button
-
+            this.canAddNewTag = false; // Remove 'add' button when new tag has been submitted
             const selectElement = document.getElementById(this.elementId);
+            this.newTagsArray.length = 0;
+            this.newTagsArray = this.search.split(',').map(tag => String(tag).trim());
             fetch(this.addTagURL, {
                 method: 'POST',
                 body: new URLSearchParams([
@@ -118,14 +124,16 @@ document.addEventListener("alpine:init", () => {
             })
                 .then(r => r.status === 200 ? r.json() : { is_error: true, error_status: r.status_code, response: r })
                 .then(data => {
+                    console.log('THE DATA IS', data);
                     if (data.is_error) {
                         console.log(data.response);
                         console.error(`Did not expect HTTP status code when creating tag: ${data.error_status}.`);
                     } else {
                         selectElement.innerHTML = ''; // Remove all options in select element
-                        data.tags.forEach(tag =>
+                        data.tags.forEach(tag => {
                             // Repopulate select element with options from tags
-                            createOptionElementFromTag(selectElement, tag));
+                            createOptionElementFromTag(selectElement, tag);
+                        });
 
                         this.clearSearch(); // Clear search input
                     }
