@@ -108,6 +108,7 @@ def generate_user_tag_table_records(
                         model_verbose_name=field.model_verbose_name,
                         field_name=field.field_name,
                         field_verbose_name=field.field_verbose_name,
+                        ui_display_name=field.field_verbose_name,
                         slug=TagBase.slugify(tag=str(user.id)),
                         tags=field.default_tags,
                         comment="Auto generated, please add tags and update/delete this comment",
@@ -127,9 +128,7 @@ def generate_user_tag_table_records(
         if "duplicate key value violates unique constraint" in str(e):
             # Extract the conflicting value or field(s) if possible
             logger.exception(msg="IntegrityError")
-            raise ValidationError(
-                f"Duplicate value found for UserTag: {str(e)}"
-            )
+            raise ValidationError(f"Duplicate value found for UserTag: {str(e)}")
         else:
             raise
 
@@ -161,9 +160,7 @@ def update_models_with_tagged_fields_table() -> None:
 
     """
     for model in get_models_with_tagged_fields():
-        content = ContentType.objects.get_for_model(
-            model, for_concrete_model=True
-        )
+        content = ContentType.objects.get_for_model(model, for_concrete_model=True)
         model_name = content.model_class().__name__
         model_verbose_name = content.model_class()._meta.verbose_name
         for field in get_model_tagged_fields_field_and_verbose(
@@ -213,9 +210,7 @@ def update_fields_that_should_be_synchronised():
 
     # Get a list of unique content IDs from existing TaggedFieldModel instances
     model_content_ids = (
-        TaggedFieldModel.objects.all()
-        .values_list("content_id", flat=True)
-        .distinct()
+        TaggedFieldModel.objects.all().values_list("content_id", flat=True).distinct()
     )
 
     # Retrieve ContentType models for further processing

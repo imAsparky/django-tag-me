@@ -31,9 +31,7 @@ class TaggedFieldEditForm(TagMeModelFormMixin, forms.ModelForm):
             ):  # Check if already in self.fields
                 # Create a BoundField for the non-editable field
                 self.fields[field.name] = forms.CharField(
-                    initial=getattr(
-                        self.instance, field.name
-                    ),  # Set initial value
+                    initial=getattr(self.instance, field.name),  # Set initial value
                     widget=forms.TextInput(attrs={"readonly": True}),
                     required=False,  # Non-editable fields shouldn't be required
                 )
@@ -61,6 +59,10 @@ class UserTagListForm(forms.ModelForm):
             "field_name": _(
                 "Label",
                 "Field",
+            ),
+            "ui_display_name": _(
+                "Label",
+                "UI Display Name`",
             ),
             "tags": _(
                 "Label",
@@ -96,6 +98,10 @@ class UserTagEditForm(forms.ModelForm):
                 "Label",
                 "Tagged Field",
             ),
+            "ui_display_name": _(
+                "Label",
+                "UI Display Name",
+            ),
             "tags": _(
                 "Label",
                 "Tags",
@@ -124,9 +130,7 @@ class UserTagEditForm(forms.ModelForm):
                 label = self.Meta.labels.get(field.name, field.verbose_name)
                 self.fields[field.name] = forms.CharField(
                     label=label,
-                    initial=getattr(
-                        self.instance, field.name
-                    ),  # Set initial value
+                    initial=getattr(self.instance, field.name),  # Set initial value
                     widget=forms.TextInput(attrs={"readonly": True}),
                     required=False,  # Non-editable fields shouldn't be required
                 )
@@ -156,6 +160,10 @@ class UserTagDeleteForm(forms.ModelForm):
             "field_name": _(
                 "Label",
                 "Field",
+            ),
+            "ui_display_name": _(
+                "Label",
+                "UI Display Name`",
             ),
             "tags": _(
                 "Label",

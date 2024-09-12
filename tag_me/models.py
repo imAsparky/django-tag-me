@@ -497,6 +497,19 @@ class UserTag(TagBase):
         ),
         default=None,
     )
+    ui_display_name = models.CharField(
+        verbose_name=_(
+            "Verbose name",
+            "UI Display Name",
+        ),
+        blank=True,
+        null=True,
+        max_length=50,
+        help_text=_(
+            "Help",
+            "This is the user customisable ui display name.",
+        ),
+    )
 
     meta = models.JSONField(
         blank=True,
