@@ -54,7 +54,7 @@ omit=[
 packages = ["tag_me"]
 
 [tool.semantic_release.branches.main]
-match="issue-177"
+match="release"
 prerelease_token = "rc"
 prerelease = false
 
