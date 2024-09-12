@@ -21,8 +21,8 @@ class Command(BaseCommand):
 
         try:
             generate_user_tag_table_records()
-        except Exception as e:
-            logger.error(
+        except Exception:
+            logger.exception(
                 "Tags Table Update Error",
                 exc_info=True,
             )
