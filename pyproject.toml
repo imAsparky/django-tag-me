@@ -1,7 +1,7 @@
-[build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
 
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
 
 [project]
 authors = [{ name = "Mark Sevelj", email = "mark.sevelj@dunwright.com.au" }]
@@ -23,13 +23,13 @@ classifiers = [
 ]
 dependencies = ["Django>=4.0"]
 description = "A simple approach to Django tagging"
-dynamic = ["version"]
 keywords = ["Django Tag Me", "Django", "django", "django tagging"]
 license = { file = "LICENSE" }
 maintainers = [{ name = "Mark Sevelj", email = "mark.sevelj@dunwright.com.au" }]
 name = "django-tag-me"
 readme = "README.rst"
 requires-python = ">=3.10"
+version = "0.1.0"
 
 [project.optional-dependencies]
 dev=[
@@ -39,13 +39,6 @@ dev=[
   "pyright",
   "pytest",
 ]
-build=[
-  "python-semantic-release",
-  "twine"
-]
-
-[tool.flit.module]
-name = "tag_me"
 
 [project.urls]
 Repository = "https://github.com/imAsparky/django-tag-me"
@@ -57,13 +50,23 @@ omit=[
   'tests/test_*.py',
   # '*/migrations/*'
 ]
+[tool.setuptools]
+packages = ["tag_me"]
+
+[tool.semantic_release.branches.main]
+match="issue-177"
+prerelease_token = "rc"
+prerelease = false
 
 [tool.semantic_release]
-branch = "main"
-build_command = 'python -m pip install flit && flit build'
+build_command = 'python3 -m build'
 changelog_file = "CHANGELOG.md"
 commit_subject = ":memo: build(version): Bump to version - {version}."
-version_variable = "README.rst:Version,tag_me/__init__.py:__version__"
+version_variables = [
+  "README.rst:Version",
+  "tag_me/__init__.py:__version__",
+  "pyproject.toml:version",
+]
 
 
 [tool.bandit]
