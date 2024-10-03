@@ -1,3 +1,5 @@
+
+.. include:: ../extras.rst.txt
 .. highlight:: rst
 .. index:: working-with-the-fieldtaglistformatter-in-django ; Index
 

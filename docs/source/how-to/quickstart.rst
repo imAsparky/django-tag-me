@@ -1,5 +1,3 @@
-.. include:: ../../extras.rst.txt
-.. highlight:: rst
 .. index:: how-to-quickstart ; Index
 
 
@@ -48,7 +46,7 @@ Once installed, add the models and static files to your Django project:
 
 .. code-block:: bash
 
-    python3 manage.py collectstatic
+
 
     python3 manage.py makemigrations
 
@@ -205,7 +203,21 @@ Creating Tags
 
 |
 
-Currently, users can only create tags through the Django administration panel. Functionality for regular users to create tags is planned for future development.
+Using the widget
+----------------
+
+|
+
+.. image:: ../imgs/tag_me_search.png
+
+|
+
+.. image:: ../imgs/tag_me_search_add_tag.png
+
+|
+
+.. image:: ../imgs/tag_me_search_added_tag.png
+
 
 |
 
@@ -264,3 +276,16 @@ You may use the model choices machinery to add a fixed set of tags.
 .. important::
 
     During initialization, `TagMeCharField` internally converts your `choices` into a tag representation for seamless integration.
+
+    Tags added using this method are automatically designated as ``system`` tags and users are unable to add to or modify them.
+
+|
+
+Undocumented Method
+-------------------
+
+There is a tag management tool for both the system and user tags.  ``Urls`` ``Views`` and ``Bad Templates`` exist.
+
+The templates largely work but are more for example purposes.  This area needs more work and to be documented.
+
+Please take a look at the code and Im pretty sure you will figure it out fairly quickly.
