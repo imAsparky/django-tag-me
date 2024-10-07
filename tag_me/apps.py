@@ -32,3 +32,9 @@ class DjangoTagMeConfig(AppConfig):
             }
         if not hasattr(settings, "DJ_TAG_ME_MAX_NUMBER_DISPLAYED"):
             settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED = 2
+
+        if not hasattr(settings, "DJ_TAG_ME_URLS"):
+            settings.DJ_TAG_ME_URLS: dict = {  # type: ignore[attr-defined]
+                "help_url": "",
+                "mgmt_url": "",
+            }
