@@ -170,3 +170,24 @@ The maximum number of selected tags to display in the widget. ``Defaults to 2``.
 
 Once the maximum is reached a ``more`` indicator will show in the widget.
 
+|
+
+DJ_TAG_ME_URLS
+--------------
+
+**dict**, *optional:*
+A dictionary of urls for tag help and management used by the ``tag_me`` app. Defaults to:
+
+These urls will be used in the searchbar menu. If either/both are supplied they will appear at
+the bottom of the menu.
+
+.. code-block:: python
+
+   {
+   "help_url": "",
+   "mgmt_url": "",
+   }
+
+|
+
+.. image:: ../imgs/tag_me_search_menu.png
