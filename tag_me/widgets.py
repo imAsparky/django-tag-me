@@ -60,6 +60,9 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         _field_verbose_name = self.attrs.pop("field_verbose_name", None)
         _tag_choices = self.attrs.pop("tag_choices", None)
         _tagged_field = self.attrs.pop("tagged_field", None)
+        _help_url = settings.DJ_TAG_ME_URLS["help_url"]
+        _mgmt_url = settings.DJ_TAG_ME_URLS["mgmt_url"]
+
         _template_name = self.attrs.pop(
             "template", settings.DJ_TAG_ME_TEMPLATES["default"]
         )
@@ -92,12 +95,15 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             case str():
                 for val in value.rstrip(",").split(","):
                     values.append(val.strip())
+
         context = {
             "add_tag_url": _add_tag_url,
             "allow_multiple_select": json.dumps(_allow_multiple_select),
             "auto_select_new_tags": json.dumps(_auto_select_new_tags),
             "choices": self.choices,
             "display_number_selected": _display_number_selected,
+            "help_url": _help_url,
+            "mgmt_url": _mgmt_url,
             "name": name,
             "permitted_to_add_tags": json.dumps(_permitted_to_add_tags),
             "verbose_name": _field_verbose_name,
