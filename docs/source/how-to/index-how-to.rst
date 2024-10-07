@@ -1,4 +1,3 @@
-.. include:: /extras.rst.txt
 .. highlight:: rst
 .. index:: how-to-index ; Index
 
@@ -14,7 +13,10 @@ How-To
    :titlesonly:
 
    quickstart.rst
+   how-to-config
    how-to-tag-parser
    how-to-custom-list
    how-to-contributing
    how-to-tag-sync
+   how-to-tagged-field
+

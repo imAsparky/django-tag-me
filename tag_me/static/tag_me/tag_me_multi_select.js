@@ -59,6 +59,7 @@ document.addEventListener("alpine:init", () => {
         options: [],
         selectedElms: [],
         show: false,
+        menuShow: false,
         search: '',
         open() {
             this.show = true
@@ -72,6 +73,22 @@ document.addEventListener("alpine:init", () => {
         isOpen() {
             return this.show === true
         },
+        menuOpen() {
+            this.menuShow = true
+        },
+        menuClose() {
+            this.menuShow = false;
+            //setTimeout(() => {
+            //    this.menuShow = false; 
+            //}, 100); // 100 milliseconds delay
+        },
+        menuToggle() {
+            this.menuShow = !this.menuShow
+        },
+        menuIsOpen() {
+            return this.menuShow === true
+        },
+
         logOptions() {
             console.log("Current Options Container:", this.options);
         },

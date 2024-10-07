@@ -26,9 +26,15 @@ class DjangoTagMeConfig(AppConfig):
 
         if not hasattr(settings, "PROJECT_APPS"):
             settings.PROJECT_APPS: list = settings.INSTALLED_APPS  # type: ignore[attr-defined]
-        if not hasattr(settings, "DJ_TAG_ME_THEMES"):
-            settings.DJ_TAG_ME_THEMES = {
+        if not hasattr(settings, "DJ_TAG_ME_TEMPLATES"):
+            settings.DJ_TAG_ME_TEMPLATES = {
                 "default": "tag_me/tag_me_select.html",
             }
         if not hasattr(settings, "DJ_TAG_ME_MAX_NUMBER_DISPLAYED"):
             settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED = 2
+
+        if not hasattr(settings, "DJ_TAG_ME_URLS"):
+            settings.DJ_TAG_ME_URLS: dict = {  # type: ignore[attr-defined]
+                "help_url": "",
+                "mgmt_url": "",
+            }

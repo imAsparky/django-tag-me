@@ -1,3 +1,5 @@
+
+.. include:: ../extras.rst.txt
 .. highlight:: rst
 .. index:: contributing ; Index
 

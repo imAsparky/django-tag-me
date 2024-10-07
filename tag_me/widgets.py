@@ -5,7 +5,9 @@ import json
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.template.loader import render_to_string
+from django.template.loader import (
+    get_template,
+)
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
@@ -46,28 +48,30 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # Important: 'attrs' is modified in place by removing some entries
         # The 'attrs' removed are for filtering choices and not required
         # elsewhere.
-        css_class = self.attrs.get("css_class", None)
-        _field_verbose_name = self.attrs.pop("field_verbose_name", None)
-        _allow_multiple_select = self.attrs.pop("allow_multiple_select", True)
-        _auto_select_new_tags = self.attrs.pop("auto_select_new_tags", True)
-        _tag_choices = self.attrs.pop("tag_choices", None)
-        _tagged_field = self.attrs.pop("tagged_field", None)
-        user = self.attrs.pop("user", None)
-
-        if "display_number_selected" not in self.attrs:
-            _display_number_selected = settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
-
-        # Get the template theme
-        if "theme" not in self.attrs:
-            self.template_name = settings.DJ_TAG_ME_THEMES["default"]
-        else:
-            self.template_name = settings.DJ_TAG_ME_THEMES[self.attrs["theme"]]
-
+        # css_class = self.attrs.get("css_class", None)
         _add_tag_url = ""
         _permitted_to_add_tags = True
 
+        _allow_multiple_select = self.attrs.pop("allow_multiple_select", True)
+        _auto_select_new_tags = self.attrs.pop("auto_select_new_tags", True)
+        _display_number_selected = self.attrs.pop(
+            "display_number_selected", settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
+        )
+        _field_verbose_name = self.attrs.pop("field_verbose_name", None)
+        _tag_choices = self.attrs.pop("tag_choices", None)
+        _tagged_field = self.attrs.pop("tagged_field", None)
+        _help_url = settings.DJ_TAG_ME_URLS["help_url"]
+        _mgmt_url = settings.DJ_TAG_ME_URLS["mgmt_url"]
+
+        _template_name = self.attrs.pop(
+            "template", settings.DJ_TAG_ME_TEMPLATES["default"]
+        )
+        user = self.attrs.pop("user", None)
+
         # Call the parent class render (essential for Widget functionality)
         super().render(name, value, attrs, renderer)
+
+        _template = get_template(_template_name)
 
         if _tag_choices:
             # Here we are using the choices set in the model charfield.
@@ -91,12 +95,15 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             case str():
                 for val in value.rstrip(",").split(","):
                     values.append(val.strip())
+
         context = {
             "add_tag_url": _add_tag_url,
             "allow_multiple_select": json.dumps(_allow_multiple_select),
             "auto_select_new_tags": json.dumps(_auto_select_new_tags),
             "choices": self.choices,
             "display_number_selected": _display_number_selected,
+            "help_url": _help_url,
+            "mgmt_url": _mgmt_url,
             "name": name,
             "permitted_to_add_tags": json.dumps(_permitted_to_add_tags),
             "verbose_name": _field_verbose_name,
@@ -104,4 +111,4 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             # "options": json.dumps(options),
         }
 
-        return mark_safe(render_to_string(self.template_name, context))
+        return mark_safe(_template.render(context))

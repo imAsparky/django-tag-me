@@ -1,4 +1,5 @@
-.. include:: ../../extras.rst.txt
+
+.. include:: ../extras.rst.txta
 .. highlight:: rst
 .. index:: how-to-tag-parser ; Index
 
