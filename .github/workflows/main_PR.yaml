@@ -238,6 +238,10 @@ jobs:
             });
             core.setOutput('check_run_id', check.data.id);
 
+  name: Test and Coverage
+
+# ... previous parts of workflow remain same ...
+
   update_changelog:
     needs: [check_mode, test_and_coverage]
     if: |
@@ -269,27 +273,49 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyGithub tenacity
 
-      - name: Configure settings
+      - name: Setup GPG
         run: |
           # Create secure temporary directory for GPG operations
           export GNUPGHOME="$(mktemp -d)"
           echo "GNUPGHOME=$GNUPGHOME" >> $GITHUB_ENV
+          chmod 700 "$GNUPGHOME"
 
+          # Start GPG agent
+          gpg-agent --daemon --allow-preset-passphrase
+
+          # Import the GPG key
           echo "${{ secrets.SGK }}" | gpg --batch --import
-
-          # Get the key ID
-          SIGNING_KEY=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
+          
+          # Get the full key ID from the import
+          SIGNING_KEY="8C26627214B80016"
           echo "SIGNING_KEY=$SIGNING_KEY" >> $GITHUB_ENV
 
+          # Trust the key ultimately
+          echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key $SIGNING_KEY trust
+          
+          # List keys for debugging
+          gpg --list-secret-keys --keyid-format LONG
+          
+          # Configure git
           git config --local user.signingkey "$SIGNING_KEY"
           git config --local commit.gpgsign true
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # Create GPG configuration
+          cat > "$GNUPGHOME/gpg.conf" << EOF
+          no-tty
+          no-autostart
+          default-key $SIGNING_KEY
+          use-agent
+          batch
+          EOF
 
-          echo "default-key $SIGNING_KEY" > "$GNUPGHOME/gpg.conf"
-
-          chmod 700 "$GNUPGHOME"
-          find "$GNUPGHOME" -type f -exec chmod 600 {} \;
+          # Test GPG signing
+          echo "test" | gpg --clearsign
+          
+          # Set environment for GPG to use the agent
+          echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
 
       - name: Run Update Changelog Script
         id: update_changelog
@@ -300,7 +326,6 @@ jobs:
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "### Changelog Update Failed" >> $GITHUB_STEP_SUMMARY
             echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml tag_me/__init__.py and/or version.toml files not found" >> $GITHUB_STEP_SUMMARY
-            echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml tag_me/__init__.py and/or version.toml files not found"
             exit 1
           fi
 
@@ -313,10 +338,15 @@ jobs:
 
           if [ $SCRIPT_EXIT -eq 0 ]; then
             if [ -n "$(git status --porcelain)" ]; then
-              git config --local user.email "action@github.com"
-              git config --local user.name "GitHub Action"
               git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
-              git commit -S -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+              
+              # Debug GPG setup before commit
+              echo "GPG and Git Configuration:"
+              git config --list | grep -i gpg
+              gpg --list-secret-keys --keyid-format LONG
+              
+              # Try signing with verbose output
+              git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
               git push origin HEAD:${{ github.head_ref }}
 
               echo "new_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
@@ -341,53 +371,13 @@ jobs:
             exit 1
           fi
 
-      - name: Set Outputs
-        id: get_outputs
-        run: |
-          echo "changelog_check_name=Update Changelog" >> $GITHUB_OUTPUT
-
-      - name: Remove Settings
+      - name: Cleanup GPG
         if: always()
         run: |
           if [ -n "$GNUPGHOME" ] && [ -d "$GNUPGHOME" ]; then
+            gpgconf --kill gpg-agent
             rm -rf "$GNUPGHOME"
           fi
-
-      - name: Update PR Status
-        if: steps.update_changelog.outputs.changes_made == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const newSha = '${{ steps.update_changelog.outputs.new_sha }}';
-            const testName = '${{ needs.test_and_coverage.outputs.tests_check_name }}';
-            const changelogName = '${{ steps.get_outputs.outputs.changelog_check_name }}';
-
-            await github.rest.checks.create({
-              owner,
-              repo,
-              name: changelogName,
-              head_sha: newSha,
-              status: 'completed',
-              conclusion: 'success',
-              output: {
-                title: 'Changelog updated',
-                summary: 'Changelog was processed and updated successfully'
-              }
-            });
-
-            await github.rest.checks.create({
-              owner,
-              repo,
-              name: testName,
-              head_sha: newSha,
-              status: 'completed',
-              conclusion: 'success',
-              output: {
-                title: 'Tests passed',
-                summary: 'All tests completed successfully (copied from previous SHA)'
-              }
-            });
 
   workflow_test:
     needs: check_mode
