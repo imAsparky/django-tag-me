@@ -25,7 +25,7 @@ jobs:
           version=$(grep "__version__" version.toml | awk -F'"' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           echo "📌 Found version: '${version}'"
 
-          branch_name="deploy-${version}"
+          branch_name="release-${version}"
           echo "🔄 Creating branch name: ${branch_name}"
 
           echo "BRANCH_NAME=${branch_name}" >> $GITHUB_ENV
@@ -51,13 +51,13 @@ jobs:
 
             echo "::error::Branch ${{ env.BRANCH_NAME }} already exists!" >> $GITHUB_STEP_SUMMARY
             echo "This likely means one of:" >> $GITHUB_STEP_SUMMARY
-            echo "  1. This version was already staged and potentially deployed" >> $GITHUB_STEP_SUMMARY
+            echo "  1. This version was already released and potentially deployed" >> $GITHUB_STEP_SUMMARY
             echo "  2. The version number in version.toml needs to be incremented" >> $GITHUB_STEP_SUMMARY
-            echo "  3. An old staging branch needs to be cleaned up" >> $GITHUB_STEP_SUMMARY
+            echo "  3. An old release branch needs to be cleaned up" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
           echo "✅ Branch does not exist, proceeding with creation"
-      - name: Create staging branch
+      - name: Create release branch
         run: |
           echo "🔄 Checking out main branch..."
           git checkout main
@@ -92,19 +92,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Cleanup old staging branches
+      - name: Cleanup old release branches
         run: |
           echo "🔍 Starting cleanup process..."
           echo "📊 Rollback number set to: $ROLLBACK_NUMBER"
 
-          echo "📝 Getting list of staging branches..."
-          staging_branches=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/remotes/origin | grep '^origin/staging-' | sed 's|origin/||')
+          echo "📝 Getting list of release branches..."
+          release_branches=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/remotes/origin | grep '^origin/release-' | sed 's|origin/||')
 
           echo "📋 Converting branch list to array..."
-          mapfile -t branch_array <<< "$staging_branches"
+          mapfile -t branch_array <<< "$release_branches"
 
           # Print all found branches
-          echo "📊 Found staging branches (sorted by date, newest first):"
+          echo "📊 Found release branches (sorted by date, newest first):"
           for branch in "${branch_array[@]}"; do
             echo "  - $branch"
           done
@@ -118,7 +118,7 @@ jobs:
 
           # If we have more branches than we want to keep
           if [ $total_branches -gt $keep_count ]; then
-            echo "🔄 Found $total_branches staging branches, keeping newest $keep_count"
+            echo "🔄 Found $total_branches release branches, keeping newest $keep_count"
             echo "📝 Branches to be kept:"
             for ((i=0; i<keep_count; i++)); do
               echo "  ✅ Keeping: ${branch_array[i]}"
@@ -140,8 +140,8 @@ jobs:
               fi
             done
           else
-            echo "✅ Only found $total_branches staging branches, no cleanup needed"
-            echo "✅ Only found $total_branches staging branches, no cleanup needed" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Only found $total_branches release branches, no cleanup needed"
+            echo "✅ Only found $total_branches release branches, no cleanup needed" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "🎉 Cleanup process completed!"
