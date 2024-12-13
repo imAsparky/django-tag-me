@@ -259,6 +259,30 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install GPG
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg2
+
+      - name: Import GPG key
+        run: |
+          echo "${{ secrets.SGK }}" | gpg --batch --import
+          # List the imported key and get its ID
+          gpg --list-secret-keys --keyid-format LONG
+          # Get the key ID for git config
+          KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
+          echo "GPG_KEY_ID=${KEY_ID}" >> $GITHUB_ENV
+
+      - name: Configure Git for signing
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global commit.gpgsign true
+          git config --global user.signingkey ${{ env.GPG_KEY_ID }}
+          # Debug output
+          echo "Git configuration:"
+          git config --list | grep -E 'user.name|user.email|commit.gpgsign|user.signingkey'
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -268,104 +292,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install PyGithub tenacity
-
-      - name: Setup GPG
-        run: |
-          echo "=== Starting GPG Setup ==="
-          
-          # Create GNUPGHOME
-          export GNUPGHOME="$(mktemp -d)"
-          echo "GNUPGHOME=$GNUPGHOME" >> $GITHUB_ENV
-          chmod 700 "$GNUPGHOME"
-          
-          echo "=== Creating GPG Agent Configuration ==="
-          mkdir -p "$GNUPGHOME/private-keys-v1.d"
-          chmod 700 "$GNUPGHOME/private-keys-v1.d"
-          
-          cat > "$GNUPGHOME/gpg-agent.conf" << EOF
-          allow-loopback-pinentry
-          allow-preset-passphrase
-          enable-ssh-support
-          default-cache-ttl 1800
-          daemon
-          debug-level basic
-          log-file $GNUPGHOME/gpg-agent.log
-          EOF
-          
-          echo "=== Creating GPG Configuration ==="
-          cat > "$GNUPGHOME/gpg.conf" << EOF
-          use-agent
-          pinentry-mode loopback
-          batch
-          no-tty
-          EOF
-          
-          echo "=== Starting GPG Agent ==="
-          gpg-agent --daemon --homedir "$GNUPGHOME" --allow-preset-passphrase --debug-level basic --log-file "$GNUPGHOME/gpg-agent.log"
-          
-          # Wait for agent to start
-          sleep 2
-          
-          echo "=== GPG Agent Status ==="
-          gpg-agent --homedir "$GNUPGHOME" --gpgconf-test
-          
-          echo "=== Importing Key ==="
-          # First save the key to a file with proper permissions
-          echo "${{ secrets.SGK }}" > "$GNUPGHOME/secret.key"
-          chmod 600 "$GNUPGHOME/secret.key"
-          
-          # Import the key
-          gpg --homedir "$GNUPGHOME" --batch --import "$GNUPGHOME/secret.key"
-          KEY_IMPORT_STATUS=$?
-          
-          if [ $KEY_IMPORT_STATUS -ne 0 ]; then
-            echo "Key import failed with status: $KEY_IMPORT_STATUS"
-            echo "Agent log:"
-            cat "$GNUPGHOME/gpg-agent.log"
-            exit $KEY_IMPORT_STATUS
-          fi
-          
-          echo "=== Setting Trust ==="
-          # Get the full fingerprint
-          SIGNING_KEY="8C26627214B80016"
-          FINGERPRINT=$(gpg --homedir "$GNUPGHOME" --list-secret-keys --with-colons | grep "^fpr" | cut -d: -f10)
-          echo "Full fingerprint: $FINGERPRINT"
-          
-          # Set ultimate trust using fingerprint
-          echo "$FINGERPRINT:6:" | gpg --homedir "$GNUPGHOME" --import-ownertrust
-          
-          echo "SIGNING_KEY=$SIGNING_KEY" >> $GITHUB_ENV
-          
-          echo "=== Configuring Git ==="
-          git config --local user.signingkey "$SIGNING_KEY"
-          git config --local commit.gpgsign true
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          echo "=== Testing Signing ==="
-          echo "test" | gpg --homedir "$GNUPGHOME" --batch --clearsign
-          
-          echo "=== Final Key List ==="
-          gpg --homedir "$GNUPGHOME" --list-secret-keys --keyid-format LONG
-          
-          # Cleanup sensitive files
-          rm -f "$GNUPGHOME/secret.key"
-
-      - name: Cleanup GPG
-        if: always()
-        run: |
-          if [ -n "$GNUPGHOME" ] && [ -d "$GNUPGHOME" ]; then
-            gpgconf --kill gpg-agent
-            rm -rf "$GNUPGHOME"
-          fi
-
-      - name: Cleanup GPG
-        if: always()
-        run: |
-          if [ -n "$GNUPGHOME" ] && [ -d "$GNUPGHOME" ]; then
-            gpgconf --kill gpg-agent
-            rm -rf "$GNUPGHOME"
-          fi
 
       - name: Run Update Changelog Script
         id: update_changelog
@@ -389,13 +315,7 @@ jobs:
           if [ $SCRIPT_EXIT -eq 0 ]; then
             if [ -n "$(git status --porcelain)" ]; then
               git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
-              
-              # Debug GPG setup before commit
-              echo "GPG and Git Configuration:"
-              git config --list | grep -i gpg
-              gpg --list-secret-keys --keyid-format LONG
-              
-              # Try signing with verbose output
+
               git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
               git push origin HEAD:${{ github.head_ref }}
 
@@ -419,14 +339,6 @@ jobs:
             echo "### Changelog Update Failed" >> $GITHUB_STEP_SUMMARY
             echo "Error: Changelog update script failed with exit code $SCRIPT_EXIT" >> $GITHUB_STEP_SUMMARY
             exit 1
-          fi
-
-      - name: Cleanup GPG
-        if: always()
-        run: |
-          if [ -n "$GNUPGHOME" ] && [ -d "$GNUPGHOME" ]; then
-            gpgconf --kill gpg-agent
-            rm -rf "$GNUPGHOME"
           fi
 
   workflow_test:
