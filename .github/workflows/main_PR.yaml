@@ -238,10 +238,6 @@ jobs:
             });
             core.setOutput('check_run_id', check.data.id);
 
-  name: Test and Coverage
-
-# ... previous parts of workflow remain same ...
-
   update_changelog:
     needs: [check_mode, test_and_coverage]
     if: |
