@@ -277,8 +277,8 @@ jobs:
           if [ ! -f CHANGELOG.md ] || [ ! -f version.toml ]; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "### Changelog Update Failed" >> $GITHUB_STEP_SUMMARY
-            echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml and/or version.toml files not found" >> $GITHUB_STEP_SUMMARY
-            echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml and/or version.toml files not found"
+            echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml tag_me/__init__.py and/or version.toml files not found" >> $GITHUB_STEP_SUMMARY
+            echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml tag_me/__init__.py and/or version.toml files not found"
             exit 1
           fi
 
@@ -296,7 +296,7 @@ jobs:
             if [ -n "$(git status --porcelain)" ]; then
               git config --local user.email "action@github.com" || exit 1
               git config --local user.name "GitHub Action" || exit 1
-              git add CHANGELOG.md version.toml pyproject.toml README.rst || exit 1
+              git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml || exit 1
               git commit -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)" || exit 1
               git push origin HEAD:${{ github.head_ref }} || exit 1
 
@@ -309,7 +309,7 @@ jobs:
 
             echo "status=success" >> $GITHUB_OUTPUT
             echo "### Changelog Updated Successfully" >> $GITHUB_STEP_SUMMARY
-            echo "Files updated: CHANGELOG.md and version.toml" >> $GITHUB_STEP_SUMMARY
+            echo "Version Files updated: CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml" >> $GITHUB_STEP_SUMMARY
 
           elif [ $SCRIPT_EXIT -eq 2 ]; then
             echo "status=success" >> $GITHUB_OUTPUT

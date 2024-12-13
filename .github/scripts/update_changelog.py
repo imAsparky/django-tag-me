@@ -94,6 +94,7 @@ class ChangelogUpdater:
         self.changelog_path = Path("CHANGELOG.md")
         self.readme_path = Path("README.rst")
         self.project_path = Path("pyproject.toml")
+        self.package_path = Path("tag_me/__init__.py")
         self.version_path = Path("version.toml")
 
         # Verify required files exist
@@ -250,6 +251,27 @@ class ChangelogUpdater:
             return today, int(latest_increment) + 1
         return today, 1
 
+    def _get_updated_package(self, version: str) -> str:
+        """\
+        Find and update the package version number.
+
+        Returns:
+            string: Formatted package file string.
+        """
+
+        try:
+            content = self.package_path.read_text().splitlines()
+            # Find and replace the version line
+            for i, line in enumerate(content):
+                if line.startswith('__version__ = "'):
+                    content[i] = f'__version__ = "{version}"'
+                    break
+
+            return "\n".join(content)
+        except Exception:
+            logger.exception("Failed to update pyproject.toml version")
+            raise
+
     def _get_updated_pyproject(self, version: str) -> str:
         """\
         Find and update the pyproject version number.
@@ -351,6 +373,9 @@ class ChangelogUpdater:
             try:
                 # Update both files atomically
                 self.changelog_path.write_text(updated_content)
+                self.package_path.write_text(
+                    self._get_updated_package(version=version)
+                )  # update __init__.py
                 self.project_path.write_text(
                     self._get_updated_pyproject(version=version)
                 )
