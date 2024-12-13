@@ -56,7 +56,6 @@ jobs:
       contents: read
       pull-requests: write  # Needed for PR comments
       actions: read # For cache access
-    env:
 
     outputs:
       tests_check_name: ${{ steps.get_outputs.outputs.tests_check_name }}
@@ -278,8 +277,8 @@ jobs:
           if [ ! -f CHANGELOG.md ] || [ ! -f version.toml ]; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "### Changelog Update Failed" >> $GITHUB_STEP_SUMMARY
-            echo "Error: Required CHANGELOG.md and/or version.toml files not found" >> $GITHUB_STEP_SUMMARY
-            echo "Error: Required CHANGELOG.md and/or version.toml files not found"
+            echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml and/or version.toml files not found" >> $GITHUB_STEP_SUMMARY
+            echo "Error: Required CHANGELOG.md, README.rst, pyproject.toml and/or version.toml files not found"
             exit 1
           fi
 
@@ -297,7 +296,7 @@ jobs:
             if [ -n "$(git status --porcelain)" ]; then
               git config --local user.email "action@github.com" || exit 1
               git config --local user.name "GitHub Action" || exit 1
-              git add CHANGELOG.md version.toml README.rst || exit 1
+              git add CHANGELOG.md version.toml pyproject.toml README.rst || exit 1
               git commit -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)" || exit 1
               git push origin HEAD:${{ github.head_ref }} || exit 1
 
