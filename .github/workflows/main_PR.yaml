@@ -238,42 +238,6 @@ jobs:
             });
             core.setOutput('check_run_id', check.data.id);
 
-
-  update_changelog:
-    needs: [check_mode, test_and_coverage]
-    if: |
-      needs.check_mode.outputs.is_test_mode != 'true' &&
-      success() && 
-      github.event_name == 'pull_request' && 
-      !contains(github.event.pull_request.title, 'skip-changelog')
-    name: Update Changelog
-    runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      contents: write
-      pull-requests: read
-    outputs:
-      changelog_check_name: ${{ steps.get_outputs.outputs.changelog_check_name }}
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install changelog dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install PyGithub tenacity
-
-      name: Test and Coverage
-
-# ... rest of the workflow remains the same until update_changelog job ...
-
   update_changelog:
     needs: [check_mode, test_and_coverage]
     if: |
@@ -312,7 +276,7 @@ jobs:
 
           CF="$TD/.cache-$(openssl rand -hex 8)-$(date +%s).tmp"
 
-          echo "${{ secrets.SGK }}" > "$CF"
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" > "$CF"
           chmod 600 "$CF"
 
           $(echo "Z3BnIC0tYmF0Y2ggLS1pbXBvcnQ=" | base64 -d) "$CF"
@@ -415,7 +379,7 @@ jobs:
               }
             });
 
-    workflow_test:
+  workflow_test:
     needs: check_mode
     if: needs.check_mode.outputs.is_test_mode == 'true'
     runs-on: ubuntu-latest
@@ -425,4 +389,3 @@ jobs:
         run: |
           echo "Running in workflow test mode"
           # Add any specific workflow testing steps here
-
