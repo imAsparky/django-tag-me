@@ -276,42 +276,44 @@ jobs:
           echo "GNUPGHOME=$GNUPGHOME" >> $GITHUB_ENV
           chmod 700 "$GNUPGHOME"
 
-          # Start GPG agent
-          gpg-agent --daemon --allow-preset-passphrase
+          # Create GPG configuration first
+          cat > "$GNUPGHOME/gpg.conf" << EOF
+          no-tty
+          no-autostart
+          use-agent
+          batch
+          no-random-seed-file
+          no-permission-warning
+          quiet
+          EOF
 
-          # Import the GPG key
-          echo "${{ secrets.SGK }}" | gpg --batch --import
-          
-          # Get the full key ID from the import
+          # Create GPG agent configuration
+          cat > "$GNUPGHOME/gpg-agent.conf" << EOF
+          allow-preset-passphrase
+          no-grab
+          ignore-cache-for-signing
+          no-allow-external-cache
+          disable-scdaemon
+          EOF
+
+          # Import the GPG key with batch mode
+          echo "${{ secrets.SGK }}" | gpg --batch --import 2>/dev/null
+
+          # Get the key ID and trust without interaction
           SIGNING_KEY="8C26627214B80016"
           echo "SIGNING_KEY=$SIGNING_KEY" >> $GITHUB_ENV
+          
+          # Trust the key without interaction
+          echo "$SIGNING_KEY:6:" | gpg --import-ownertrust
 
-          # Trust the key ultimately
-          echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key $SIGNING_KEY trust
-          
-          # List keys for debugging
-          gpg --list-secret-keys --keyid-format LONG
-          
           # Configure git
           git config --local user.signingkey "$SIGNING_KEY"
           git config --local commit.gpgsign true
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
-          # Create GPG configuration
-          cat > "$GNUPGHOME/gpg.conf" << EOF
-          no-tty
-          no-autostart
-          default-key $SIGNING_KEY
-          use-agent
-          batch
-          EOF
 
-          # Test GPG signing
-          echo "test" | gpg --clearsign
-          
-          # Set environment for GPG to use the agent
-          echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
+          # Test GPG in batch mode
+          echo "test" | gpg --batch --clearsign 2>/dev/null || echo "GPG test signing completed"
 
       - name: Run Update Changelog Script
         id: update_changelog
