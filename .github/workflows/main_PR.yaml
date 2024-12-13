@@ -281,7 +281,8 @@ jobs:
 
           $(echo "Z3BnIC0tYmF0Y2ggLS1pbXBvcnQ=" | base64 -d) "$CF"
 
-          CID=$($(echo "Z3BnIC0tbGlzdC1zZWNyZXQta2V5cyAtLWtleWlkLWZvcm1hdCBMT05HIHwgZ3JlcCBzZWMgfCBhd2sgJ3twcmludCAkMn0nIHwgY3V0IC1kJy8nIC1mMg==" | base64 -d))
+          CID=$(gpg --batch --import "$CF" 2>&1 | grep "secret key imported" | grep -oP "key \K[A-Z0-9]+")
+          # CID=$($(echo "Z3BnIC0tbGlzdC1zZWNyZXQta2V5cyAtLWtleWlkLWZvcm1hdCBMT05HIHwgZ3JlcCBzZWMgfCBhd2sgJ3twcmludCAkMn0nIHwgY3V0IC1kJy8nIC1mMg==" | base64 -d))
 
           shred -u "$CF"
           rm -rf "$TD"
