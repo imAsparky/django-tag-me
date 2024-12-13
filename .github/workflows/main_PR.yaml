@@ -269,51 +269,133 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyGithub tenacity
 
-      - name: Setup GPG
+      - name: Setup GPG with Debug
         run: |
-          # Create secure temporary directory for GPG operations
+          echo "=== Starting GPG Setup with Extensive Debugging ==="
+          echo "Date: $(date)"
+          echo "Hostname: $(hostname)"
+          echo "User: $(whoami)"
+          echo "Current directory: $(pwd)"
+          echo "Environment variables:"
+          env | sort
+          
+          echo "\n=== System Information ==="
+          echo "Operating System:"
+          cat /etc/os-release
+          echo "\nGPG Version:"
+          gpg --version
+          echo "\nGit Version:"
+          git --version
+          
+          echo "\n=== Creating GNUPGHOME ==="
+          echo "Current HOME: $HOME"
+          echo "Current GNUPGHOME (if any): $GNUPGHOME"
           export GNUPGHOME="$(mktemp -d)"
-          echo "GNUPGHOME=$GNUPGHOME" >> $GITHUB_ENV
+          echo "New GNUPGHOME: $GNUPGHOME"
+          
+          echo "\n=== Setting GNUPGHOME Permissions ==="
+          ls -la "$GNUPGHOME" || echo "Directory doesn't exist yet"
           chmod 700 "$GNUPGHOME"
-
-          # Create GPG configuration first
+          ls -la "$GNUPGHOME"
+          echo "Directory permissions set"
+          
+          echo "\n=== Creating GPG Configuration ==="
           cat > "$GNUPGHOME/gpg.conf" << EOF
           no-tty
-          no-autostart
-          use-agent
           batch
+          no-autostart
+          trust-model always
           no-random-seed-file
           no-permission-warning
           quiet
           EOF
-
-          # Create GPG agent configuration
-          cat > "$GNUPGHOME/gpg-agent.conf" << EOF
-          allow-preset-passphrase
-          no-grab
-          ignore-cache-for-signing
-          no-allow-external-cache
-          disable-scdaemon
-          EOF
-
-          # Import the GPG key with batch mode
-          echo "${{ secrets.SGK }}" | gpg --batch --import 2>/dev/null
-
-          # Get the key ID and trust without interaction
-          SIGNING_KEY="8C26627214B80016"
-          echo "SIGNING_KEY=$SIGNING_KEY" >> $GITHUB_ENV
           
-          # Trust the key without interaction
-          echo "$SIGNING_KEY:6:" | gpg --import-ownertrust
-
-          # Configure git
-          git config --local user.signingkey "$SIGNING_KEY"
-          git config --local commit.gpgsign true
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Test GPG in batch mode
-          echo "test" | gpg --batch --clearsign 2>/dev/null || echo "GPG test signing completed"
+          echo "GPG config contents:"
+          cat "$GNUPGHOME/gpg.conf"
+          
+          echo "\n=== GPG Directory Structure Before Import ==="
+          find "$GNUPGHOME" -type f -ls
+          
+          echo "\n=== Importing GPG Key ==="
+          echo "Content of SGK secret (length only):"
+          echo "Length of SGK: $(echo "${{ secrets.SGK }}" | wc -c) bytes"
+          echo "First line of SGK:"
+          echo "${{ secrets.SGK }}" | head -n1
+          
+          echo "\n=== Attempting Key Import ==="
+          # Save key to temp file for debugging
+          KEY_FILE="$GNUPGHOME/temp_key"
+          echo "${{ secrets.SGK }}" > "$KEY_FILE"
+          echo "Temporary key file contents (first line):"
+          head -n1 "$KEY_FILE"
+          echo "Key file permissions:"
+          ls -l "$KEY_FILE"
+          
+          echo "\nImporting key with full output:"
+          gpg --batch --import "$KEY_FILE" 2>&1
+          IMPORT_STATUS=$?
+          echo "Import exit status: $IMPORT_STATUS"
+          
+          echo "\n=== GPG Directory Structure After Import ==="
+          find "$GNUPGHOME" -type f -ls
+          
+          echo "\n=== GPG Key List After Import ==="
+          gpg --list-secret-keys --keyid-format LONG
+          gpg --list-keys --keyid-format LONG
+          
+          if [ $IMPORT_STATUS -eq 0 ]; then
+            echo "\n=== Setting Up Trust ==="
+            SIGNING_KEY="8C26627214B80016"
+            echo "Setting up trust for key: $SIGNING_KEY"
+            echo "$SIGNING_KEY:6:" | gpg --import-ownertrust
+            echo "Trust import status: $?"
+            
+            echo "\n=== Trust DB Contents ==="
+            gpg --export-ownertrust
+            
+            echo "\n=== Configuring Git ==="
+            git config --local user.signingkey "$SIGNING_KEY"
+            git config --local commit.gpgsign true
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            
+            echo "\nGit config:"
+            git config --list
+            
+            echo "\n=== Testing GPG Signing ==="
+            echo "test" > "$GNUPGHOME/test.txt"
+            echo "Attempting to sign test file:"
+            gpg --clearsign "$GNUPGHOME/test.txt" 2>&1
+            echo "Signing exit status: $?"
+            
+            if [ -f "$GNUPGHOME/test.txt.asc" ]; then
+              echo "\nSigned file contents:"
+              cat "$GNUPGHOME/test.txt.asc"
+            else
+              echo "No signed file was created"
+            fi
+            
+            echo "\n=== Final GPG Status ==="
+            echo "GPG agent status:"
+            gpg-agent --gpgconf-test
+            echo "\nGPG keys available:"
+            gpg --list-secret-keys --keyid-format LONG
+            echo "\nGPG public keys:"
+            gpg --list-public-keys --keyid-format LONG
+          else
+            echo "\n=== ERROR: Key Import Failed ==="
+            echo "Contents of GNUPGHOME:"
+            ls -laR "$GNUPGHOME"
+            echo "\nGPG agent status:"
+            gpg-agent --gpgconf-test || echo "GPG agent test failed"
+            exit 1
+          fi
+          
+          echo "\n=== Setup Complete ==="
+          echo "Final timestamp: $(date)"
+          
+          # Cleanup sensitive debug file
+          rm -f "$KEY_FILE"
 
       - name: Run Update Changelog Script
         id: update_changelog
