@@ -271,21 +271,25 @@ jobs:
 
       - name: Configure settings
         run: |
-          # Create secure temporary directory
-          GNUPGHOME="$(mktemp -d)"
+          # Create secure temporary directory for GPG operations
+          export GNUPGHOME="$(mktemp -d)"
+          echo "GNUPGHOME=$GNUPGHOME" >> $GITHUB_ENV
+
           echo "${{ secrets.SGK }}" | gpg --batch --import
 
-
+          # Get the key ID
           SIGNING_KEY=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
-
+          echo "SIGNING_KEY=$SIGNING_KEY" >> $GITHUB_ENV
 
           git config --local user.signingkey "$SIGNING_KEY"
           git config --local commit.gpgsign true
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
+          echo "default-key $SIGNING_KEY" > "$GNUPGHOME/gpg.conf"
 
-          rm -rf "$GNUPGHOME" 
+          chmod 700 "$GNUPGHOME"
+          find "$GNUPGHOME" -type f -exec chmod 600 {} \;
 
       - name: Run Update Changelog Script
         id: update_changelog
@@ -341,6 +345,13 @@ jobs:
         id: get_outputs
         run: |
           echo "changelog_check_name=Update Changelog" >> $GITHUB_OUTPUT
+
+      - name: Remove Settings
+        if: always()
+        run: |
+          if [ -n "$GNUPGHOME" ] && [ -d "$GNUPGHOME" ]; then
+            rm -rf "$GNUPGHOME"
+          fi
 
       - name: Update PR Status
         if: steps.update_changelog.outputs.changes_made == 'true'
