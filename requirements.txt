@@ -1,14 +1,18 @@
 -r docs/requirements.txt
-# Test deps, relocate later.
-# coverage==7.4.3
-dj-inmemorystorage==2.1.0
-hypothesis[django]==6.98.17
+# -r example/requirements_dev.txt
+
+# Database
 psycopg>=3.1.18
+dj-inmemorystorage==2.1.0
+
+# Testing
+pytest>=7.0.0
+pytest-django>=4.9.0
 pytest-cov==6.0.0
-pytest-django==4.9.0
-# pre-commit==3.6.2
 pytest-randomly==3.16.0
 pytest-xdist==3.6.1
-rich==13.7.1
+hypothesis[django]==6.98.17
 tblib==3.0.0
-tox==4.23.2
+
+# Utilities
+rich==13.7.1
