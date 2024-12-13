@@ -1,0 +1,151 @@
+name: Release and Deploy
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get branch name
+        id: get_branch_name
+        shell: bash
+        run: |
+          echo "Version hex dump:"
+          grep "version" version.toml | awk -F'"' '{print $2}' | xxd
+
+          echo "📖 Reading version from version.toml..."
+          version=$(grep "__version__" version.toml | awk -F'"' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          echo "📌 Found version: '${version}'"
+
+          branch_name="deploy-${version}"
+          echo "🔄 Creating branch name: ${branch_name}"
+
+          echo "BRANCH_NAME=${branch_name}" >> $GITHUB_ENV
+          echo "✅ Branch Name $branch_name created successfully"
+
+      - name: Check if branch exists
+        run: |
+          echo "🔍 Debug: Full branch name to check: 'refs/heads/${BRANCH_NAME}'"
+          # Store the ls-remote output in a variable
+          branch_check=$(git ls-remote --heads origin "refs/heads/${BRANCH_NAME}")
+          exit_code=$?
+
+          echo "🔍 Debug: git ls-remote output: '${branch_check}'"
+          echo "🔍 Debug: git ls-remote exit code: ${exit_code}"
+          echo "🔍 Checking if branch ${{ env.BRANCH_NAME }} already exists..."
+
+          if [ -n "${branch_check}" ]; then
+            echo "❌ Branch ${{ env.BRANCH_NAME }} already exists!"
+            echo "This likely means one of:"
+            echo "  1. This version was already released and potentially deployed"
+            echo "  2. The version number in version.toml needs to be incremented"
+            echo "  3. An old deploy branch needs to be cleaned up"
+
+            echo "::error::Branch ${{ env.BRANCH_NAME }} already exists!" >> $GITHUB_STEP_SUMMARY
+            echo "This likely means one of:" >> $GITHUB_STEP_SUMMARY
+            echo "  1. This version was already staged and potentially deployed" >> $GITHUB_STEP_SUMMARY
+            echo "  2. The version number in version.toml needs to be incremented" >> $GITHUB_STEP_SUMMARY
+            echo "  3. An old staging branch needs to be cleaned up" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "✅ Branch does not exist, proceeding with creation"
+      - name: Create staging branch
+        run: |
+          echo "🔄 Checking out main branch..."
+          git checkout main
+
+          echo "🌱 Creating new branch: ${{ env.BRANCH_NAME }}"
+          git checkout -b ${{ env.BRANCH_NAME }}
+
+          echo "⬆️ Pushing branch to origin..."
+          git push origin ${{ env.BRANCH_NAME }}
+          echo "✅ Branch successfully pushed to origin"
+
+      - name: Post creation summary
+        run: |
+          echo "📝 Generating creation summary..."
+          echo "✅ Branch ${{ env.BRANCH_NAME }} created successfully"
+          echo "Created from: main"
+          echo "Created by: ${{ github.actor }}"
+          echo "Created at: $(date '+%Y-%m-%d %H:%M:%S')"
+
+          echo "📝 Adding summary to job output..."
+          echo "✅ Branch ${{ env.BRANCH_NAME }} created successfully" >> $GITHUB_STEP_SUMMARY
+          echo "Created from: main" >> $GITHUB_STEP_SUMMARY
+          echo "Created by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "Created at: $(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_STEP_SUMMARY
+
+  cleanup-old-branches:
+    needs: create-release
+    runs-on: ubuntu-latest
+    env:
+      ROLLBACK_NUMBER: ${{ vars.VERSION_ROLLBACK_NUMBER }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Cleanup old staging branches
+        run: |
+          echo "🔍 Starting cleanup process..."
+          echo "📊 Rollback number set to: $ROLLBACK_NUMBER"
+
+          echo "📝 Getting list of staging branches..."
+          staging_branches=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/remotes/origin | grep '^origin/staging-' | sed 's|origin/||')
+
+          echo "📋 Converting branch list to array..."
+          mapfile -t branch_array <<< "$staging_branches"
+
+          # Print all found branches
+          echo "📊 Found staging branches (sorted by date, newest first):"
+          for branch in "${branch_array[@]}"; do
+            echo "  - $branch"
+          done
+
+          # Calculate how many branches to keep
+          keep_count=$ROLLBACK_NUMBER
+          total_branches=${#branch_array[@]}
+
+          echo "📈 Total branches found: $total_branches"
+          echo "🎯 Branches to keep: $keep_count"
+
+          # If we have more branches than we want to keep
+          if [ $total_branches -gt $keep_count ]; then
+            echo "🔄 Found $total_branches staging branches, keeping newest $keep_count"
+            echo "📝 Branches to be kept:"
+            for ((i=0; i<keep_count; i++)); do
+              echo "  ✅ Keeping: ${branch_array[i]}"
+            done
+
+            echo " 🗑️ Branches to be deleted:"
+            echo " 🗑️ Branches to be deleted:" >>  $GITHUB_STEP_SUMMARY
+            # Loop through array starting after the ones we want to keep
+            for ((i=keep_count; i<total_branches; i++)); do
+              branch="${branch_array[i]}"
+              echo "  ❌ Deleting: $branch"
+              git push origin --delete "$branch"
+              if [ $? -eq 0 ]; then
+                echo "    ✅ Successfully deleted $branch"
+                echo "    ✅ Successfully deleted $branch" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "    ❌ Failed to delete $branch"
+                echo "    ❌ Failed to delete $branch" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          else
+            echo "✅ Only found $total_branches staging branches, no cleanup needed"
+            echo "✅ Only found $total_branches staging branches, no cleanup needed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "🎉 Cleanup process completed!"
+          echo "🎉 Cleanup process completed!" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
