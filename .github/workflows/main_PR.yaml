@@ -326,9 +326,15 @@ jobs:
           fi
           
           echo "=== Setting Trust ==="
+          # Get the full fingerprint
           SIGNING_KEY="8C26627214B80016"
+          FINGERPRINT=$(gpg --homedir "$GNUPGHOME" --list-secret-keys --with-colons | grep "^fpr" | cut -d: -f10)
+          echo "Full fingerprint: $FINGERPRINT"
+          
+          # Set ultimate trust using fingerprint
+          echo "$FINGERPRINT:6:" | gpg --homedir "$GNUPGHOME" --import-ownertrust
+          
           echo "SIGNING_KEY=$SIGNING_KEY" >> $GITHUB_ENV
-          echo "$SIGNING_KEY:6:" | gpg --homedir "$GNUPGHOME" --import-ownertrust
           
           echo "=== Configuring Git ==="
           git config --local user.signingkey "$SIGNING_KEY"
@@ -344,6 +350,14 @@ jobs:
           
           # Cleanup sensitive files
           rm -f "$GNUPGHOME/secret.key"
+
+      - name: Cleanup GPG
+        if: always()
+        run: |
+          if [ -n "$GNUPGHOME" ] && [ -d "$GNUPGHOME" ]; then
+            gpgconf --kill gpg-agent
+            rm -rf "$GNUPGHOME"
+          fi
 
       - name: Cleanup GPG
         if: always()
