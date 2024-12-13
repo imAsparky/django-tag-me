@@ -1,0 +1,63 @@
+
+
+# IMPORTANT: If you dont follow this example format the PR
+# will not pass the validity checks. See below for tags, tags
+# that are marked  with ** will be included in the CHANGELOG
+
+# tag(scope):<Description>  #nn being the issue number
+
+# CHANGELOG update groups items with the same tag.
+# |<----   Preferably using up to 50 chars   --->|<--Max of 72 chars-->|
+# Example: docs(README):Added new information #42
+
+# (Optional) Explain why this change is being made
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+# Example: There wasnt a enough information in the README.
+
+# (Optional) Provide text for the  CHANGELOG, This is NOT the commit 
+# message.
+# It is additional information that will provide value to someone
+# reading the changelog, generally end users. This will be added below 
+# the commit message.
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+# Example:
+# [ui-docs]: """
+# This is a multiline
+# documentation hint that can contain [brackets], colons:
+# and other special characters without needing escaping.
+# IMPORTANT: Make sure you have the closing triple quotes. 
+# """
+
+# (Optional) Provide links or keys to any relevant tickets, articles or other resources
+# Important this should be the last addition in the commit message.
+# Example: closes #42
+
+# --- COMMIT END ---
+# Tags with ** will be included in the CHANGELOG
+# **   chore    (a chore that needs to be done)
+#      dbg      (changes in debugging code/frameworks; no production code change)
+#      defaults (changes default options)
+# **   docs      (changes to documentation)
+# **   feat     (new feature)
+# **   fix      (bug fix)
+#      hack     (temporary fix to make things move forward; please avoid it)
+#      license  (edits regarding licensing; no production code change)
+# **   perf     (performance improvement)
+# **   refactor (refactoring code)
+# **   style    (formatting, missing semi colons, etc; no code change)
+# **   test     (adding or refactoring tests; no production code change)
+#      version  (version bump/new release; no production code change)
+#      WIP      (Work In Progress; for intermediate commits to keep patches reasonably sized)
+#      jsrXXX   (patches related to the implementation of jsrXXX, where XXX the JSR number)
+#      jdkX     (patches related to supporting jdkX as the host VM, where X the JDK version)
+#
+# --------------------
+# Remember to:
+#   * Capitalize the subject line start
+#   * Use the imperative mood in the subject line
+#   * Do not end the subject line with a period
+#   * Separate subject from body with a blank line
+#   * Use the body to explain what and why vs. how
+#   * Can use multiple lines with "-" or "*" for bullet points in body
+# --------------------
+
