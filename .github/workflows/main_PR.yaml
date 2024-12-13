@@ -276,7 +276,7 @@ jobs:
 
           CF="$TD/.cache-$(openssl rand -hex 8)-$(date +%s).tmp"
 
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" > "$CF"
+          echo "${{ secrets.SGK }}" > "$CF"
           chmod 600 "$CF"
 
           $(echo "Z3BnIC0tYmF0Y2ggLS1pbXBvcnQ=" | base64 -d) "$CF"
