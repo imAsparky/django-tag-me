@@ -347,6 +347,8 @@ jobs:
               gpg --list-secret-keys --with-colons ${GPG_KEY_ID} | grep ^sec
 
               git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+              echo "Verifying actual commit signature:"
+              git log --show-signature -1
               git push origin HEAD:${{ github.head_ref }}
 
               echo "new_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
