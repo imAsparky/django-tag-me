@@ -364,6 +364,14 @@ jobs:
                     -c user.signingkey="${GPG_KEY_ID}!" \
                     commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
                 
+                # Post-commit verification
+                echo "Post-commit verification:"
+                git log -1 --pretty=format:"%aE"
+                echo -e "\nSigning key details:"
+                git log -1 --format="%G?%GK"
+                echo -e "\nFull commit details:"
+                git log -1 --pretty=format:'%H %GK %aE %cE'
+
                 echo "Checking configured signing key:"
                 git config --get user.signingkey
                 
