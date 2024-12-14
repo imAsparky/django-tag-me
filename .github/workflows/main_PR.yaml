@@ -283,6 +283,25 @@ jobs:
           echo "Git configuration:"
           git config --list | grep -E 'user.name|user.email|commit.gpgsign|user.signingkey'
 
+      - name: Debug GPG setup
+        run: |
+          echo "Checking GPG keys:"
+          gpg --list-secret-keys --keyid-format LONG
+          echo "-------------------"
+          echo "Testing GPG signing capability:"
+          echo "test" | gpg --clearsign
+      - name: Debug Git signing
+        run: |
+          echo "Testing git commit signing..."
+          git init test-repo
+          cd test-repo
+          touch test.txt
+          git add test.txt
+          git -c user.name="GitHub Actions Bot" -c user.email="github-actions[bot]@users.noreply.github.com" -c user.signingkey="${GPG_KEY_ID}" commit -S -m "test commit"
+          echo "Checking commit signature:"
+          git log --show-signature -1
+
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -314,7 +333,18 @@ jobs:
 
           if [ $SCRIPT_EXIT -eq 0 ]; then
             if [ -n "$(git status --porcelain)" ]; then
+                  
+
               git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
+
+              # Debug before commit
+              echo "Environment check:"
+              env | grep -i gpg
+              echo "GPG agent status:"
+              gpg-agent --version
+              gpg-connect-agent --homedir ~/.gnupg --no-autostart 'GETINFO version' /bye
+              echo "Trust level for key:"
+              gpg --list-secret-keys --with-colons ${GPG_KEY_ID} | grep ^sec
 
               git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
               git push origin HEAD:${{ github.head_ref }}
