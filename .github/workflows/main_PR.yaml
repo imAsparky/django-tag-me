@@ -336,7 +336,7 @@ jobs:
                   
 
               git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
-
+              
               # Debug before commit
               echo "Environment check:"
               env | grep -i gpg
@@ -346,7 +346,13 @@ jobs:
               echo "Trust level for key:"
               gpg --list-secret-keys --with-colons ${GPG_KEY_ID} | grep ^sec
 
-              git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+              git -c user.name="GitHub Actions Bot" \
+                  -c user.email="github-actions[bot]@users.noreply.github.com" \
+                  -c user.signingkey="${GPG_KEY_ID}" \
+                  commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+
+
+              # git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
               echo "Verifying actual commit signature:"
               git log --show-signature -1
               git push origin HEAD:${{ github.head_ref }}
