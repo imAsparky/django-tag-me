@@ -352,6 +352,7 @@ jobs:
                   -c user.signingkey="${GPG_KEY_ID}" \
                   commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
 
+              git config --get user.signingkey
 
               # git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
               echo "Verifying actual commit signature:"
