@@ -332,37 +332,52 @@ jobs:
           python .github/scripts/update_changelog.py
           SCRIPT_EXIT=$?
 
+
           if [ $SCRIPT_EXIT -eq 0 ]; then
             if [ -n "$(git status --porcelain)" ]; then
                   
-
-              git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
-              
-              # Debug before commit
-              echo "Environment check:"
-              env | grep -i gpg
-              echo "GPG agent status:"
-              gpg-agent --version
-              gpg-connect-agent --homedir ~/.gnupg --no-autostart 'GETINFO version' /bye
-              echo "Trust level for key:"
-              gpg --list-secret-keys --with-colons ${GPG_KEY_ID} | grep ^sec
-
-              git -c user.name="GitHub Actions Bot" \
-                  -c user.email="github-actions[bot]@users.noreply.github.com" \
-                  -c user.signingkey="${GPG_KEY_ID}!" \
-                  commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
-
-              git config --get user.signingkey
-
-              # git commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
-              echo "Verifying actual commit signature:"
-              git log --show-signature -1
-              git push origin HEAD:${{ github.head_ref }}
-
-              echo "new_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-              echo "changes_made=true" >> $GITHUB_OUTPUT
+                echo "Exporting the new key info"
+                gpg --armor --export ${GPG_KEY_ID}
+                gpg --armor --export-secret-key ${GPG_KEY_ID}
+                
+                git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
+                
+                # Debug before commit
+                echo "Environment check:"
+                env | grep -i gpg
+                echo "GPG agent status:"
+                gpg-agent --version
+                gpg-connect-agent --homedir ~/.gnupg --no-autostart 'GETINFO version' /bye
+                echo "Trust level for key:"
+                gpg --list-secret-keys --with-colons ${GPG_KEY_ID} | grep ^sec
+                
+                # Add key verification before commit
+                echo "Verifying GPG key details:"
+                gpg --list-keys ${GPG_KEY_ID}
+                
+                # Add git config verification
+                echo "Git configuration:"
+                git config --list | grep -i gpg
+                
+                git -c user.name="GitHub Actions Bot" \
+                    -c user.email="github-actions[bot]@users.noreply.github.com" \
+                    -c user.signingkey="${GPG_KEY_ID}!" \
+                    commit -S -v -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+                
+                echo "Checking configured signing key:"
+                git config --get user.signingkey
+                
+                echo "Verifying actual commit signature:"
+                git log --show-signature -1
+                
+                echo "Full commit details:"
+                git show --pretty=fuller HEAD
+                
+                git push origin HEAD:${{ github.head_ref }}
+                echo "new_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+                echo "changes_made=true" >> $GITHUB_OUTPUT
             else
-              echo "changes_made=false" >> $GITHUB_OUTPUT
+                echo "changes_made=false" >> $GITHUB_OUTPUT
             fi
 
             echo "status=success" >> $GITHUB_OUTPUT
