@@ -11,6 +11,7 @@
 *Django Tag Me... Tag a model, a field, user tags and more...*
 
 |
+
 .. image:: https://github.com/imAsparky/django-tag-me/actions/workflows/main_PR.yaml/badge.svg
    :alt: Tests
    :target: https://github.com/<C-S-Del>imAsparky/django-tag-me/actions/workflows/main_PR.yaml
