@@ -1,5 +1,4 @@
-name: Test and Coverage
-
+name: Release and Deploy
 on:
   pull_request:
     branches: [main]
@@ -7,266 +6,240 @@ on:
       - "**.md"
       - "docs/**"
   workflow_dispatch:
-    inputs:
-      debug_hypothesis:
-        description: 'Enable hypothesis debug output'
-        required: false
-        type: boolean
-        default: false
 
 jobs:
-  check_mode:
+  create-release:
     runs-on: ubuntu-latest
-    outputs:
-      is_test_mode: ${{ steps.check.outputs.is_test_mode }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - id: check
+      - name: Get branch name
+        id: get_branch_name
+        shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            COMMIT_MSG=$(git log --format=%B -n 1 ${{ github.event.pull_request.head.sha }})
-          else
-            COMMIT_MSG="${{ github.event.head_commit.message }}"
-          fi
-          
-          if echo "$COMMIT_MSG" | grep -q "\[workflow-test\]"; then
-            echo "is_test_mode=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_test_mode=false" >> $GITHUB_OUTPUT
-          fi
+          echo "Version hex dump:"
+          grep "version" version.toml | awk -F'"' '{print $2}' | xxd
 
-  test_and_coverage:
-    needs: check_mode
-    if: needs.check_mode.outputs.is_test_mode != 'true'
-    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    permissions:
-      checks: write
-      contents: read
-      pull-requests: write
-      actions: read
+          echo "📖 Reading version from version.toml..."
+          version=$(grep "__version__" version.toml | awk -F'"' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          echo "📌 Found version: '${version}'"
 
-    outputs:
-      tests_check_name: ${{ steps.get_outputs.outputs.tests_check_name }}
+          branch_name="release-${version}"
+          echo "🔄 Creating branch name: ${branch_name}"
 
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.13"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+          echo "BRANCH_NAME=${branch_name}" >> $GITHUB_ENV
+          echo "✅ Branch Name $branch_name created successfully"
 
-    concurrency:
-      group: ${{ github.workflow }}-${{ matrix.python-version }}-${{ github.ref }}
-      cancel-in-progress: true
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Generate pip cache hash
-        id: pip-cache-hash
+      - name: Check if branch exists
         run: |
-          files_to_hash="requirements.txt docs/requirements.txt"
-          hash_files=$(for file in $files_to_hash; do
-            if [ -f "$file" ]; then
-              cat "$file"
-            fi
-          done | sha256sum | cut -d' ' -f1)
-          echo "hash=${hash_files}" >> $GITHUB_OUTPUT
+          echo "🔍 Debug: Full branch name to check: 'refs/heads/${BRANCH_NAME}'"
+          branch_check=$(git ls-remote --heads origin "refs/heads/${BRANCH_NAME}")
+          exit_code=$?
 
-      - name: Restore pip cache
-        id: cache-pip-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.cache/pip
-          key: refs/heads/main/pip-${{ matrix.python-version }}-${{ steps.pip-cache-hash.outputs.hash }}
-          restore-keys: |
-            refs/heads/main/pip-${{ matrix.python-version }}-
+          echo "🔍 Debug: git ls-remote output: '${branch_check}'"
+          echo "🔍 Debug: git ls-remote exit code: ${exit_code}"
+          echo "🔍 Checking if branch ${{ env.BRANCH_NAME }} already exists..."
 
-      - name: Install dependencies
-        if: steps.cache-pip-restore.outputs.cache-hit != 'true'
-        run: |
-          python -m pip install --upgrade pip setuptools
-          pip install -r requirements.txt
-
-      - name: Save pip cache
-        if: always() && steps.cache-pip-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ steps.cache-pip-restore.outputs.cache-primary-key }}
-
-      - name: Test with tox
-        run: |
-          python -m pip install --upgrade pip tox tox-gh-actions
-          HYPOTHESIS_FLAGS=""
-          if [ "$TESTING_HYPOTHESIS_DEBUG" = "true" ]; then
-            HYPOTHESIS_FLAGS="--hypothesis-show-statistics"
-          fi
-          tox -vv -- $HYPOTHESIS_FLAGS
-        env:
-          PYTEST_ADDOPTS: "-v"
-          FORCE_COLOR: "1"
-          DJANGO_SETTINGS_MODULE: "config.settings.test"
-          DATABASE_URL: "sqlite:///test_db.sqlite3"
-          PYTEST_XDIST_AUTO_NUM_WORKERS: "2"
-
-      - name: Check coverage file exists
-        run: |
-          if [ ! -f coverage.xml ]; then
-            echo "coverage.xml not found"
+          if [ -n "${branch_check}" ]; then
+            echo "❌ Branch ${{ env.BRANCH_NAME }} already exists!"
+            echo "::error::Branch ${{ env.BRANCH_NAME }} already exists!" >> $GITHUB_STEP_SUMMARY
+            echo "This likely means one of:" >> $GITHUB_STEP_SUMMARY
+            echo "  1. This version was already released and potentially deployed" >> $GITHUB_STEP_SUMMARY
+            echo "  2. The version number in version.toml needs to be incremented" >> $GITHUB_STEP_SUMMARY
+            echo "  3. An old release branch needs to be cleaned up" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
+          echo "✅ Branch does not exist, proceeding with creation"
 
-      - name: Generate coverage report and check threshold
-        if: github.event_name == 'pull_request'
-        run: python .github/scripts/generate_coverage_report.py
-
-      - name: Add coverage report comment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const reportContent = fs.readFileSync('coverage_report.md', 'utf8');
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: reportContent
-            });
-
-      - name: Set Outputs
-        id: get_outputs
+      - name: Create release branch
         run: |
-          echo "tests_check_name=Test Python ${{ matrix.python-version }} on ${{ matrix.os }}" >> $GITHUB_OUTPUT
+          echo "🔄 Checking out main branch..."
+          git checkout main
 
-      - name: Testing job status
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const conclusion = '${{ job.status }}' === 'success' ? 'success' : 'failure';
-            const check = await github.rest.checks.create({
-              owner,
-              repo,
-              name: 'Test Python ${{ matrix.python-version }} on ${{ matrix.os }}',
-              head_sha: context.sha,
-              status: 'completed',
-              conclusion: conclusion,
-              output: {
-                title: conclusion === 'success' ? 'Tests passed' : 'Tests failed',
-                summary: conclusion === 'success' ? 'All tests completed successfully' : 'Some tests failed'
-              }
-            });
-            core.setOutput('check_run_id', check.data.id);
+          echo "🌱 Creating new branch: ${{ env.BRANCH_NAME }}"
+          git checkout -b ${{ env.BRANCH_NAME }}
 
-  update_changelog:
-    needs: [check_mode, test_and_coverage]
-    if: |
-      needs.check_mode.outputs.is_test_mode != 'true' &&
-      success() && 
-      github.event_name == 'pull_request' && 
-      !contains(github.event.pull_request.title, 'skip-changelog')
-    name: Update Changelog
+          echo "⬆️ Pushing branch to origin..."
+          git push origin ${{ env.BRANCH_NAME }}
+          echo "✅ Branch successfully pushed to origin"
+
+      - name: Post creation summary
+        run: |
+          echo "📝 Generating creation summary..."
+          echo "✅ Branch ${{ env.BRANCH_NAME }} created successfully"
+          echo "Created from: main"
+          echo "Created by: ${{ github.actor }}"
+          echo "Created at: $(date '+%Y-%m-%d %H:%M:%S')"
+
+          echo "📝 Adding summary to job output..."
+          echo "✅ Branch ${{ env.BRANCH_NAME }} created successfully" >> $GITHUB_STEP_SUMMARY
+          echo "Created from: main" >> $GITHUB_STEP_SUMMARY
+          echo "Created by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "Created at: $(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_STEP_SUMMARY
+
+  build-and-deploy:
+    needs: create-release
     runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      contents: write
-      pull-requests: read
-    outputs:
-      changelog_check_name: ${{ steps.get_outputs.outputs.changelog_check_name }}
-    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - name: Install GPG
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gnupg2
-
-      - name: Import GPG key
-        run: |
-          echo "${{ secrets.SGK }}" | gpg --batch --import
-          KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
-          echo "trust\n5\ny\nquit" | gpg --batch --command-fd 0 --edit-key $KEY_ID
-          echo "GPG_KEY_ID=${KEY_ID}" >> $GITHUB_ENV
-
-      - name: Configure Git for signing
-        run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global commit.gpgsign true
-          git config --global user.signingkey ${{ env.GPG_KEY_ID }}
-
+          ref: ${{ env.BRANCH_NAME }}
+      
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.13"
-
-      - name: Install changelog dependencies
+          python-version: '3.x'
+      
+      - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PyGithub tenacity
-
-      - name: Run Update Changelog Script
-        id: update_changelog
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pip install build twine
+          echo "✅ Dependencies installed successfully" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Build package
+        id: build
         run: |
-          if [ ! -f CHANGELOG.md ] || [ ! -f README.rst ] || [ ! -f pyproject.toml ] || [ ! -f tag_me/__init__.py ] || [ ! -f version.toml ]; then
-            echo "status=failure" >> $GITHUB_OUTPUT
-            echo "### Changelog Update Failed" >> $GITHUB_STEP_SUMMARY
-            echo "Error: Required files not found" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
-          echo "original_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "🔨 Starting package build..."
+          echo "📦 Building package..." >> $GITHUB_STEP_SUMMARY
           
-          git checkout ${{ github.head_ref }} || exit 1
+          # Capture build output
+          BUILD_OUTPUT=$(python -m build 2>&1)
+          BUILD_STATUS=$?
           
-          python .github/scripts/update_changelog.py
-          SCRIPT_EXIT=$?
-
-          if [ $SCRIPT_EXIT -eq 0 ]; then
-            if [ -n "$(git status --porcelain)" ]; then
-                git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
-                git -c user.name="GitHub Actions Bot" \
-                    -c user.email="github-actions[bot]@users.noreply.github.com" \
-                    -c user.signingkey="${GPG_KEY_ID}" \
-                    commit -S -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
-                git push origin HEAD:${{ github.head_ref }}
-                echo "new_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-                echo "changes_made=true" >> $GITHUB_OUTPUT
-            else
-                echo "changes_made=false" >> $GITHUB_OUTPUT
-            fi
-            echo "status=success" >> $GITHUB_OUTPUT
-          elif [ $SCRIPT_EXIT -eq 2 ]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-            echo "changes_made=false" >> $GITHUB_OUTPUT
+          echo "$BUILD_OUTPUT"
+          
+          # Log build results
+          if [ $BUILD_STATUS -eq 0 ]; then
+            echo "✅ Package built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "📂 Built files:" >> $GITHUB_STEP_SUMMARY
+            ls -l dist/ >> $GITHUB_STEP_SUMMARY
           else
-            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Package build failed" >> $GITHUB_STEP_SUMMARY
+            echo "Error output:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$BUILD_OUTPUT" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+      
+      - name: Check distribution
+        id: check
+        run: |
+          echo "🔍 Checking distribution files..."
+          echo "🔍 Checking distribution files..." >> $GITHUB_STEP_SUMMARY
+          
+          # Run twine check with detailed output
+          CHECK_OUTPUT=$(twine check dist/* 2>&1)
+          CHECK_STATUS=$?
+          
+          echo "$CHECK_OUTPUT"
+          
+          # Log check results
+          if [ $CHECK_STATUS -eq 0 ]; then
+            echo "✅ Distribution files check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Distribution files check failed" >> $GITHUB_STEP_SUMMARY
+            echo "Error details:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$CHECK_OUTPUT" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+      
+      - name: Upload to TestPyPI
+        id: upload
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          TWINE_REPOSITORY_URL: ${{ secrets.TEST_PYPI_REPOSITORY_URL }}
+        run: |
+          echo "⬆️ Starting upload to TestPyPI..."
+          echo "⬆️ Uploading to TestPyPI..." >> $GITHUB_STEP_SUMMARY
+          
+          # Run twine upload with verbose output
+          UPLOAD_OUTPUT=$(twine upload --verbose --repository-url ${{ secrets.TEST_PYPI_REPOSITORY_URL }} dist/* 2>&1)
+          UPLOAD_STATUS=$?
+          
+          echo "$UPLOAD_OUTPUT"
+          
+          # Extract package version for summary
+          VERSION=$(python setup.py --version 2>/dev/null || grep -m1 "version" pyproject.toml | cut -d'"' -f2)
+          
+          # Log upload results
+          if [ $UPLOAD_STATUS -eq 0 ]; then
+            echo "✅ Upload successful" >> $GITHUB_STEP_SUMMARY
+            echo "📦 Package version: $VERSION" >> $GITHUB_STEP_SUMMARY
+            echo "🔗 View at: https://test.pypi.org/project/django-tag-me/$VERSION/" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Upload failed" >> $GITHUB_STEP_SUMMARY
+            echo "Error details:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$UPLOAD_OUTPUT" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            
+            # Check for specific error types
+            if echo "$UPLOAD_OUTPUT" | grep -q "403 Forbidden"; then
+              echo "🔑 Authentication Error: Please check your TestPyPI API token" >> $GITHUB_STEP_SUMMARY
+              echo "Make sure TEST_PYPI_API_TOKEN secret is correctly set in repository settings" >> $GITHUB_STEP_SUMMARY
+            fi
+            if echo "$UPLOAD_OUTPUT" | grep -q "400 Bad Request"; then
+              echo "⚠️ Version Error: This version might already exist on TestPyPI" >> $GITHUB_STEP_SUMMARY
+              echo "Try incrementing the version number in your project" >> $GITHUB_STEP_SUMMARY
+            fi
             exit 1
           fi
 
-  workflow_test:
-    needs: check_mode
-    if: needs.check_mode.outputs.is_test_mode == 'true'
+  cleanup-old-branches:
+    needs: build-and-deploy
     runs-on: ubuntu-latest
+    env:
+      ROLLBACK_NUMBER: ${{ vars.VERSION_ROLLBACK_NUMBER }}
     steps:
       - uses: actions/checkout@v4
-      - name: Test workflow
-        run: echo "Running in workflow test mode"
+        with:
+          fetch-depth: 0
+      - name: Cleanup old release branches
+        run: |
+          echo "🔍 Starting cleanup process..."
+          echo "📊 Rollback number set to: $ROLLBACK_NUMBER"
+
+          echo "📝 Getting list of release branches..."
+          release_branches=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/remotes/origin | grep '^origin/release-' | sed 's|origin/||')
+
+          echo "📋 Converting branch list to array..."
+          mapfile -t branch_array <<< "$release_branches"
+
+          # Print all found branches
+          echo "📊 Found release branches (sorted by date, newest first):"
+          for branch in "${branch_array[@]}"; do
+            echo "  - $branch"
+          done
+
+          # Calculate how many branches to keep
+          keep_count=$ROLLBACK_NUMBER
+          total_branches=${#branch_array[@]}
+
+          if [ $total_branches -gt $keep_count ]; then
+            echo "🔄 Found $total_branches release branches, keeping newest $keep_count"
+            for ((i=keep_count; i<total_branches; i++)); do
+              branch="${branch_array[i]}"
+              echo "  ❌ Deleting: $branch"
+              git push origin --delete "$branch"
+              if [ $? -eq 0 ]; then
+                echo "    ✅ Successfully deleted $branch"
+                echo "    ✅ Successfully deleted $branch" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "    ❌ Failed to delete $branch"
+                echo "    ❌ Failed to delete $branch" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          else
+            echo "✅ Only found $total_branches release branches, no cleanup needed"
+            echo "✅ Only found $total_branches release branches, no cleanup needed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "🎉 Cleanup process completed!"
+          echo "🎉 Cleanup process completed!" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
