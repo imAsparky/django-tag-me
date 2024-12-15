@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.15.2]
+
+### Maintenance
+- Add logging and user feedback for test upload (git) [#196](https://github.com/imAsparky/django-tag-me/pull/196)
+
+### Formatting, missing semi colons, etc; no code change
+- General tidy up of workflows (git) [#196](https://github.com/imAsparky/django-tag-me/pull/196)
+
+
 ## [2024.12.15.1]
 
 ### Maintenance
