@@ -1,14 +1,10 @@
 name: Release and Deploy
 on:
-  # pull_request:
-  #   branches: [main]
-  #   paths-ignore:
-  #     - "**.md"
-  #     - "docs/**"
   workflow_dispatch:
 
 jobs:
   create-release:
+    # Previous create-release job remains the same
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +30,6 @@ jobs:
       - name: Check if branch exists
         run: |
           echo "🔍 Debug: Full branch name to check: 'refs/heads/${BRANCH_NAME}'"
-          # Store the ls-remote output in a variable
           branch_check=$(git ls-remote --heads origin "refs/heads/${BRANCH_NAME}")
           exit_code=$?
 
@@ -44,11 +39,6 @@ jobs:
 
           if [ -n "${branch_check}" ]; then
             echo "❌ Branch ${{ env.BRANCH_NAME }} already exists!"
-            echo "This likely means one of:"
-            echo "  1. This version was already released and potentially deployed"
-            echo "  2. The version number in version.toml needs to be incremented"
-            echo "  3. An old deploy branch needs to be cleaned up"
-
             echo "::error::Branch ${{ env.BRANCH_NAME }} already exists!" >> $GITHUB_STEP_SUMMARY
             echo "This likely means one of:" >> $GITHUB_STEP_SUMMARY
             echo "  1. This version was already released and potentially deployed" >> $GITHUB_STEP_SUMMARY
@@ -57,6 +47,7 @@ jobs:
             exit 1
           fi
           echo "✅ Branch does not exist, proceeding with creation"
+
       - name: Create release branch
         run: |
           echo "🔄 Checking out main branch..."
@@ -83,8 +74,38 @@ jobs:
           echo "Created by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "Created at: $(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_STEP_SUMMARY
 
-  cleanup-old-branches:
+  build-and-deploy:
     needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH_NAME }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      
+      - name: Build package
+        run: python -m build
+      
+      - name: Upload to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+          TWINE_REPOSITORY_URL: ${{ secrets.TEST_PYPI_REPO }}
+        run: |
+          twine check dist/*
+          twine upload --repository-url ${{ secrets.TEST_PYPI_REPO }} dist/*
+
+  cleanup-old-branches:
+    needs: build-and-deploy
     runs-on: ubuntu-latest
     env:
       ROLLBACK_NUMBER: ${{ vars.VERSION_ROLLBACK_NUMBER }}
@@ -113,20 +134,8 @@ jobs:
           keep_count=$ROLLBACK_NUMBER
           total_branches=${#branch_array[@]}
 
-          echo "📈 Total branches found: $total_branches"
-          echo "🎯 Branches to keep: $keep_count"
-
-          # If we have more branches than we want to keep
           if [ $total_branches -gt $keep_count ]; then
             echo "🔄 Found $total_branches release branches, keeping newest $keep_count"
-            echo "📝 Branches to be kept:"
-            for ((i=0; i<keep_count; i++)); do
-              echo "  ✅ Keeping: ${branch_array[i]}"
-            done
-
-            echo " 🗑️ Branches to be deleted:"
-            echo " 🗑️ Branches to be deleted:" >>  $GITHUB_STEP_SUMMARY
-            # Loop through array starting after the ones we want to keep
             for ((i=keep_count; i<total_branches; i++)); do
               branch="${branch_array[i]}"
               echo "  ❌ Deleting: $branch"
@@ -148,4 +157,3 @@ jobs:
           echo "🎉 Cleanup process completed!" >> $GITHUB_STEP_SUMMARY
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
