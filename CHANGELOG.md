@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.15.1]
+
+### Maintenance
+- Add deploy to test pypi (git) [#194](https://github.com/imAsparky/django-tag-me/pull/194)
+
+### Documentation
+- Fixed typo in line spacings (README) [#194](https://github.com/imAsparky/django-tag-me/pull/194)
+
+
 ## [2024.12.14.1]
 
 ### Maintenance
