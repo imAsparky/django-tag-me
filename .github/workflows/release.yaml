@@ -9,7 +9,6 @@ on:
 
 jobs:
   create-release:
-    # Previous create-release job remains the same
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
