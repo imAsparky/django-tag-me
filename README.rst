@@ -14,7 +14,7 @@
 
 .. image:: https://github.com/imAsparky/django-tag-me/actions/workflows/main_PR.yaml/badge.svg
    :alt: Tests
-   :target: https://github.com/<C-S-Del>imAsparky/django-tag-me/actions/workflows/main_PR.yaml
+   :target: https://github.com/imAsparky/django-tag-me/actions/workflows/main_PR.yaml
 
 .. image:: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FimAsparky%2Fdjango-tag-me%2Fmain%2Fpyproject.toml&query=project.dependencies&logo=Django&label=Versions&labelColor=%23092E20
    :alt: Django Version Badge
@@ -40,22 +40,49 @@
 
 `django-tag-me`, a simple approach for `Django` tagging.
 
-Django Tag Me Features in the Pipeline!
----------------------------------------
+|
 
-#. Easily set up `User tags`. **In Progress**.
-#. Tag a field. **Completed**.
-#. Tag a model. **Completed**.
-#. Easy as `1,2,3` - Custom select widget integration in your forms and templates. **Completed**.
-#. `sqLite` search with `i_contains`.
-#. `Postgres` text search or `i_contains`.
-
-
-Built with
-`Django Cookiecutter <https://github.com/imAsparky/django-cookiecutter>`_
+Features in the Pipeline
+------------------------
 
 |
 
-Special thanks to a helpful AI language model (trained on the 
-``Gemini dataset`` <https://gemini.google.com/advanced>`_). 
-for assistance with code optimization, testing strategies, and docstring writing.
+#. Easily set up `User tags`. **In Progress**
+#. Tag a field. **Completed**
+#. Tag a model. **Completed**
+#. Easy as `1,2,3` - Custom select widget integration in your forms and templates. **Completed**
+#. `sqLite` search with `i_contains`
+#. `Postgres` text search or `i_contains`
+
+|
+
+Tag Selection Interface!
+------------------------
+
+|
+
+**Dropdown with selection options.**
+
+|
+
+.. image:: https://raw.githubusercontent.com/imAsparky/django-tag-me/main/docs/source/imgs/tag_dropdown_with_options.png
+   :alt: Tag dropdown with options
+
+|
+
+**Dropdown tag options search functionality.**
+
+|
+
+.. image:: https://raw.githubusercontent.com/imAsparky/django-tag-me/main/docs/source/imgs/tag_dropdown_search.png
+   :alt: Tag dropdown search functionality
+
+|
+
+Credits
+-------
+
+|
+
+- Dropdown interface adapted from `alpinejs-multiselect <https://github.com/alexpechkarev/alpinejs-multiselect/>`_
+- Built with `Django Cookiecutter <https://github.com/imAsparky/django-cookiecutter>`_
