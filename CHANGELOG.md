@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.16.6]
+
+### Bug Fixes
+- Add handling of `Postgres ProgrammingError` (migrations) [#208](https://github.com/imAsparky/django-tag-me/pull/208)
+
+
 ## [2024.12.16.5]
 
 ### Maintenance
