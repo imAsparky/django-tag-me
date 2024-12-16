@@ -5,7 +5,10 @@ import logging
 from django.contrib.admin.widgets import AdminTextInputWidget
 from django.contrib.contenttypes.models import ContentType
 from django.core import validators
-from django.db import OperationalError
+from django.db import (
+    OperationalError,
+    ProgrammingError,
+)
 from django.db.models.fields import CharField
 
 from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
@@ -153,15 +156,19 @@ class TagMeCharField(CharField):
         else:
             model_verbose_name = "** No Model **"
 
-        # This try block allows the first migration to run without blocking.
-        # If this is not here then when we try to retrieve the content type
-        # before the initial migration, it stops everything and wont let you proceed.
+        # During initial migrations, database tables may not exist yet.
+        # This try-except block gracefully handles database queries before the schema
+        # is fully set up, allowing migrations to proceed by providing a temporary
+        # placeholder TaggedFieldModel instance when database access fails.
+        # We catch both OperationalError (typically raised by SQLite) and
+        # ProgrammingError (typically raised by PostgreSQL) to handle different
+        # database backends gracefully.
         try:
             tagged_field = TaggedFieldModel.objects.filter(
                 content=ContentType.objects.get_for_model(self.model),
                 field_name=self.name,
             ).first()
-        except OperationalError as e:
+        except (OperationalError, ProgrammingError) as e:
             msg = f"{str(e)}: Please check you have run migrations, if so has the TaggedFieldModel table been deleted from your data base?\nWe have added an UNSAVED Tagged Field type as a placeholder for you django-tag-me display.\nPlease resolve this error before using this feature as unintended consequences may occur!"
             tagged_field = TaggedFieldModel()
             logger.error(msg)
