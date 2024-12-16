@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.16.4]
+
+### Maintenance
+- Update version to the new date format (docs) [#204](https://github.com/imAsparky/django-tag-me/pull/204)
+
+
 ## [2024.12.16.3]
 
 ### Bug Fixes
