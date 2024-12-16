@@ -226,7 +226,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ ! -f CHANGELOG.md ] || [ ! -f README.rst ] || [ ! -f pyproject.toml ] || [ ! -f tag_me/__init__.py ] || [ ! -f version.toml ]; then
+          if [ ! -f CHANGELOG.md ]  || [ ! -f docs/source/conf.py ] || [ ! -f README.rst ] || [ ! -f pyproject.toml ] || [ ! -f tag_me/__init__.py ] || [ ! -f version.toml ]; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "### Changelog Update Failed" >> $GITHUB_STEP_SUMMARY
             echo "Error: Required files not found" >> $GITHUB_STEP_SUMMARY
@@ -242,7 +242,7 @@ jobs:
 
           if [ $SCRIPT_EXIT -eq 0 ]; then
             if [ -n "$(git status --porcelain)" ]; then
-                git add CHANGELOG.md pyproject.toml README.rst tag_me/__init__.py version.toml
+                git add CHANGELOG.md docs/source/conf.py pyproject.toml README.rst tag_me/__init__.py version.toml
                 git -c user.name="GitHub Actions Bot" \
                     -c user.email="github-actions[bot]@users.noreply.github.com" \
                     -c user.signingkey="${GPG_KEY_ID}" \
