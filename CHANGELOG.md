@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.16.1]
+
+### Maintenance
+- Add select deploy and deploy to pypi (git) [#198](https://github.com/imAsparky/django-tag-me/pull/198)
+
+
 ## [2024.12.15.2]
 
 ### Maintenance
