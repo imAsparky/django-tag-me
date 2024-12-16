@@ -23,7 +23,7 @@ classifiers = [
 dependencies = ["Django>=4.0"]
 description = "A simple approach to Django tagging"
 keywords = ["Django Tag Me", "Django", "django", "django tagging"]
-license = {file = "LICENSE" }
+license = {text = "BSD-3-Clause"}
 maintainers = [{ name = "Mark Sevelj", email = "mark.sevelj@dunwright.com.au" }]
 name = "django-tag-me"
 readme = "README.rst"
@@ -41,7 +41,7 @@ dev = [
 [project.urls]
 Repository = "https://github.com/imAsparky/django-tag-me"
 Tracker = "https://github.com/imAsparky/django-tag-me/issues"
-# Documentation = "https://django-tag-me.readthedocs.io"
+Documentation = "https://django-tag-me.readthedocs.io"
 
 [tool.coverage.run]
 omit = [
