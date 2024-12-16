@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.16.5]
+
+### Maintenance
+- Add link to readme docs (docs) [#206](https://github.com/imAsparky/django-tag-me/pull/206)
+
+
 ## [2024.12.16.4]
 
 ### Maintenance
