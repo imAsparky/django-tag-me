@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.16.2]
+
+### Maintenance
+- Remove use of semantic release (version) [#200](https://github.com/imAsparky/django-tag-me/pull/200)
+  > Using GHA python script to handle versioning and changelog updates.
+
+### Documentation
+- Fix format so pypi displays correctly (pypi) [#200](https://github.com/imAsparky/django-tag-me/pull/200)
+
+
 ## [2024.12.16.1]
 
 ### Maintenance
