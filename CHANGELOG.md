@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.16.3]
+
+### Bug Fixes
+- Removed erroneous license reference (build) [#202](https://github.com/imAsparky/django-tag-me/pull/202)
+
+
 ## [2024.12.16.2]
 
 ### Maintenance
