@@ -23,7 +23,7 @@ classifiers = [
 dependencies = ["Django>=4.0"]
 description = "A simple approach to Django tagging"
 keywords = ["Django Tag Me", "Django", "django", "django tagging"]
-license = {text = "BSD-3-Clause", file = "LICENSE" }
+license = {file = "LICENSE" }
 maintainers = [{ name = "Mark Sevelj", email = "mark.sevelj@dunwright.com.au" }]
 name = "django-tag-me"
 readme = "README.rst"
