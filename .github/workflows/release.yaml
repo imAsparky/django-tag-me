@@ -1,21 +1,29 @@
 name: Release and Deploy
 on:
-  # pull_request:
-  #   branches: [main]
-  #   paths-ignore:
-  #     - "**.md"
-  #     - "docs/**"
   workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'Choose PyPI deployment target'
+        required: true
+        type: choice
+        options:
+          - TestPyPI
+          - PyPI
+        default: 'TestPyPI'
 
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      branch_name: ${{ steps.get_version.outputs.branch_name }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Get branch name
-        id: get_branch_name
+          
+      - name: Get version and branch name
+        id: get_version
         shell: bash
         run: |
           echo "Version hex dump:"
@@ -28,22 +36,19 @@ jobs:
           branch_name="release-${version}"
           echo "🔄 Creating branch name: ${branch_name}"
 
-          echo "BRANCH_NAME=${branch_name}" >> $GITHUB_ENV
-          echo "✅ Branch Name $branch_name created successfully"
+          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "branch_name=${branch_name}" >> $GITHUB_OUTPUT
+          echo "✅ Version and branch name set successfully"
 
       - name: Check if branch exists
         run: |
-          echo "🔍 Debug: Full branch name to check: 'refs/heads/${BRANCH_NAME}'"
-          branch_check=$(git ls-remote --heads origin "refs/heads/${BRANCH_NAME}")
+          echo "🔍 Debug: Full branch name to check: 'refs/heads/${{ steps.get_version.outputs.branch_name }}'"
+          branch_check=$(git ls-remote --heads origin "refs/heads/${{ steps.get_version.outputs.branch_name }}")
           exit_code=$?
 
-          echo "🔍 Debug: git ls-remote output: '${branch_check}'"
-          echo "🔍 Debug: git ls-remote exit code: ${exit_code}"
-          echo "🔍 Checking if branch ${{ env.BRANCH_NAME }} already exists..."
-
           if [ -n "${branch_check}" ]; then
-            echo "❌ Branch ${{ env.BRANCH_NAME }} already exists!"
-            echo "::error::Branch ${{ env.BRANCH_NAME }} already exists!" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Branch ${{ steps.get_version.outputs.branch_name }} already exists!"
+            echo "::error::Branch ${{ steps.get_version.outputs.branch_name }} already exists!" >> $GITHUB_STEP_SUMMARY
             echo "This likely means one of:" >> $GITHUB_STEP_SUMMARY
             echo "  1. This version was already released and potentially deployed" >> $GITHUB_STEP_SUMMARY
             echo "  2. The version number in version.toml needs to be incremented" >> $GITHUB_STEP_SUMMARY
@@ -57,23 +62,17 @@ jobs:
           echo "🔄 Checking out main branch..."
           git checkout main
 
-          echo "🌱 Creating new branch: ${{ env.BRANCH_NAME }}"
-          git checkout -b ${{ env.BRANCH_NAME }}
+          echo "🌱 Creating new branch: ${{ steps.get_version.outputs.branch_name }}"
+          git checkout -b ${{ steps.get_version.outputs.branch_name }}
 
           echo "⬆️ Pushing branch to origin..."
-          git push origin ${{ env.BRANCH_NAME }}
+          git push origin ${{ steps.get_version.outputs.branch_name }}
           echo "✅ Branch successfully pushed to origin"
 
       - name: Post creation summary
         run: |
           echo "📝 Generating creation summary..."
-          echo "✅ Branch ${{ env.BRANCH_NAME }} created successfully"
-          echo "Created from: main"
-          echo "Created by: ${{ github.actor }}"
-          echo "Created at: $(date '+%Y-%m-%d %H:%M:%S')"
-
-          echo "📝 Adding summary to job output..."
-          echo "✅ Branch ${{ env.BRANCH_NAME }} created successfully" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Branch ${{ steps.get_version.outputs.branch_name }} created successfully" >> $GITHUB_STEP_SUMMARY
           echo "Created from: main" >> $GITHUB_STEP_SUMMARY
           echo "Created by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "Created at: $(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_STEP_SUMMARY
@@ -84,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BRANCH_NAME }}
+          ref: ${{ needs.create-release.outputs.branch_name }}
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -95,18 +94,105 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build twine
+          echo "✅ Dependencies installed successfully" >> $GITHUB_STEP_SUMMARY
       
       - name: Build package
-        run: python -m build
+        id: build
+        run: |
+          echo "🔨 Starting package build..."
+          echo "📦 Building package..." >> $GITHUB_STEP_SUMMARY
+          
+          BUILD_OUTPUT=$(python -m build 2>&1)
+          BUILD_STATUS=$?
+          
+          echo "$BUILD_OUTPUT"
+          
+          if [ $BUILD_STATUS -eq 0 ]; then
+            echo "✅ Package built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "📂 Built files:" >> $GITHUB_STEP_SUMMARY
+            ls -l dist/ >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Package build failed" >> $GITHUB_STEP_SUMMARY
+            echo "Error output:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$BUILD_OUTPUT" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
       
-      - name: Upload to TestPyPI
+      - name: Check distribution
+        id: check
+        run: |
+          echo "🔍 Checking distribution files..."
+          echo "🔍 Checking distribution files..." >> $GITHUB_STEP_SUMMARY
+          
+          CHECK_OUTPUT=$(twine check dist/* 2>&1)
+          CHECK_STATUS=$?
+          
+          echo "$CHECK_OUTPUT"
+          
+          if [ $CHECK_STATUS -eq 0 ]; then
+            echo "✅ Distribution files check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Distribution files check failed" >> $GITHUB_STEP_SUMMARY
+            echo "Error details:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$CHECK_OUTPUT" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+      
+      - name: Configure PyPI settings
+        id: config
+        run: |
+          if [[ "${{ inputs.deploy_target }}" == "TestPyPI" ]]; then
+            echo "PYPI_TOKEN=${{ secrets.TEST_PYPI_API_TOKEN }}" >> $GITHUB_ENV
+            echo "PYPI_NAME=TestPyPI" >> $GITHUB_ENV
+            echo "UPLOAD_ARGS=--repository-url ${{ secrets.TEST_PYPI_REPOSITORY_URL }} --verbose" >> $GITHUB_ENV
+            echo "VIEW_URL=https://test.pypi.org/project/django-tag-me/" >> $GITHUB_ENV
+          else
+            echo "PYPI_TOKEN=${{ secrets.PYPI_API_TOKEN }}" >> $GITHUB_ENV
+            echo "PYPI_NAME=PyPI" >> $GITHUB_ENV
+            echo "UPLOAD_ARGS=--verbose" >> $GITHUB_ENV
+            echo "VIEW_URL=https://pypi.org/project/django-tag-me/" >> $GITHUB_ENV
+          fi
+          echo "🎯 Configured deployment target: ${{ inputs.deploy_target }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload to ${{ inputs.deploy_target }}
+        id: upload
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-          TWINE_REPOSITORY_URL: ${{ secrets.TEST_PYPI_REPO }}
+          TWINE_PASSWORD: ${{ env.PYPI_TOKEN }}
         run: |
-          twine check dist/*
-          twine upload --repository-url ${{ secrets.TEST_PYPI_REPO }} dist/*
+          echo "⬆️ Starting upload to ${{ env.PYPI_NAME }}..."
+          echo "⬆️ Uploading to ${{ env.PYPI_NAME }}..." >> $GITHUB_STEP_SUMMARY
+          
+          UPLOAD_OUTPUT=$(twine upload ${{ env.UPLOAD_ARGS }} dist/* 2>&1)
+          UPLOAD_STATUS=$?
+          
+          echo "$UPLOAD_OUTPUT"
+          
+          if [ $UPLOAD_STATUS -eq 0 ]; then
+            echo "✅ Upload to ${{ env.PYPI_NAME }} successful" >> $GITHUB_STEP_SUMMARY
+            echo "📦 Package version: ${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            echo "🔗 View at: ${{ env.VIEW_URL }}${{ needs.create-release.outputs.version }}/" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Upload to ${{ env.PYPI_NAME }} failed" >> $GITHUB_STEP_SUMMARY
+            echo "Error details:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$UPLOAD_OUTPUT" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            
+            if echo "$UPLOAD_OUTPUT" | grep -q "403 Forbidden"; then
+              echo "🔑 Authentication Error: Please check your ${{ env.PYPI_NAME }} API token" >> $GITHUB_STEP_SUMMARY
+              echo "Make sure the API token secret is correctly set in repository settings" >> $GITHUB_STEP_SUMMARY
+            fi
+            if echo "$UPLOAD_OUTPUT" | grep -q "400 Bad Request"; then
+              echo "⚠️ Version Error: This version might already exist on ${{ env.PYPI_NAME }}" >> $GITHUB_STEP_SUMMARY
+              echo "Try incrementing the version number in your project" >> $GITHUB_STEP_SUMMARY
+            fi
+            exit 1
+          fi
 
   cleanup-old-branches:
     needs: build-and-deploy
@@ -117,6 +203,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          
       - name: Cleanup old release branches
         run: |
           echo "🔍 Starting cleanup process..."
