@@ -92,6 +92,7 @@ class ChangelogUpdater:
 
         # Define paths
         self.changelog_path = Path("CHANGELOG.md")
+        self.docs_conf_path = Path("docs/source/conf.py")
         self.readme_path = Path("README.rst")
         self.project_path = Path("pyproject.toml")
         self.package_path = Path("tag_me/__init__.py")
@@ -251,6 +252,27 @@ class ChangelogUpdater:
             return today, int(latest_increment) + 1
         return today, 1
 
+    def _get_updated_docs_conf(self, version: str) -> str:
+        """\
+        Find and update the docs config version number.
+
+        Returns:
+            string: Formatted conf.py file string.
+        """
+
+        try:
+            content = self.docs_conf_path.read_text().splitlines()
+            # Find and replace the version line
+            for i, line in enumerate(content):
+                if line.startswith('__version__ = "'):
+                    content[i] = f'__version__ = "{version}"'
+                    break
+
+            return "\n".join(content)
+        except Exception:
+            logger.exception("Failed to update docs conf.py version")
+            raise
+
     def _get_updated_package(self, version: str) -> str:
         """\
         Find and update the package version number.
@@ -371,8 +393,11 @@ class ChangelogUpdater:
 
         if self.changes_made:
             try:
-                # Update both files atomically
+                # Update versioned files automically
                 self.changelog_path.write_text(updated_content)
+                self.docs_conf_path.write_text(
+                    self._get_updated_docs_conf(version=version),
+                )
                 self.package_path.write_text(
                     self._get_updated_package(version=version)
                 )  # update __init__.py
