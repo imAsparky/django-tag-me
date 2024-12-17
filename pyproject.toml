@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-tag-me"
-version = "2024.12.16.6"
+version = "2024.12.17.1"
 description = "A simple approach to Django tagging" 
 readme = "README.rst"
 requires-python = ">=3.10"
