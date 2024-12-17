@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.17.1]
+
+### Maintenance
+- Improve build process (build) [#210](https://github.com/imAsparky/django-tag-me/pull/210)
+
+
 ## [2024.12.16.6]
 
 ### Bug Fixes
