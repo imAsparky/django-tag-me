@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2024.12.18.1]
+
+### Maintenance
+- Fine tune the deploy steps (git) [#213](https://github.com/imAsparky/django-tag-me/pull/213)
+
+
 ## [2024.12.17.1]
 
 ### Maintenance
