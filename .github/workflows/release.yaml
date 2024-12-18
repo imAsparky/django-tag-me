@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Get version and branch name
         id: get_version
         shell: bash
@@ -40,22 +40,77 @@ jobs:
           echo "branch_name=${branch_name}" >> $GITHUB_OUTPUT
           echo "✅ Version and branch name set successfully"
 
-      - name: Check if branch exists
+      - name: Check branch and deployment status
+        id: check_status
         run: |
-          echo "🔍 Debug: Full branch name to check: 'refs/heads/${{ steps.get_version.outputs.branch_name }}'"
-          branch_check=$(git ls-remote --heads origin "refs/heads/${{ steps.get_version.outputs.branch_name }}")
-          exit_code=$?
+          echo "🔍 Checking branch and deployment status..."
 
+          # Check if branch exists
           if [ -n "${branch_check}" ]; then
-            echo "❌ Branch ${{ steps.get_version.outputs.branch_name }} already exists!"
-            echo "::error::Branch ${{ steps.get_version.outputs.branch_name }} already exists!" >> $GITHUB_STEP_SUMMARY
-            echo "This likely means one of:" >> $GITHUB_STEP_SUMMARY
-            echo "  1. This version was already released and potentially deployed" >> $GITHUB_STEP_SUMMARY
-            echo "  2. The version number in version.toml needs to be incremented" >> $GITHUB_STEP_SUMMARY
-            echo "  3. An old release branch needs to be cleaned up" >> $GITHUB_STEP_SUMMARY
-            exit 1
+            echo "⚠️ Branch ${{ steps.get_version.outputs.branch_name }} exists, checking deployment status..."
+
+            # Function to check if version exists on PyPI
+            check_pypi_version() {
+              local pypi_url="$1"
+              local version="$2"
+              local response
+
+              response=$(curl -s "${pypi_url}django-tag-me/${version}/json" || echo "not_found")
+              if [[ $response != "not_found" && $response != *"Not Found"* ]]; then
+                echo "true"
+              else
+                echo "false"
+              fi
+            }
+
+            # Check TestPyPI deployment
+            test_pypi_exists=$(check_pypi_version "https://test.pypi.org/pypi/" "${{ steps.get_version.outputs.version }}")
+
+            # Check PyPI deployment
+            pypi_exists=$(check_pypi_version "https://pypi.org/pypi/" "${{ steps.get_version.outputs.version }}")
+
+            # Initialize deployment status message
+            echo "📝 Deployment Status Summary" >> $GITHUB_STEP_SUMMARY
+            echo "Version: ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            echo "Branch: ${{ steps.get_version.outputs.branch_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [[ $test_pypi_exists == "true" && $pypi_exists == "true" ]]; then
+              echo "❌ Error: Version already fully deployed" >> $GITHUB_STEP_SUMMARY
+              echo "→ TestPyPI: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+              echo "→ PyPI: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "This version has already been deployed to both TestPyPI and PyPI." >> $GITHUB_STEP_SUMMARY
+              echo "To proceed with a new deployment:" >> $GITHUB_STEP_SUMMARY
+              echo "1. Increment the version number in version.toml" >> $GITHUB_STEP_SUMMARY
+              echo "2. Commit and push the changes" >> $GITHUB_STEP_SUMMARY
+              echo "3. Run this workflow again" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            elif [[ $test_pypi_exists == "true" ]]; then
+              echo "ℹ️ Partial deployment detected" >> $GITHUB_STEP_SUMMARY
+              echo "→ TestPyPI: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+              echo "→ PyPI: ❌ Not deployed" >> $GITHUB_STEP_SUMMARY
+              if [[ "${{ inputs.deploy_target }}" == "TestPyPI" ]]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "❌ Cannot proceed: Version already exists on TestPyPI" >> $GITHUB_STEP_SUMMARY
+                echo "To deploy to PyPI, rerun this workflow and select PyPI as the target." >> $GITHUB_STEP_SUMMARY
+                exit 1
+              fi
+            elif [[ $pypi_exists == "true" ]]; then
+              echo "⚠️ Unusual deployment state detected" >> $GITHUB_STEP_SUMMARY
+              echo "→ TestPyPI: ❌ Not deployed" >> $GITHUB_STEP_SUMMARY
+              echo "→ PyPI: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "❌ Cannot proceed: Version exists on PyPI but not on TestPyPI" >> $GITHUB_STEP_SUMMARY
+              echo "This is an unusual state. Please check your deployment history and version numbers." >> $GITHUB_STEP_SUMMARY
+              exit 1
+            else
+              echo "ℹ️ Branch exists but no deployments found" >> $GITHUB_STEP_SUMMARY
+              echo "→ TestPyPI: ❌ Not deployed" >> $GITHUB_STEP_SUMMARY
+              echo "→ PyPI: ❌ Not deployed" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
-          echo "✅ Branch does not exist, proceeding with creation"
+          echo "✅ Ready to proceed with deployment"
 
       - name: Create release branch
         run: |
@@ -84,29 +139,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.create-release.outputs.branch_name }}
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      
+
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
           pip install build twine
           echo "✅ Dependencies installed successfully" >> $GITHUB_STEP_SUMMARY
-      
+
       - name: Build package
         id: build
         run: |
           echo "🔨 Starting package build..."
           echo "📦 Building package..." >> $GITHUB_STEP_SUMMARY
-          
+
           BUILD_OUTPUT=$(python -m build 2>&1)
           BUILD_STATUS=$?
-          
+
           echo "$BUILD_OUTPUT"
-          
+
           if [ $BUILD_STATUS -eq 0 ]; then
             echo "✅ Package built successfully" >> $GITHUB_STEP_SUMMARY
             echo "📂 Built files:" >> $GITHUB_STEP_SUMMARY
@@ -119,18 +174,18 @@ jobs:
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-      
+
       - name: Check distribution
         id: check
         run: |
           echo "🔍 Checking distribution files..."
           echo "🔍 Checking distribution files..." >> $GITHUB_STEP_SUMMARY
-          
+
           CHECK_OUTPUT=$(twine check dist/* 2>&1)
           CHECK_STATUS=$?
-          
+
           echo "$CHECK_OUTPUT"
-          
+
           if [ $CHECK_STATUS -eq 0 ]; then
             echo "✅ Distribution files check passed" >> $GITHUB_STEP_SUMMARY
           else
@@ -141,7 +196,7 @@ jobs:
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-      
+
       - name: Configure PyPI settings
         id: config
         run: |
@@ -166,12 +221,12 @@ jobs:
         run: |
           echo "⬆️ Starting upload to ${{ env.PYPI_NAME }}..."
           echo "⬆️ Uploading to ${{ env.PYPI_NAME }}..." >> $GITHUB_STEP_SUMMARY
-          
+
           UPLOAD_OUTPUT=$(twine upload ${{ env.UPLOAD_ARGS }} dist/* 2>&1)
           UPLOAD_STATUS=$?
-          
+
           echo "$UPLOAD_OUTPUT"
-          
+
           if [ $UPLOAD_STATUS -eq 0 ]; then
             echo "✅ Upload to ${{ env.PYPI_NAME }} successful" >> $GITHUB_STEP_SUMMARY
             echo "📦 Package version: ${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
@@ -181,8 +236,8 @@ jobs:
             echo "Error details:" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             echo "$UPLOAD_OUTPUT" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            
+
+
             if echo "$UPLOAD_OUTPUT" | grep -q "403 Forbidden"; then
               echo "🔑 Authentication Error: Please check your ${{ env.PYPI_NAME }} API token" >> $GITHUB_STEP_SUMMARY
               echo "Make sure the API token secret is correctly set in repository settings" >> $GITHUB_STEP_SUMMARY
@@ -203,7 +258,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Cleanup old release branches
         run: |
           echo "🔍 Starting cleanup process..."

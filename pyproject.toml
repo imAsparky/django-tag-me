@@ -50,7 +50,7 @@ Tracker = "https://github.com/imAsparky/django-tag-me/issues"
 Changelog = "https://github.com/imAsparky/django-tag-me/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = {find = {where = ["tag_me"]}}
+packages = {find = {where = ["."], include = ["tag_me", "tag_me.*"]}}
 
 [tool.setuptools.package-data]
 tag_me = [
