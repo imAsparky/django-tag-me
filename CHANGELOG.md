@@ -2,6 +2,21 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.17.1]
+
+### Documentation
+- Add settings and `TagMeCharfield` examples (config) [#218](https://github.com/imAsparky/django-tag-me/pull/218)
+
+### Features
+- Field choices accepts a list (field) [#218](https://github.com/imAsparky/django-tag-me/pull/218)
+
+### Bug Fixes
+- Fix occasional text hidden by colour (css) [#218](https://github.com/imAsparky/django-tag-me/pull/218)
+
+### Testing
+- Add test for choices list option (field) [#218](https://github.com/imAsparky/django-tag-me/pull/218)
+
+
 ## [2024.12.18.1]
 
 ### Maintenance
