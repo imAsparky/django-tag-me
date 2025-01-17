@@ -9,6 +9,7 @@ from django.db import (
     OperationalError,
     ProgrammingError,
 )
+from django.db import models
 from django.db.models.fields import CharField
 
 from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
@@ -61,9 +62,21 @@ class TagMeCharField(CharField):
         self.tag_type: str = "user"
         if self.choices:
             tag_choices_list = []
-            # Convert choice labels to a list.
-            for label, _ in self.choices:
-                tag_choices_list.append(str(label))
+            # Convert choices into tags.
+            match self.choices:
+                case list() if all(
+                    isinstance(x, tuple) and len(x) == 2 for x in self.choices
+                ):
+                    """If we have Django choices tuples, extract the first element."""
+                    for label, _ in self.choices:
+                        tag_choices_list.append(str(label))
+                case list():  # More general case comes after
+                    """If we have a list just turn into tags."""
+                    tag_choices_list.extend(self.choices)
+                case _:
+                    msg = f"Tag choices must be of type <list> or <model.TextChoices> not {type(self.choices)}"
+                    logger.error(msg=msg)
+
             self.formatter.clear()
             self.formatter.add_tags(tag_choices_list)
             self._tag_choices = self.formatter.toList()
@@ -198,7 +211,7 @@ class TagMeCharField(CharField):
                         "model_verbose_name": model_verbose_name,
                         "field_name": self.name,
                         "field_verbose_name": self.verbose_name,
-                        "_tag_choices": self._tag_choices,
+                        "tag_choices": self._tag_choices,
                     },
                 ),
             }
