@@ -221,23 +221,15 @@ jobs:
         run: |
           echo "⬆️ Starting upload to ${{ env.PYPI_NAME }}..."
           echo "⬆️ Uploading to ${{ env.PYPI_NAME }}..." >> $GITHUB_STEP_SUMMARY
-
-          UPLOAD_OUTPUT=$(twine upload ${{ env.UPLOAD_ARGS }} dist/* 2>&1 | tee /dev/stderr)
-          UPLOAD_STATUS=$?
-
-          echo "$UPLOAD_OUTPUT"
-
-          if [ $UPLOAD_STATUS -eq 0 ]; then
-            echo "✅ Upload to ${{ env.PYPI_NAME }} successful" >> $GITHUB_STEP_SUMMARY
-            echo "📦 Package version: ${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-            echo "🔗 View at: ${{ env.VIEW_URL }}${{ needs.create-release.outputs.version }}/" >> $GITHUB_STEP_SUMMARY
-          else
+          # Use a temporary file to capture output
+          TEMP_OUTPUT=$(mktemp)
+          if ! twine upload ${{ env.UPLOAD_ARGS }} dist/* 2>&1 | tee "$TEMP_OUTPUT"; then
+            UPLOAD_OUTPUT=$(cat "$TEMP_OUTPUT")
             echo "❌ Upload to ${{ env.PYPI_NAME }} failed" >> $GITHUB_STEP_SUMMARY
             echo "Error details:" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             echo "$UPLOAD_OUTPUT" >> $GITHUB_STEP_SUMMARY
-
-
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             if echo "$UPLOAD_OUTPUT" | grep -q "403 Forbidden"; then
               echo "🔑 Authentication Error: Please check your ${{ env.PYPI_NAME }} API token" >> $GITHUB_STEP_SUMMARY
               echo "Make sure the API token secret is correctly set in repository settings" >> $GITHUB_STEP_SUMMARY
@@ -246,8 +238,13 @@ jobs:
               echo "⚠️ Version Error: This version might already exist on ${{ env.PYPI_NAME }}" >> $GITHUB_STEP_SUMMARY
               echo "Try incrementing the version number in your project" >> $GITHUB_STEP_SUMMARY
             fi
+            rm "$TEMP_OUTPUT"
             exit 1
           fi
+          rm "$TEMP_OUTPUT"
+          echo "✅ Upload to ${{ env.PYPI_NAME }} successful" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Package version: ${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 View at: ${{ env.VIEW_URL }}${{ needs.create-release.outputs.version }}/" >> $GITHUB_STEP_SUMMARY
 
   cleanup-old-branches:
     needs: build-and-deploy
