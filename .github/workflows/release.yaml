@@ -222,7 +222,6 @@ jobs:
           echo "⬆️ Starting upload to ${{ env.PYPI_NAME }}..."
           echo "⬆️ Uploading to ${{ env.PYPI_NAME }}..." >> $GITHUB_STEP_SUMMARY
 
-          echo "⬆️ Upload Args:  ${{ env.UPLOAD_ARGS }}..." >> $GITHUB_STEP_SUMMARY
           UPLOAD_OUTPUT=$(twine upload ${{ env.UPLOAD_ARGS }} dist/* 2>&1 | tee /dev/stderr)
           UPLOAD_STATUS=$?
 
