@@ -39,8 +39,65 @@ Setting (in ``settings.py``)          Attribute (in widget)        Notes
 
 |
 
-Attributes
-==========
+TagMeCharField Attributes
+=========================
+
+|
+
+.. code-block:: python
+
+      from django.db import models
+      from django.utils.translation import pgettext_lazy as _
+      from tag_me.db.models.fields import TagMeCharField
+
+      class MyModel(models.Model):
+
+          class Visibility(models.TextChoices):
+              """Issue Visibility choices."""
+
+              PRIVATE = (
+                  "PRIVATE",
+                  _(
+                      "Visibility",
+                      "Private",
+                  ),
+              )
+
+              PUBLIC = (
+                  "PUBLIC",
+                  _(
+                      "Visibility",
+                      "Public",
+                  ),
+              )
+
+          tags:list = ['tag1', 'tag1']
+
+          tagged_field_1=TagMeCharField(
+              max_length=50,
+              choices=Visibility.choices,
+              default=Visibiltiy.PRIVATE,
+              allow_multiple_select=False,
+              )
+
+          synced_tagged_field_1=TagMeCharField(
+              max_length=50,
+              choices=tags,
+              default='tag1',
+              display_number_selected=1,
+              synchronise=True,
+              )
+
+|
+
+*choices*
+---------
+
+**model.TextChoices**, *optional*
+Accepts a TextChoices object and converts to a tag-me list format.
+
+**list**, *optional*
+Accepts a list object and converts to a tag-me list format.
 
 |
 
@@ -68,6 +125,16 @@ Whether to automatically select newly created tags. ``Defaults to True``.
 **int**, *optional:*
 The maximum number of selected tags to display. Defaults to the value of 
 the ``DJ_TAG_ME_MAX_NUMBER_DISPLAYED`` setting.
+
+|
+
+*synchronise*
+-------------
+
+**bool**, *optional:*
+Default False, if you have other models with the same field name
+and you wish that they always have the same tags, set synchronise to 
+True on both fields and happy days, they will always be in sync.
 
 |
 
