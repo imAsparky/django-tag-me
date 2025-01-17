@@ -13,16 +13,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent  # .parent
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-p2-uuelnlqal^nix5bofcu-_5(k27xm@+&kahi@gj_9+#tpucq"
-)
+SECRET_KEY = "django-insecure-p2-uuelnlqal^nix5bofcu-_5(k27xm@+&kahi@gj_9+#tpucq"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -60,6 +58,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR / "templates",
+            BASE_DIR / "templates" / "tag_me",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
