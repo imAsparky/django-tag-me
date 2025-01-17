@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.17.2]
+
+### Bug Fixes
+- Add logging for debug (git) [#213](https://github.com/imAsparky/django-tag-me/pull/213)
+
+
 ## [2025.01.17.1]
 
 ### Documentation
