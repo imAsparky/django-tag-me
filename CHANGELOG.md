@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.18.1]
+
+### Bug Fixes
+- Upload to Pypi error logging (git) [#222](https://github.com/imAsparky/django-tag-me/pull/222)
+
+
 ## [2025.01.17.2]
 
 ### Bug Fixes
