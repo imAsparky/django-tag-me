@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.23.1]
+
+### Bug Fixes
+- Add alpine bind for multiselect (multi) [#225](https://github.com/imAsparky/django-tag-me/pull/225)
+
+
 ## [2025.01.18.1]
 
 ### Bug Fixes
