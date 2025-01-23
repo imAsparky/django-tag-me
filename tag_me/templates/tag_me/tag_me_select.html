@@ -41,6 +41,7 @@ function getCookie(name) {
     id='id_{{ name }}'
     name='{{ name }}'
     x-bind:value="selectedValues()"
+    x-bind:multiple="allowMultipleSelect"
     class="hidden"
   >
     {% for tag in choices %}
