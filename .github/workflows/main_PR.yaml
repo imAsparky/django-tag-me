@@ -136,14 +136,32 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-            const reportContent = fs.readFileSync('coverage_report.md', 'utf8');
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: reportContent
-            });
+            try {
+              const fs = require('fs');
+              const reportContent = fs.readFileSync('coverage_report.md', 'utf8');
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportContent
+              });
+            } catch (error) {
+              console.log(`Failed to add coverage comment: ${error.message}`);
+              // Fall back to status API to at least show coverage status
+              const coverageContent = fs.readFileSync('coverage_report.md', 'utf8');
+              // Extract coverage percentage (assuming it's in the report)
+              const coverageMatch = coverageContent.match(/Coverage:\s*(\d+(?:\.\d+)?%)/);
+              const coverageDesc = coverageMatch ? `Coverage: ${coverageMatch[1]}` : 'Coverage report generated';
+
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: context.sha,
+                state: 'success',
+                description: coverageDesc,
+                context: 'Coverage Report'
+              });
+            }
 
       - name: Set Outputs
         id: get_outputs
@@ -157,19 +175,32 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const conclusion = '${{ job.status }}' === 'success' ? 'success' : 'failure';
-            const check = await github.rest.checks.create({
-              owner,
-              repo,
-              name: 'Test Python ${{ matrix.python-version }} on ${{ matrix.os }}',
-              head_sha: context.sha,
-              status: 'completed',
-              conclusion: conclusion,
-              output: {
-                title: conclusion === 'success' ? 'Tests passed' : 'Tests failed',
-                summary: conclusion === 'success' ? 'All tests completed successfully' : 'Some tests failed'
-              }
-            });
-            core.setOutput('check_run_id', check.data.id);
+            try {
+              // Try to create a check run first
+              const check = await github.rest.checks.create({
+                owner,
+                repo,
+                name: 'Test Python ${{ matrix.python-version }} on ${{ matrix.os }}',
+                head_sha: context.sha,
+                status: 'completed',
+                conclusion: conclusion,
+                output: {
+                  title: conclusion === 'success' ? 'Tests passed' : 'Tests failed',
+                  summary: conclusion === 'success' ? 'All tests completed successfully' : 'Some tests failed'
+                }
+              });
+              core.setOutput('check_run_id', check.data.id);
+            } catch (error) {
+              // Fall back to status API if check run fails
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: context.sha,
+                state: conclusion === 'success' ? 'success' : 'failure',
+                description: conclusion === 'success' ? 'Tests passed' : 'Tests failed',
+                context: 'Test Python ${{ matrix.python-version }} on ${{ matrix.os }}'
+              });
+            }
 
   update_changelog:
     needs: [check_mode, test_and_coverage]
