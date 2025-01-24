@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.24.1]
+
+### Maintenance
+- Update items to match contributing guide (example) [#227](https://github.com/imAsparky/django-tag-me/pull/227)
+
+### Bug Fixes
+- Update errors in setup process for dev (docs) [#227](https://github.com/imAsparky/django-tag-me/pull/227)
+  > Several steps had incorrect info, not updated as changes
+in the project progressed.
+
+
 ## [2025.01.23.1]
 
 ### Bug Fixes
