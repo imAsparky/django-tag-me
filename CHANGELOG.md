@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.25.2]
+
+### Maintenance
+- Add non signing for changelog fork PR (workflow) [#234](https://github.com/imAsparky/django-tag-me/pull/234)
+
+
 ## [2025.01.25.1]
 
 ### Maintenance
