@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.25.1]
+
+### Maintenance
+- Update mainPR for fork PR (workflow) [#232](https://github.com/imAsparky/django-tag-me/pull/232)
+
+
 ## [2025.01.24.1]
 
 ### Maintenance
