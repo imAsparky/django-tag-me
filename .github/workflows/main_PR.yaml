@@ -46,6 +46,8 @@ jobs:
       contents: read
       pull-requests: write
       actions: read
+      issues: write
+      statuses: write
 
     outputs:
       tests_check_name: ${{ steps.get_outputs.outputs.tests_check_name }}
@@ -136,31 +138,47 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const { readFileSync } = require('fs');
             try {
-              const fs = require('fs');
-              const reportContent = fs.readFileSync('coverage_report.md', 'utf8');
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: reportContent
-              });
-            } catch (error) {
-              console.log(`Failed to add coverage comment: ${error.message}`);
-              // Fall back to status API to at least show coverage status
-              const coverageContent = fs.readFileSync('coverage_report.md', 'utf8');
-              // Extract coverage percentage (assuming it's in the report)
-              const coverageMatch = coverageContent.match(/Coverage:\s*(\d+(?:\.\d+)?%)/);
-              const coverageDesc = coverageMatch ? `Coverage: ${coverageMatch[1]}` : 'Coverage report generated';
+              const reportContent = readFileSync('coverage_report.md', 'utf8');
 
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.sha,
-                state: 'success',
-                description: coverageDesc,
-                context: 'Coverage Report'
-              });
+              // Try to post as a PR comment first
+              try {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: reportContent
+                });
+                console.log('Successfully posted coverage report as comment');
+              } catch (commentError) {
+                console.log('Failed to post comment:', commentError.message);
+
+                // If comment fails, try to extract coverage and post as PR status
+                const coverageMatch = reportContent.match(/Coverage:\s*(\d+(?:\.\d+)?%)/);
+                const coverageDesc = coverageMatch ? 
+                  `Coverage: ${coverageMatch[1]}` : 
+                  'Coverage report generated';
+
+                try {
+                  await github.rest.repos.createCommitStatus({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    sha: context.sha,
+                    state: 'success',
+                    description: coverageDesc,
+                    context: 'Coverage Report'
+                  });
+                  console.log('Successfully posted coverage as status');
+                } catch (statusError) {
+                  console.log('Failed to post status:', statusError.message);
+                  // At this point, both attempts failed, just log the coverage
+                  console.log('Coverage information:', coverageDesc);
+                }
+              }
+            } catch (fileError) {
+              console.log('Failed to read coverage report:', fileError.message);
+              core.setFailed('Could not read coverage report file');
             }
 
       - name: Set Outputs
@@ -175,8 +193,19 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const conclusion = '${{ job.status }}' === 'success' ? 'success' : 'failure';
+
+            // Function to log result without failing
+            const logResult = (success, message) => {
+              if (success) {
+                console.log(`✓ ${message}`);
+              } else {
+                console.log(`⨯ ${message}`);
+                // Don't fail the workflow, just log the status
+              }
+            };
+
             try {
-              // Try to create a check run first
+              // Try check run first
               const check = await github.rest.checks.create({
                 owner,
                 repo,
@@ -190,16 +219,25 @@ jobs:
                 }
               });
               core.setOutput('check_run_id', check.data.id);
-            } catch (error) {
-              // Fall back to status API if check run fails
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.sha,
-                state: conclusion === 'success' ? 'success' : 'failure',
-                description: conclusion === 'success' ? 'Tests passed' : 'Tests failed',
-                context: 'Test Python ${{ matrix.python-version }} on ${{ matrix.os }}'
-              });
+              logResult(true, 'Created check run successfully');
+            } catch (checkError) {
+              console.log('Check run creation failed, trying status API...');
+              try {
+                // Try status API as fallback
+                await github.rest.repos.createCommitStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  sha: context.sha,
+                  state: conclusion === 'success' ? 'success' : 'failure',
+                  description: conclusion === 'success' ? 'Tests passed' : 'Tests failed',
+                  context: 'Test Python ${{ matrix.python-version }} on ${{ matrix.os }}'
+                });
+                logResult(true, 'Created status successfully');
+              } catch (statusError) {
+                // If both APIs fail, just log the result without failing the workflow
+                logResult(false, `Test result: ${conclusion} (unable to create status)`);
+                console.log('Both check run and status APIs failed. Test completed with status:', conclusion);
+              }
             }
 
   update_changelog:
