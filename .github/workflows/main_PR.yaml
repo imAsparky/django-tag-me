@@ -261,12 +261,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check if fork PR
+        id: check_fork
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+            echo "is_fork=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_fork=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install GPG
+        if: steps.check_fork.outputs.is_fork != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y gnupg2
 
       - name: Import GPG key
+        if: steps.check_fork.outputs.is_fork != 'true'
         run: |
           echo "${{ secrets.SGK }}" | gpg --batch --import
           KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
@@ -274,6 +285,7 @@ jobs:
           echo "GPG_KEY_ID=${KEY_ID}" >> $GITHUB_ENV
 
       - name: Configure Git for signing
+        if: steps.check_fork.outputs.is_fork != 'true'
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -290,7 +302,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyGithub tenacity
 
-      - name: Run Update Changelog Script
+      - name: Update Changelog Script
         id: update_changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -301,21 +313,25 @@ jobs:
             echo "Error: Required files not found" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
           echo "original_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
           git checkout ${{ github.head_ref }} || exit 1
-
           python .github/scripts/update_changelog.py
           SCRIPT_EXIT=$?
-
           if [ $SCRIPT_EXIT -eq 0 ]; then
             if [ -n "$(git status --porcelain)" ]; then
                 git add CHANGELOG.md docs/source/conf.py pyproject.toml README.rst tag_me/__init__.py version.toml
-                git -c user.name="GitHub Actions Bot" \
-                    -c user.email="github-actions[bot]@users.noreply.github.com" \
-                    -c user.signingkey="${GPG_KEY_ID}" \
-                    commit -S -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+                if [ "${{ steps.check_fork.outputs.is_fork }}" = "true" ]; then
+                  # For fork PRs, commit without signing
+                  git -c user.name="GitHub Actions Bot" \
+                      -c user.email="github-actions[bot]@users.noreply.github.com" \
+                      commit -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+                else
+                  # For non-fork PRs, commit with signing
+                  git -c user.name="GitHub Actions Bot" \
+                      -c user.email="github-actions[bot]@users.noreply.github.com" \
+                      -c user.signingkey="${GPG_KEY_ID}" \
+                      commit -S -m "chore(version): Bump to $(cat version.toml | grep '__version__' | cut -d'"' -f2)"
+                fi
                 git push origin HEAD:${{ github.head_ref }}
                 echo "new_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
                 echo "changes_made=true" >> $GITHUB_OUTPUT
