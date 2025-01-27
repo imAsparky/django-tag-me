@@ -77,7 +77,7 @@ TagMeCharField Attributes
               max_length=50,
               choices=Visibility.choices,
               default=Visibiltiy.PRIVATE,
-              allow_multiple_select=False,
+              multiple=False,
               )
 
           synced_tagged_field_1=TagMeCharField(
@@ -101,7 +101,7 @@ Accepts a list object and converts to a tag-me list format.
 
 |
 
-*allow_multiple_select*
+*multiple*
 -----------------------
 
 **bool**, *optional:*
