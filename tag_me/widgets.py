@@ -17,7 +17,7 @@ User = get_user_model()
 
 
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
-    allow_multiple_selected = True
+    multiple = True
 
     # @override
     def render(self, name, value, attrs=None, renderer=None) -> str:
@@ -52,7 +52,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         _add_tag_url = ""
         _permitted_to_add_tags = True
 
-        _allow_multiple_select = self.attrs.pop("allow_multiple_select", True)
+        _multiple = self.attrs.pop("multiple", True)
         _auto_select_new_tags = self.attrs.pop("auto_select_new_tags", True)
         _display_number_selected = self.attrs.pop(
             "display_number_selected", settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
@@ -98,7 +98,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
 
         context = {
             "add_tag_url": _add_tag_url,
-            "allow_multiple_select": json.dumps(_allow_multiple_select),
+            "multiple": json.dumps(_multiple),
             "auto_select_new_tags": json.dumps(_auto_select_new_tags),
             "choices": self.choices,
             "display_number_selected": _display_number_selected,

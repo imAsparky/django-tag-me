@@ -9,7 +9,6 @@ from django.db import (
     OperationalError,
     ProgrammingError,
 )
-from django.db import models
 from django.db.models.fields import CharField
 
 from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
@@ -32,7 +31,7 @@ class TagMeCharField(CharField):
     def __init__(
         self,
         *args,
-        allow_multiple_select: bool = True,
+        multiple: bool = True,
         synchronise: bool = False,
         db_collation=None,
         **kwargs,
@@ -52,7 +51,7 @@ class TagMeCharField(CharField):
         if self.max_length is None:
             self.max_length = 255
 
-        self.allow_multiple_select = allow_multiple_select
+        self.multiple = multiple
         self.synchronise = synchronise
         self.db_collation = db_collation
         self.validators.append(validators.MaxLengthValidator(self.max_length))
@@ -206,7 +205,7 @@ class TagMeCharField(CharField):
                 "required": False,
                 "widget": TagMeSelectMultipleWidget(
                     attrs={
-                        "allow_multiple_select": self.allow_multiple_select,
+                        "multiple": self.multiple,
                         "tagged_field": tagged_field,
                         "model_verbose_name": model_verbose_name,
                         "field_name": self.name,
