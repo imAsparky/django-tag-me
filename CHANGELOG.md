@@ -2,6 +2,25 @@
 
 <!--next-version-placeholder-->
 
+## [2025.01.27.1]
+
+### ⚠ BREAKING CHANGES
+- BREAKING: Simplify TagMeCharfield names (attrs) [#239](https://github.com/imAsparky/django-tag-me/pull/239)
+  > Update attr name to `multiple` , previous was to verbose and
+not aligned with common naming conventions in templates.
+
+### Maintenance
+- BREAKING: Simplify TagMeCharfield names (attrs) [#239](https://github.com/imAsparky/django-tag-me/pull/239)
+  > Update attr name to `multiple` , previous was to verbose and
+not aligned with common naming conventions in templates.
+
+### Documentation
+- Add templatetag usage (quickstart) [#239](https://github.com/imAsparky/django-tag-me/pull/239)
+
+### Testing
+- Update versions matrix (tox) [#240](https://github.com/imAsparky/django-tag-me/pull/240)
+
+
 ## [2025.01.25.2]
 
 ### Maintenance
