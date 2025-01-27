@@ -281,6 +281,43 @@ You may use the model choices machinery to add a fixed set of tags.
 
 |
 
+TemplateTags
+============
+
+|
+
+We have a custom template tag designed to format tags elegantly across various views, 
+such as detail and list views. By default, the tag output includes a trailing comma, which our 
+template tag processes to ensure a cleaner presentation. Additionally, it wraps each tag in a 
+visually appealing `pill` style element, mimicking the appearance of a traditional tag. 
+This enhances the overall user experience by providing a consistent and attractive way to display tags.
+
+|
+
+Usage
+-----
+
+|
+
+In your HTML template add the `tag_me_pills` templatetag like below.
+
+|
+
+.. code-block:: html
+
+   {% load tag_me %}}
+
+   
+  <p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight dark:text-gray-300">
+   {{ obj.tagged_field|tag_me_pills }}
+  </p>
+
+
+
+
+|
+
+
 Undocumented Method
 -------------------
 
