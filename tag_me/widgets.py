@@ -73,22 +73,32 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
 
         _template = get_template(_template_name)
 
+        _tags_string: str = ""
         if _tag_choices:
             # Here we are using the choices set in the model charfield.
-            self.choices = _tag_choices
+            _tags_string = _tag_choices
+            # If its a system tag, ie choices field, users cant modify the tags
             _permitted_to_add_tags = False
         else:
-            # Dynamically fetch user and field specific choices as a list.
+            # Dynamically fetch user and field specific choices.
             user_tags = UserTag.objects.filter(
                 user=user,
                 tagged_field=_tagged_field,
             ).first()
 
             if user_tags.tags:
-                self.choices = [tag.strip() for tag in user_tags.tags.split(",")]
+                _tags_string = user_tags.tags
+                _add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
             else:
-                self.choices = []
-            _add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
+                self.choices = [""]
+
+        # Generate the tag list with empty first option
+        if _tags_string:
+            # Add empty string at start to override browser's automatic
+            # selection of first option in select elements
+            self.choices = [""] + sorted(
+                [tag.strip() for tag in _tags_string.split(",") if tag.strip()]
+            )
 
         values: list = []
         match value:
