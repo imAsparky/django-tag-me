@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2025.02.04.1]
+
+### Maintenance
+- Add empty string for option 0 (select) [#242](https://github.com/imAsparky/django-tag-me/pull/242)
+
+### Testing
+- Add test suite (widget) [#242](https://github.com/imAsparky/django-tag-me/pull/242)
+- Override fails to get update merged (gha) [#242](https://github.com/imAsparky/django-tag-me/pull/242)
+  > The tests pass locally.
+New issue to follow up #244
+
+
 ## [2025.01.27.1]
 
 ### ⚠ BREAKING CHANGES
