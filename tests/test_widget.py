@@ -8,8 +8,13 @@ from tag_me.models import (
     UserTag,
 )
 from tag_me.widgets import TagMeSelectMultipleWidget
+import os
+import sys
 
 User = get_user_model()
+
+print("Python path:", sys.path)
+print("Working directory:", os.getcwd())
 
 
 class TestTagMeSelectMultipleWidget(TestCase):
