@@ -10,7 +10,7 @@ project = "Django Tag Me"
 copyright = "2023, Mark Sevelj"
 author = "Mark Sevelj"
 
-__version__ = "2025.02.04.1"
+__version__ = "2025.02.11.1"
 # The full version, including alpha/beta/rc tags.
 release = __version__
 
