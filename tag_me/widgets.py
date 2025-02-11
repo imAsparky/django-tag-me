@@ -2,6 +2,7 @@
 
 import json
 import logging
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -52,6 +53,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # elsewhere.
         # css_class = self.attrs.get("css_class", None)
         display_all_tags: bool = self.attrs.pop("display_all_tags", False)
+        all_tag_fields_mixin: bool = self.attrs.pop("all_tag_fields_mixin", False)
         _add_tag_url = ""
         _permitted_to_add_tags = True
 
@@ -78,7 +80,14 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
 
         _tags_string: str = ""
         try:
-            if display_all_tags:
+            # This will be used to iterate over all tags
+            # lists and add a dropdown, eg for use in a search system
+            if all_tag_fields_mixin:
+                _tags_string = self.attrs.pop("tag_string", "")
+                _permitted_to_add_tags = False
+
+            # This will put all user tags into one dropdown
+            elif display_all_tags:
                 user_tags = (
                     UserTag.objects.filter(
                         user=user,
