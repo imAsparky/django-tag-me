@@ -2,6 +2,19 @@
 
 <!--next-version-placeholder-->
 
+## [2025.02.11.1]
+
+### Features
+- Add All user tag fields generated for search tools (mixin) [#246](https://github.com/imAsparky/django-tag-me/pull/246)
+- Add attr for adding all tags to selection (tags) [#247](https://github.com/imAsparky/django-tag-me/pull/247)
+
+### Bug Fixes
+- Remove class dropping select menu (html) [#245](https://github.com/imAsparky/django-tag-me/pull/245)
+
+### Testing
+- Add mixin, update widget tests (mixin) [#246](https://github.com/imAsparky/django-tag-me/pull/246)
+
+
 ## [2025.02.04.1]
 
 ### Maintenance
