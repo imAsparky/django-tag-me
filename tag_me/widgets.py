@@ -1,7 +1,7 @@
 """tag-me app custom form widget."""
 
 import json
-
+import logging
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -12,8 +12,10 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from tag_me.models import UserTag
+from tag_me.utils.collections import FieldTagListFormatter
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
@@ -49,6 +51,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # The 'attrs' removed are for filtering choices and not required
         # elsewhere.
         # css_class = self.attrs.get("css_class", None)
+        display_all_tags: bool = self.attrs.pop("display_all_tags", False)
         _add_tag_url = ""
         _permitted_to_add_tags = True
 
@@ -74,23 +77,42 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         _template = get_template(_template_name)
 
         _tags_string: str = ""
-        if _tag_choices:
-            # Here we are using the choices set in the model charfield.
-            _tags_string = _tag_choices
-            # If its a system tag, ie choices field, users cant modify the tags
-            _permitted_to_add_tags = False
-        else:
-            # Dynamically fetch user and field specific choices.
-            user_tags = UserTag.objects.filter(
-                user=user,
-                tagged_field=_tagged_field,
-            ).first()
+        try:
+            if display_all_tags:
+                user_tags = (
+                    UserTag.objects.filter(
+                        user=user,
+                    )
+                    .exclude(tags=None)
+                    .distinct()
+                )
+                tags = FieldTagListFormatter()
+                for tag in user_tags:
+                    tags.add_tags(tag.tags)
+                _tags_string = tags.toCSV(include_trailing_comma=True)
+                _permitted_to_add_tags = False
 
-            if user_tags.tags:
-                _tags_string = user_tags.tags
-                _add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
             else:
-                self.choices = [""]
+                if _tag_choices:
+                    # Here we are using the choices set in the model charfield.
+                    _tags_string = _tag_choices
+                    # If its a system tag, ie choices field, users cant modify the tags
+                    _permitted_to_add_tags = False
+                else:
+                    # Dynamically fetch user and field specific choices.
+                    user_tags = UserTag.objects.filter(
+                        user=user,
+                        tagged_field=_tagged_field,
+                    ).first()
+
+                    if user_tags.tags:
+                        _tags_string = user_tags.tags
+                        _add_tag_url = reverse("tag_me:add-tag", args=[user_tags.id])
+                    else:
+                        self.choices = [""]
+        except (AttributeError, UserTag.DoesNotExist):
+            logger.exception(msg="Tags Widget Error retrieving tags string")
+            self.choices = [""]
 
         # Generate the tag list with empty first option
         if _tags_string:
