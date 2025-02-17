@@ -22,7 +22,7 @@ def tag_me_pills(value):
 
     # Wrap each item in indigo background div
     wrapped_items = [
-        f'<div class="justify-center items-center font-medium px-2 rounded-full text-indigo-700 bg-indigo-100 border border-indigo-300">{item}</div>'
+        f'<div class="justify-center items-center font-medium px-2 rounded-full text-indigo-700 bg-indigo-100 border border-indigo-300 h-fit w-fit mr-1">{item}</div>'
         for item in items
         if item
     ]
