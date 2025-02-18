@@ -2,21 +2,27 @@
 
 import logging
 
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.forms import ModelForm
-from hypothesis.extra.django import TestCase
+from django.core.exceptions import ObjectDoesNotExist
+from django.forms import CharField, ModelForm
+from django.test import TestCase
 
 from tag_me.db.forms.fields import TagMeCharField
 from tag_me.db.forms.mixins import (
     AllFieldsTagMeModelFormMixin,
     TagMeModelFormMixin,
 )
-from tag_me.models import TaggedFieldModel, UserTag
+from tag_me.models import (
+    TaggedFieldModel,
+    UserTag,
+)
 from tag_me.widgets import TagMeSelectMultipleWidget
-from tests.models import Post, TaggedFieldTestModel
+from tests.models import TaggedFieldTestModel
 
 logger = logging.getLogger(__name__)
+
 User = get_user_model()
 
 
@@ -80,87 +86,62 @@ class TestAllFieldsTagMeModelFormMixin(TestCase):
         # Get content type for our test model
         self.content_type = ContentType.objects.get_for_model(TaggedFieldTestModel)
 
-        # Create TaggedFieldModel entries for both fields
-        self.tagged_field_models = [
-            TaggedFieldModel.objects.create(
-                content=self.content_type,
-                model_name=TaggedFieldTestModel._meta.object_name,
-                field_name="tagged_field_1",
-                tag_type="user",
-                field_verbose_name="Tagged Field 1",
-            ),
-            TaggedFieldModel.objects.create(
-                content=self.content_type,
-                model_name=TaggedFieldTestModel._meta.object_name,
-                field_name="tagged_field_2",
-                tag_type="system",
-                field_verbose_name="Tagged Field 2",
-            ),
-        ]
+        # Create TaggedFieldModel entry
+        self.tagged_field_model = TaggedFieldModel.objects.create(
+            content=self.content_type,
+            model_name=TaggedFieldTestModel._meta.object_name,
+            field_name="tagged_field_1",
+            tag_type="user",
+            field_verbose_name="Tagged Field 1",
+        )
 
-        # Create corresponding UserTag for the user-type field
+        # Create UserTag
         self.user_tag = UserTag.objects.create(
             user=self.user,
             model_name=TaggedFieldTestModel._meta.object_name,
             field_name="tagged_field_1",
             field_verbose_name="Tagged Field 1",
-            tags="initial_tag1,initial_tag2,initial_tag3",
+            tags="tag1,tag2,tag3",
         )
 
-        # Create test form dynamically in setUp
+        # Create test form
         class AllFieldsTaggedTestForm(AllFieldsTagMeModelFormMixin, ModelForm):
             class Meta:
                 model = TaggedFieldTestModel
-                fields = ["tagged_field_1", "tagged_field_2"]
+                fields = ["tagged_field_1"]
 
         self.AllFieldsTaggedTestForm = AllFieldsTaggedTestForm
 
-    # NOTE: Commented out pending updates to mixins
-    # def test_initialization_with_user(self):
-    #     """Test form initialization with user parameter"""
-    #     form = self.AllFieldsTaggedTestForm(user=self.user)
-    #     self.assertEqual(form.user, self.user)
+    def test_widget_creation(self):
+        """Test that the correct widget is created with proper configuration"""
+        form = self.AllFieldsTaggedTestForm(user=self.user)
 
-    # def test_user_tag_field_creation(self):
-    #     """Test that user tag fields are properly created"""
-    #     form = self.AllFieldsTaggedTestForm(user=self.user)
-    #
-    #     # Check if the user tag field was created properly
-    #     self.assertIn("tagged_field_1", form.fields)
-    #     field = form.fields["tagged_field_1"]
-    #
-    #     # Check field properties
-    #     self.assertIsInstance(field.widget, TagMeSelectMultipleWidget)
-    #     self.assertEqual(field.label, "Tagged Field 1")
-    #     self.assertFalse(field.required)
-    #
-    #     # Check widget attributes
-    #     widget_attrs = field.widget.attrs
-    #     self.assertTrue(widget_attrs["all_tag_fields_mixin"])
-    #     self.assertFalse(widget_attrs["display_all_tags"])
-    #     self.assertEqual(widget_attrs["user"], self.user)
-    #     self.assertEqual(
-    #         widget_attrs["tag_string"], "initial_tag1,initial_tag2,initial_tag3"
-    #     )
+        # Check field configuration
+        field = form.fields["tagged_field_1"]
+        assert isinstance(field, CharField)
+        assert isinstance(field.widget, TagMeSelectMultipleWidget)
 
-    # def test_system_tag_handling(self):
-    #     """Test handling of system tags"""
-    #     form = self.AllFieldsTaggedTestForm(user=self.user)
-    #     # System tag field should still be present but not modified
-    #     self.assertIn("tagged_field_2", form.fields)
-    #     field = form.fields["tagged_field_2"]
-    #     self.assertIsInstance(field, TagMeCharField)
+        # Verify widget attributes
+        widget_attrs = field.widget.attrs
+        assert widget_attrs["all_tag_fields_mixin"] is True
+        assert (
+            widget_attrs["display_all_tags"] is False
+        )  # Ensures tag creation/editing is disabled
+        assert widget_attrs["user"] == self.user
+        assert widget_attrs["all_tag_fields_tag_string"] == "tag1,tag2,tag3"
 
-    def test_initialization_without_user(self):
-        """Test form initialization without user parameter"""
-        with self.assertRaises(UserTag.DoesNotExist):
+    def test_missing_user_tag(self):
+        """Test behavior when UserTag doesn't exist for a field"""
+        # Delete the UserTag
+        self.user_tag.delete()
+
+        form = self.AllFieldsTaggedTestForm(user=self.user)
+
+        # Field should remain as original TagMeCharField
+        field = form.fields["tagged_field_1"]
+        assert isinstance(field, TagMeCharField)
+
+    def test_no_user_provided(self):
+        """Test that form requires a user"""
+        with pytest.raises(ObjectDoesNotExist):
             self.AllFieldsTaggedTestForm()
-
-    # def test_form_submission(self):
-    #     """Test form submission with valid data"""
-    #     form_data = {
-    #         "tagged_field_1": "new_tag1,new_tag2",
-    #         "tagged_field_2": "system_tag1,system_tag2",
-    #     }
-    #     form = self.AllFieldsTaggedTestForm(data=form_data, user=self.user)
-    #     self.assertTrue(form.is_valid())

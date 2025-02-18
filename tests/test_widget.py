@@ -8,13 +8,8 @@ from tag_me.models import (
     UserTag,
 )
 from tag_me.widgets import TagMeSelectMultipleWidget
-import os
-import sys
 
 User = get_user_model()
-
-print("Python path:", sys.path)
-print("Working directory:", os.getcwd())
 
 
 class TestTagMeSelectMultipleWidget(TestCase):
@@ -39,6 +34,28 @@ class TestTagMeSelectMultipleWidget(TestCase):
         # Create a test user
         self.user = User.objects.create_user(username="testuser", password="12345")
         self.content = ContentType.objects.first()
+        from tests.models import TaggedFieldTestModel
+
+        # Get content type for our test model
+        self.content_type = ContentType.objects.get_for_model(TaggedFieldTestModel)
+
+        # Create TaggedFieldModel entry
+        self.tagged_field_model = TaggedFieldModel.objects.create(
+            content=self.content_type,
+            model_name=TaggedFieldTestModel._meta.object_name,
+            field_name="tagged_field_1",
+            tag_type="user",
+            field_verbose_name="Tagged Field 1",
+        )
+
+        # Create UserTag
+        self.user_tag = UserTag.objects.create(
+            user=self.user,
+            model_name=TaggedFieldTestModel._meta.object_name,
+            field_name="tagged_field_1",
+            field_verbose_name="Tagged Field 1",
+            tags="tag1,tag2,tag3",
+        )
 
         self.tagged_field = TaggedFieldModel.objects.get(id=1)
         # Create a UserTag instance

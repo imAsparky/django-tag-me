@@ -1,6 +1,7 @@
 [run]
 source = .
 omit = 
+    archive/*
     tests/*
     dashboard.py
     **/__init__.py
