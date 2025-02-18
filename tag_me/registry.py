@@ -187,7 +187,6 @@ class TagPersistence:
                         # if field_tags:
                         if field_tags := self.default_user_tags.get(field.field_name):
                             tagged_field.default_tags = field_tags[1]
-                            print(f"LOADING DEBUG {field_tags[1]}")
 
                     tagged_field.save()
                     msg = f"Successfully added tag-me {tagged_field}"
