@@ -167,15 +167,41 @@ its behavior using the following settings in your ``settings.py`` file:
 
 |
 
-*DJ_TAG_ME_USE_CUSTOM_MIGRATE*
+*TAG_ME_SYSTEM_TAGS_POPULATED *
 -------------------------------
 
-**Not Implemented**
+**SYSTEM SETTING**
 
-**bool**, *optional:*
-Whether to use custom migrations for the ``tag_me`` app. ``Defaults to False``.
+**bool**, *DO NOT USE*
+
+A setting used by the tag registry for state management.
 
 |
+
+*SEED_INITIAL_USER_DEFAULT_TAGS*
+--------------------------------
+
+**Developer Tool**
+
+**bool**, *optional* default False
+
+Read your default_user_tags.json file from `BASE_DIR` and seed the user default tags.
+By default the tags will be added only if the tagged field is created.
+
+|
+
+*SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG*
+-----------------------------------------
+
+**Developer Tool**
+
+**bool**, *optional* default False
+
+Read your default_user_tags.json file from `BASE_DIR` and seed the user default tags.
+This will force the tag defaults to be updated even if for existing tag fields.
+
+|
+
 
 *PROJECT_APPS*
 --------------
