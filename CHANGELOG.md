@@ -2,6 +2,26 @@
 
 <!--next-version-placeholder-->
 
+## [2025.02.18.1]
+
+### Documentation
+- Add AllFieldTagMeMixin (quickstart) [#248](https://github.com/imAsparky/django-tag-me/pull/248)
+
+### Features
+- Add tags to the AllFields mixin (system) [#248](https://github.com/imAsparky/django-tag-me/pull/248)
+
+### Bug Fixes
+- Add css class for height and width (templatetag) [#251](https://github.com/imAsparky/django-tag-me/pull/251)
+
+### Code Refactoring
+- Delete redundant commands (commands) [#248](https://github.com/imAsparky/django-tag-me/pull/248)
+- Remove print debug (print) [#248](https://github.com/imAsparky/django-tag-me/pull/248)
+- Update for tag management refactor (tags) [#248](https://github.com/imAsparky/django-tag-me/pull/248)
+
+### Testing
+- Update all tests for new tag management (tags) [#248](https://github.com/imAsparky/django-tag-me/pull/248)
+
+
 ## [2025.02.11.1]
 
 ### Features
