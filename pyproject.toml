@@ -60,7 +60,7 @@ tag_me = [
 ]
 
 [tool.setuptools.exclude-package-data]
-"*" = ["tests/*", "example/*"]
+"*" = ["tests/*", "example/*", "archived/*"]
 
 [tool.distutils.commands]
 pre-build = "rm -rf **/__pycache__ *.pyc"
@@ -68,6 +68,7 @@ pre-build = "rm -rf **/__pycache__ *.pyc"
 [tool.coverage.run]
 omit = [
     'tests/test_*.py',
+    'archived/*.py',
     # '*/migrations/*'
 ]
 
