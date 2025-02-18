@@ -62,15 +62,11 @@ Once installed, add the models and static files to your Django project:
 
         INFO    2024-04-03 07:40:47,367 INFO    MainThread       helpers.py:61
                  (/venv/lib/python3.12/site-packages/tag_me/utils/helpers.py :
-                 61) tag_me.utils.helpers.update_models_with_tagged_fields_table:    Updated Your Model Name :
-                 your field name
+                 61) tag_me.registry.save_fields: Successfully added tag-me Issue - Issue Visibility
         INFO    2024-04-03 07:40:47,369 INFO    MainThread        models.py:134
                  (/venv/lib/python3.12/site-packages/tag_me/models.py : 134)
-                 tag_me.models.check_field_sync_list_lengths: You have no field tags listed that require
-                 synchronising
-
-    Updating Tagged Models Table.
-    SUCCESS: Tagged Models Table, and Synchronised Fields updated.
+                 tag_me.models.check_field_sync_list_lengths: Your field <visibilty> sync list has 2
+                 required minumum elements with content id's [110, 120]
 
 |
 
@@ -168,6 +164,25 @@ See below for an example.
        widgets = {
             "my_tagged_field": TagMeSelectMultipleWidget(),
         }
+
+|
+
+The `AllFieldsTagMeModelFormMixin` will render every tagged field
+as a widget onto the form that makes use of it.  An example use
+for this mixin is for a search tool based on a users tags.
+
+.. code-block:: python
+
+   from django import forms
+   from tag_me.db.forms.mixins import AllFieldsTagMeModelFormMixin
+   from tag_me.widgets import TagMeSelectMultipleWidget
+   from .models import MyModel
+
+   class MyModelForm(AllFieldsTagMeModelFormMixin, forms.ModelForm):
+
+       class Meta:
+           model = MyModel
+
 
 |
 
@@ -316,6 +331,38 @@ In your HTML template add the `tag_me_pills` templatetag like below.
 
 
 |
+
+Default Tag Seed
+----------------
+
+There exists a means to add default tags during migrations using a json 
+file located in BASE_DIR. The file must be named `default_user_tags.json`
+and be in the following format.
+
+.. code-block:: python
+
+       {
+       "<field_name>": [
+            "<tag type>",  # must be user or system
+            "csv tag string with trailing comma"
+        ],
+       }
+
+       # Example
+
+       {
+        "field_1": [
+            "user",
+            "tag1,tag2,"
+        ],
+        "field2": [
+            "system",
+            "tag3,tag4,"
+        ],
+      }
+
+
+Check config for settings options to seed default tags while migrating.
 
 
 Undocumented Method
