@@ -94,7 +94,6 @@ class TagPersistence:
             settings.SEED_INITIAL_USER_DEFAULT_TAGS
             or settings.SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG
         ):
-            print("LOADING DEFAULT SETTINGS ************************")
             self._load_default_user_tags()
 
     def _load_default_user_tags(self) -> None:
