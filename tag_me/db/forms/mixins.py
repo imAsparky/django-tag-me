@@ -1,13 +1,14 @@
+import logging
 from typing import Union
 
 from django import forms
-
-# from django.forms import Field
-from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 
 from tag_me.db.forms.fields import TagMeCharField
 from tag_me.models import TaggedFieldModel, UserTag
 from tag_me.widgets import TagMeSelectMultipleWidget
+
+logger = logging.getLogger(__name__)
 
 
 class TagMeModelFormMixin:
@@ -66,51 +67,33 @@ class AllFieldsTagMeModelFormMixin:
         """
 
         self.user = kwargs.pop("user", None)
-        # self.model_obj = kwargs.pop("model_obj", None)
-        # self.model_verbose_name = kwargs.pop("model_verbose_name", None)
-        # self.model_name = kwargs.pop("model_name", None)
-        super().__init__(*args, **kwargs)  # Call the original form's __init__
+        if self.user is None:
+            msg = "User is required for AllFieldsTagMeModelFormMixin"
+            logger.exception(msg)
+            raise ObjectDoesNotExist(msg)
+        super().__init__(*args, **kwargs)
 
-        tagged_models = TaggedFieldModel.objects.all()  # filter(tag_type="system")
-        contents = ContentType.objects.filter(
-            id__in=tagged_models.values_list("content", flat=True).distinct()
-        )
+        tagged_models = TaggedFieldModel.objects.all()
         user_tags = UserTag.objects.filter(user=self.user)
         # Get the user tag to process
         for tagged_model in tagged_models:
-            # print(f"\nTAGGED MODEL {tagged_model.tag_type}")
-            match tagged_model.tag_type:
-                case "user":
-                    # print("USER")
-                    user_tag = user_tags.get(
-                        model_name=tagged_model.model_name,
-                        field_name=tagged_model.field_name,
-                    )
-                    # print(f"USER TAG {user_tag}")
-                    self.fields[user_tag.field_name] = forms.CharField(
-                        required=False,
-                        label=user_tag.field_verbose_name,
-                        widget=TagMeSelectMultipleWidget(
-                            attrs={
-                                "all_tag_fields_mixin": True,
-                                "display_all_tags": False,
-                                "user": self.user,
-                                "tag_string": user_tag.tags,
-                            },
-                        ),
-                    )
-
-                case "system":
-                    print(
-                        f"\nSYSTEM {tagged_model.model_name}: {tagged_model.field_name}"
-                    )
-                    # model = contents.get(id=tagged_model.content.id)
-                    # field = tagged_model._meta.get_field(tagged_model.field_name)
-                    # model = TaggedFieldModel.objects.get(
-                    #     model_name=tagged_model.model_name,
-                    #     field_name=tagged_model.field_name,
-                    # )
-
-                    print(f"FILED {model._meta.fields}")
-                    # field=model._meta.get_field(tagged_model.field_name)
-                    # print(f'FIELD OBJECT {field}')
+            try:
+                user_tag = user_tags.get(
+                    model_name=tagged_model.model_name,
+                    field_name=tagged_model.field_name,
+                )
+                self.fields[user_tag.field_name] = forms.CharField(
+                    required=False,
+                    label=user_tag.field_verbose_name,
+                    widget=TagMeSelectMultipleWidget(
+                        attrs={
+                            "all_tag_fields_mixin": True,
+                            "display_all_tags": False,
+                            "user": self.user,
+                            "all_tag_fields_tag_string": user_tag.tags,
+                        },
+                    ),
+                )
+            except ObjectDoesNotExist:
+                msg = f"User Tag does not exist {tagged_model.model_name}:{tagged_model.field_name}"
+                logger.exception(msg)

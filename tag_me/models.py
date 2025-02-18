@@ -274,6 +274,12 @@ class TaggedFieldModel(models.Model):
             ),
         ]
 
+        ordering = [
+            "model_name",
+            "field_name",
+            "tag_type",
+        ]
+
     content = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
@@ -523,7 +529,7 @@ class UserTag(TagBase):
     )
 
     def __str__(self) -> str:
-        return f"{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.tags}"
+        return f"{self.id}:{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.tags}"
 
     def save(
         self,
@@ -548,7 +554,7 @@ class UserTag(TagBase):
         # We don't need to gather synchronising information if the save is
         # for synchronising tags.  The information has already been collected
         if not sync_tags_save:
-            sync = TagMeSynchronise.objects.get(
+            sync, _ = TagMeSynchronise.objects.get_or_create(
                 name=name,
             )
             # Check if tags should be synced for a specific field

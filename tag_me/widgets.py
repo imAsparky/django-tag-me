@@ -52,26 +52,28 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         # The 'attrs' removed are for filtering choices and not required
         # elsewhere.
         # css_class = self.attrs.get("css_class", None)
-        display_all_tags: bool = self.attrs.pop("display_all_tags", False)
-        all_tag_fields_mixin: bool = self.attrs.pop("all_tag_fields_mixin", False)
+        self.choices = []
+        display_all_tags: bool = self.attrs.get("display_all_tags", False)
+        all_tag_fields_mixin: bool = self.attrs.get("all_tag_fields_mixin", False)
         _add_tag_url = ""
         _permitted_to_add_tags = True
 
-        _multiple = self.attrs.pop("multiple", True)
-        _auto_select_new_tags = self.attrs.pop("auto_select_new_tags", True)
-        _display_number_selected = self.attrs.pop(
+        _multiple = self.attrs.get("multiple", True)
+        _auto_select_new_tags = self.attrs.get("auto_select_new_tags", True)
+        _display_number_selected = self.attrs.get(
             "display_number_selected", settings.DJ_TAG_ME_MAX_NUMBER_DISPLAYED
         )
-        _field_verbose_name = self.attrs.pop("field_verbose_name", None)
-        _tag_choices = self.attrs.pop("tag_choices", None)
-        _tagged_field = self.attrs.pop("tagged_field", None)
+        _field_verbose_name = self.attrs.get("field_verbose_name", None)
+        _tag_choices = self.attrs.get("tag_choices", None)
+        _tagged_field = self.attrs.get("tagged_field", None)
         _help_url = settings.DJ_TAG_ME_URLS["help_url"]
         _mgmt_url = settings.DJ_TAG_ME_URLS["mgmt_url"]
 
-        _template_name = self.attrs.pop(
+        _template_name = self.attrs.get(
             "template", settings.DJ_TAG_ME_TEMPLATES["default"]
         )
-        user = self.attrs.pop("user", None)
+        user = self.attrs.get("user", None)
+        _all_tag_fields_tag_string = self.attrs.get("all_tag_fields_tag_string", "")
 
         # Call the parent class render (essential for Widget functionality)
         super().render(name, value, attrs, renderer)
@@ -83,7 +85,7 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
             # This will be used to iterate over all tags
             # lists and add a dropdown, eg for use in a search system
             if all_tag_fields_mixin:
-                _tags_string = self.attrs.pop("tag_string", "")
+                _tags_string = _all_tag_fields_tag_string
                 _permitted_to_add_tags = False
 
             # This will put all user tags into one dropdown
@@ -127,9 +129,9 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         if _tags_string:
             # Add empty string at start to override browser's automatic
             # selection of first option in select elements
-            self.choices = [""] + sorted(
-                [tag.strip() for tag in _tags_string.split(",") if tag.strip()]
-            )
+            self.choices = [""] + [
+                tag.strip() for tag in _tags_string.split(",") if tag.strip()
+            ]
 
         values: list = []
         match value:

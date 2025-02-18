@@ -13,6 +13,7 @@ from django.db.models.fields import CharField
 
 from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
 from tag_me.models import TaggedFieldModel
+from tag_me.registry import SystemTagRegistry
 from tag_me.utils.collections import FieldTagListFormatter
 from tag_me.widgets import TagMeSelectMultipleWidget
 
@@ -20,7 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class TagMeCharField(CharField):
-    """A custom Django model field for storing and managing tags.
+    """\
+    A custom Django model field for storing and managing tags.
 
     This field extends the built-in CharField and utilizes a
     FieldTagListFormatter instance internally to provide tag validation,
@@ -36,15 +38,35 @@ class TagMeCharField(CharField):
         db_collation=None,
         **kwargs,
     ):
-        """
+        """\
         Initializes the custom TagMeCharField model field.
 
-        :param synchronise: Boolean indicating whether this field is
-            synchronised with other models with the same field name.
-        :param *args: Positional arguments passed to the parent CharField
-                        constructor.
-        :param **kwargs: Keyword arguments passed to the parent CharField
-                        constructor.
+        This field extends the built-in CharField and utilizes a FieldTagListFormatter
+        instance internally to provide tag validation, formatting, and manipulation.
+        Tags are stored in the database sorted, and in a comma-separated (CSV) format.
+
+        The field can be configured for single or multiple tag selection, and has
+        special handling for system-defined choices that get converted into tags.
+
+        Args:
+            *args: Positional arguments passed to the parent CharField constructor.
+            multiple: Boolean indicating if multiple tags can be selected. Defaults to True.
+            synchronise: Boolean indicating whether this field is synchronised with other
+                models with the same field name. Defaults to False.
+            db_collation: Optional database collation setting.
+            **kwargs: Additional keyword arguments passed to CharField constructor.
+
+        Implementation Notes:
+            - Sets a default max_length of 255 if none provided
+            - Initializes a FieldTagListFormatter for tag handling
+            - Converts Django choices into system tags if provided
+            - Disables Django's choice machinery when using system tags
+            - System tags are stored in both list (_tag_choices) and CSV (_tags_string) formats
+
+        Choices Processing:
+            - Django choice tuples (list of (value, label)): extracts values as tags
+            - Simple list: uses items directly as tags
+            - Invalid types trigger error logging
         """
         super().__init__(*args, **kwargs)
 
@@ -58,7 +80,9 @@ class TagMeCharField(CharField):
         self.formatter = FieldTagListFormatter()
         # Used to pass choices as a list to widget attrs.
         self._tag_choices: list = []
+
         self.tag_type: str = "user"
+        self._tags_string = ""
         if self.choices:
             tag_choices_list = []
             # Convert choices into tags.
@@ -81,9 +105,12 @@ class TagMeCharField(CharField):
             self._tag_choices = self.formatter.toList()
             self.tag_type = "system"
             self.choices = None  # Disable Django choices machinery.
+            self._tags_string = self.formatter.toCSV(  # For use in AllFields mixin
+                include_trailing_comma=True,
+            )
 
     def from_db_value(self, value, expression, connection):
-        """
+        """\
         Converts the database representation of tags into a FieldTagListFormatter compliant format. # noqa: E501
 
         :param value: The raw tag data as retrieved from the database
@@ -102,7 +129,7 @@ class TagMeCharField(CharField):
         )
 
     def get_prep_value(self, value):
-        """
+        """\
         Prepares the tag data for saving into the database.
 
         :param value: The tag data, either as a FieldTagListFormatter
@@ -119,7 +146,7 @@ class TagMeCharField(CharField):
         )
 
     def to_python(self, value):
-        """
+        """\
         Converts raw tag data into a structured format suitable for storage.
 
         This method is responsible for parsing the raw tag data
@@ -137,8 +164,55 @@ class TagMeCharField(CharField):
             include_trailing_comma=True,  # Ensures correct tag string parsing
         )
 
+    def contribute_to_class(self, cls, name, **kwargs):
+        """\
+        Registers the field's metadata with the SystemTagRegistry during model class creation.
+        This method is called by Django during the model class creation process, before any
+        migrations run but after the model class is fully formed.
+
+        The method specifically:
+        1. Calls the parent CharField's contribute_to_class
+        2. Filters out abstract models and Django's temporary migration models
+        3. Registers the field's metadata for later population in the TaggedFieldModel table
+
+        Args:
+            cls: The model class this field is being added to
+            name: The name of this field on the model
+            **kwargs: Additional keyword arguments passed by Django during model creation
+
+        Implementation Notes:
+            - Only concrete (non-abstract) models are registered
+            - Temporary migration models (starting with '__fake__') are ignored
+            - Registration collects metadata but does not access the database
+            - Actual database population happens later via post_migrate signal
+            - The collected metadata will be used to create/update TaggedFieldModel records
+                after all migrations complete
+
+        Database Fields Registered:
+            - model: The model class
+            - field_name: The name of this field
+            - tags: System tags defined in field's choices
+            - model_name: The lowercase model name
+            - model_verbose_name: Human-readable model name
+            - field_verbose_name: Human-readable field name
+            - tag_type: Type of tags (system/user)
+        """
+        super().contribute_to_class(cls, name, **kwargs)
+
+        if not cls._meta.abstract and not cls.__module__.startswith("__fake__"):
+            SystemTagRegistry.register_field(
+                model=cls,
+                field_name=name,
+                tags=self._tags_string,
+                model_name=cls._meta.model_name,
+                model_verbose_name=cls._meta.verbose_name,
+                field_verbose_name=self.verbose_name,
+                tag_type=self.tag_type,
+            )
+
     def formfield(self, **kwargs):
-        """Overrides the default form field generation for this model field.
+        """\
+        Overrides the default form field generation for this model field.
 
         Provides flexibility in selecting the form field widget based on the
         provided 'widget' argument in kwargs. Supports custom widgets as well
@@ -168,7 +242,7 @@ class TagMeCharField(CharField):
         else:
             model_verbose_name = "** No Model **"
 
-        # During initial migrations, database tables may not exist yet.
+        # NOTE:During initial migrations, database tables may not exist yet.
         # This try-except block gracefully handles database queries before the schema
         # is fully set up, allowing migrations to proceed by providing a temporary
         # placeholder TaggedFieldModel instance when database access fails.
