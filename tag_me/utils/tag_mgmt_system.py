@@ -19,8 +19,8 @@ from tag_me.models import (
     UserTag,
 )
 from tag_me.utils.helpers import (
-    get_model_tagged_fields_field_and_verbose,
-    get_models_with_tagged_fields,
+    #     get_model_tagged_fields_field_and_verbose,
+    #     get_models_with_tagged_fields,
     stdout_with_optional_color,
 )
 
@@ -145,55 +145,56 @@ def generate_user_tag_table_records(
         raise ValidationError(msg)
 
 
-def update_models_with_tagged_fields_table() -> None:
-    """Updates the Tagged Field Models table for managing tagged fields.
-
-    This function helps manage the models and fields in your Django project
-    that use the custom 'TagMeCharField' for tagging.  Specifically, it does
-    the following:
-
-    1. Finds all the models that have fields using 'TagMeCharField'.
-    2. Looks at each 'TagMeCharField' within these models.
-    3. Adds or updates information about each tagged field in the
-        'TaggedFieldModel' table.  This provides a centralized way to see which
-        models and fields use tags.
-
-    """
-    for model in get_models_with_tagged_fields():
-        content = ContentType.objects.get_for_model(model, for_concrete_model=True)
-        model_name = content.model_class().__name__
-        model_verbose_name = content.model_class()._meta.verbose_name
-        for field in get_model_tagged_fields_field_and_verbose(
-            model_name=model_name,
-            return_field_objects_only=True,
-        ):
-            match field:
-                case None:  # Ignore if specific field name is missing
-                    # We test for None because the first tuple returned is None
-                    pass
-                case _:
-                    (
-                        obj,
-                        created,
-                    ) = TaggedFieldModel.objects.update_or_create(
-                        content=content,
-                        field_name=field.name,
-                        field_verbose_name=field.verbose_name,
-                        model_name=model_name,
-                        model_verbose_name=model_verbose_name,
-                        tag_type=field.tag_type,
-                    )  # Add or update the database entry
-
-                    match created:
-                        case True:
-                            logger.info(
-                                f"\n-- Created {obj} : {field}"
-                            )  # Log a new entry
-                        case False:
-                            logger.info(
-                                f"\n-- Updated {obj} : {field}"
-                            )  # Log an updated entry
-        update_fields_that_should_be_synchronised()
+# def update_models_with_tagged_fields_table() -> None:
+#     """Updates the Tagged Field Models table for managing tagged fields.
+#
+#     This function helps manage the models and fields in your Django project
+#     that use the custom 'TagMeCharField' for tagging.  Specifically, it does
+#     the following:
+#
+#     1. Finds all the models that have fields using 'TagMeCharField'.
+#     2. Looks at each 'TagMeCharField' within these models.
+#     3. Adds or updates information about each tagged field in the
+#         'TaggedFieldModel' table.  This provides a centralized way to see which
+#         models and fields use tags.
+#
+#     """
+#     for model in get_models_with_tagged_fields():
+#         content = ContentType.objects.get_for_model(model, for_concrete_model=True)
+#         model_name = content.model_class().__name__
+#         model_verbose_name = content.model_class()._meta.verbose_name
+#         for field in get_model_tagged_fields_field_and_verbose(
+#             model_name=model_name,
+#             return_field_objects_only=True,
+#         ):
+#             match field:
+#                 case None:  # Ignore if specific field name is missing
+#                     # We test for None because the first tuple returned is None
+#                     pass
+#                 case _:
+#                     (
+#                         obj,
+#                         created,
+#                     ) = TaggedFieldModel.objects.update_or_create(
+#                         content=content,
+#                         field_name=field.name,
+#                         field_verbose_name=field.verbose_name,
+#                         model_name=model_name,
+#                         model_verbose_name=model_verbose_name,
+#                         tag_type=field.tag_type,
+#                     )  # Add or update the database entry
+#
+#                     match created:
+#                         case True:
+#                             logger.info(
+#                                 f"\n-- Created {obj} : {field}"
+#                             )  # Log a new entry
+#                         case False:
+#                             logger.info(
+#                                 f"\n-- Updated {obj} : {field}"
+#                             )  # Log an updated entry
+#         update_fields_that_should_be_synchronised()
+#
 
 
 def update_fields_that_should_be_synchronised():
@@ -236,3 +237,4 @@ def update_fields_that_should_be_synchronised():
     # Save the updated synchronization configuration if changes were made
     if sync_updated:
         sync.save()
+        sync.check_field_sync_list_lengths()
