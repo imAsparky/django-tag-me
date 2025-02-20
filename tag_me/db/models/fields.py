@@ -79,10 +79,9 @@ class TagMeCharField(CharField):
         self.validators.append(validators.MaxLengthValidator(self.max_length))
         self.formatter = FieldTagListFormatter()
         # Used to pass choices as a list to widget attrs.
-        self._tag_choices: list = []
-
+        self._tag_choices: str = ""
         self.tag_type: str = "user"
-        self._tags_string = ""
+
         if self.choices:
             tag_choices_list = []
             # Convert choices into tags.
@@ -102,12 +101,9 @@ class TagMeCharField(CharField):
 
             self.formatter.clear()
             self.formatter.add_tags(tag_choices_list)
-            self._tag_choices = self.formatter.toList()
+            self._tag_choices = self.formatter.toCSV(include_trailing_comma=True)
             self.tag_type = "system"
             self.choices = None  # Disable Django choices machinery.
-            self._tags_string = self.formatter.toCSV(  # For use in AllFields mixin
-                include_trailing_comma=True,
-            )
 
     def from_db_value(self, value, expression, connection):
         """\
@@ -203,7 +199,7 @@ class TagMeCharField(CharField):
             SystemTagRegistry.register_field(
                 model=cls,
                 field_name=name,
-                tags=self._tags_string,
+                tags=self._tag_choices,
                 model_name=cls._meta.model_name,
                 model_verbose_name=cls._meta.verbose_name,
                 field_verbose_name=self.verbose_name,

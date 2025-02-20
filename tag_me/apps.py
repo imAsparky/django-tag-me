@@ -22,23 +22,24 @@ class DjangoTagMeConfig(AppConfig):
     def ready(self):
         super().ready()
 
-        # Initialize the setting if not already set
-        # NOTE: Must be before the post_migrate_handler connector
+        # Initialize the system setting global flag
+        # NOTE: This setting MUST be before the post_migrate_handler connector
         # for correct system tag registration
-        if not hasattr(settings, "TAG_ME_SYSTEM_TAGS_POPULATED"):
-            settings.TAG_ME_SYSTEM_TAGS_POPULATED = False
+        if not hasattr(settings, "DJ_TAG_ME_SYSTEM_TAGS_POPULATED"):
+            settings.DJ_TAG_ME_SYSTEM_TAGS_POPULATED = False
 
-        # Helpful for loading default user tags on initial migration, and for
-        # dev testing. The file `default_tags.json` must be in root.
-        # Use SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG for force adding default user tags
-        # when migrating in DEBUG. Helpful for debugging.
-        if not hasattr(settings, "SEED_INITIAL_USER_DEFAULT_TAGS"):
-            settings.SEED_INITIAL_USER_DEFAULT_TAGS = False
-        if not hasattr(settings, "SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG"):
-            settings.SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG = True
-
-        if not hasattr(settings, "DJ_TAG_ME_USE_CUSTOM_MIGRATE"):
-            settings.DJ_TAG_ME_USE_CUSTOM_MIGRATE: bool = False  # type: ignore[attr-defined]
+        # These settings are useful for loading default user tags during the initial migration
+        # and for development/testing purposes. To use this:
+        #
+        # 1. Ensure the file `default_user_tags.json` is located in the project's root directory.
+        # 2. To force the addition of default user tags during migration in DEBUG mode,
+        #    set the environment variable `DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG`.
+        # NOTE: Will only load when the TaggedFieldModel record is created, typically ininitial migration
+        if not hasattr(settings, "DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS"):
+            settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS = False
+        # NOTE: Will force the addition of default user tags on each migration.
+        if not hasattr(settings, "DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG"):
+            settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG = False
 
         if not hasattr(settings, "PROJECT_APPS"):
             settings.PROJECT_APPS: list = settings.INSTALLED_APPS  # type: ignore[attr-defined]
