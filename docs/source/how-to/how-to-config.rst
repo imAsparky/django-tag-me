@@ -167,8 +167,8 @@ its behavior using the following settings in your ``settings.py`` file:
 
 |
 
-*TAG_ME_SYSTEM_TAGS_POPULATED *
--------------------------------
+*DJ_TAG_ME_SYSTEM_TAGS_POPULATED*
+---------------------------------
 
 **SYSTEM SETTING**
 
@@ -178,30 +178,38 @@ A setting used by the tag registry for state management.
 
 |
 
-*SEED_INITIAL_USER_DEFAULT_TAGS*
---------------------------------
+*DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS*
+------------------------------------------
 
 **Developer Tool**
 
 **bool**, *optional* default False
 
-Read your default_user_tags.json file from `BASE_DIR` and seed the user default tags.
-By default the tags will be added only if the tagged field is created.
+Useful for loading default user tags during the initial migration
+
+1. Ensure the file `default_user_tags.json` is located in the project's root directory.
 
 |
 
-*SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG*
------------------------------------------
+*DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG*
+---------------------------------------------------
 
 **Developer Tool**
 
 **bool**, *optional* default False
 
-Read your default_user_tags.json file from `BASE_DIR` and seed the user default tags.
+This script is useful for loading default user tags during the initial migration
+and for development/testing purposes. To use this:
+
+1. Ensure the file `default_user_tags.json` is located in the project's root directory.
+2. To force the addition of default user tags during migration in DEBUG mode,
+   set the environment variable `DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG=True`.
+
+Note: This is particularly helpful for seeding initial data in development environments.
+Reads your default_user_tags.json file from `BASE_DIR` and seed the user default tags.
 This will force the tag defaults to be updated even if for existing tag fields.
 
 |
-
 
 *PROJECT_APPS*
 --------------
