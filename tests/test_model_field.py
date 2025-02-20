@@ -381,7 +381,7 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         f = TagMeCharField(choices=Event.choices)
 
         # Check internal representation of choices
-        assert f._tag_choices == ["Carnival!", "Festival!"]
+        assert f._tag_choices == "Carnival!, Festival!,"
 
         # Check the choices are formatted and saved to the db correctly
         assert f.to_python(f._tag_choices) == "Carnival!, Festival!,"
@@ -397,7 +397,7 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         f = TagMeCharField(choices=list_choices)
 
         # Check internal representation of choices
-        assert f._tag_choices == ["Carnival!", "Festival!"]
+        assert f._tag_choices == "Carnival!, Festival!,"
 
         # Check the choices are formatted and saved to the db correctly
         assert f.to_python(f._tag_choices) == "Carnival!, Festival!,"
