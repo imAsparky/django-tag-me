@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2025.02.20.1]
+
+### Documentation
+- Update settings names after refactor (settings) [#253](https://github.com/imAsparky/django-tag-me/pull/253)
+
+### Code Refactoring
+- Updating settings names and tag parsing (general) [#253](https://github.com/imAsparky/django-tag-me/pull/253)
+
+### Testing
+- Update for settings name changes (refactor) [#253](https://github.com/imAsparky/django-tag-me/pull/253)
+
+
 ## [2025.02.18.1]
 
 ### Documentation
