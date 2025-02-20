@@ -40,7 +40,7 @@ def reset_registry():
     SystemTagRegistry._instance = None
     SystemTagRegistry._fields = set()
     SystemTagRegistry._is_ready = False
-    settings.TAG_ME_SYSTEM_TAGS_POPULATED = False
+    settings.DJ_TAG_ME_SYSTEM_TAGS_POPULATED = False
     yield
 
 
@@ -66,9 +66,11 @@ def test_field_metadata_creation_all_types():
 def test_tag_persistence_initialization_with_flag(monkeypatch):
     """Test lines 86-89: TagPersistence initialization with flag off"""
     # Need to monkeypatch the setting before importing
-    monkeypatch.setattr("django.conf.settings.SEED_INITIAL_USER_DEFAULT_TAGS", True)
     monkeypatch.setattr(
-        "django.conf.settings.SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG", False
+        "django.conf.settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS", True
+    )
+    monkeypatch.setattr(
+        "django.conf.settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG", False
     )
 
     from tag_me.registry import TagPersistence
@@ -80,9 +82,11 @@ def test_tag_persistence_initialization_with_flag(monkeypatch):
 def test_tag_persistence_initialization_with_debug_flag(monkeypatch):
     """Test lines 86-89: TagPersistence initialization with flag off and debug on"""
     # Need to monkeypatch the setting before importing
-    monkeypatch.setattr("django.conf.settings.SEED_INITIAL_USER_DEFAULT_TAGS", False)
     monkeypatch.setattr(
-        "django.conf.settings.SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG", True
+        "django.conf.settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS", False
+    )
+    monkeypatch.setattr(
+        "django.conf.settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG", True
     )
 
     from tag_me.registry import TagPersistence
@@ -94,9 +98,11 @@ def test_tag_persistence_initialization_with_debug_flag(monkeypatch):
 def test_tag_persistence_initialization_without_flag(monkeypatch):
     """Test lines 86-89: TagPersistence initialization with flag off"""
     # Need to monkeypatch the setting before importing
-    monkeypatch.setattr("django.conf.settings.SEED_INITIAL_USER_DEFAULT_TAGS", False)
     monkeypatch.setattr(
-        "django.conf.settings.SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG", False
+        "django.conf.settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS", False
+    )
+    monkeypatch.setattr(
+        "django.conf.settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG", False
     )
 
     from tag_me.registry import TagPersistence
@@ -127,7 +133,7 @@ def test_save_fields_integrity_error():
 
 
 @pytest.mark.django_db
-@override_settings(SEED_INITIAL_USER_DEFAULT_TAGS=True)
+@override_settings(DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS=True)
 def test_user_tag_update():
     """Test lines 206, 211-212: User tag updates"""
     from tag_me.registry import TagPersistence, FieldMetadata, TagType
