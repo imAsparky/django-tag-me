@@ -91,8 +91,8 @@ class TagPersistence:
         """
         self.default_user_tags: Dict = {}
         if (
-            settings.SEED_INITIAL_USER_DEFAULT_TAGS
-            or settings.SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG
+            settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS
+            or settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG
         ):
             self._load_default_user_tags()
 
@@ -179,7 +179,8 @@ class TagPersistence:
                     if field.tag_type == TagType.SYSTEM:
                         tagged_field.default_tags = field.tags
                     elif field.tag_type == TagType.USER and (
-                        created or settings.SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG
+                        created
+                        or settings.DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG
                     ):
                         # Walrus operator (:=) assigns and tests in one step
                         # Equivalent to:
@@ -295,10 +296,10 @@ class SystemTagRegistry:
 
         The method is typically called after migrations are complete and the registry
         is marked as ready. It will skip population if either:
-        - TAG_ME_SYSTEM_TAGS_POPULATED setting is True
+        - DJ_TAG_ME_SYSTEM_TAGS_POPULATED setting is True
         - The registry is not marked as ready
         """
-        if settings.TAG_ME_SYSTEM_TAGS_POPULATED:
+        if settings.DJ_TAG_ME_SYSTEM_TAGS_POPULATED:
             logger.info("Default tag-me tags already populated")
             return
 
