@@ -145,6 +145,49 @@ def generate_user_tag_table_records(
         raise ValidationError(msg)
 
 
+def update_fields_that_should_be_synchronised():
+    """
+    Updates the synchronization configuration to include fields marked for tag synchronization.
+
+    This function scans all models and checks for fields that have the 'synchronise'
+    attribute set to True. If found, it updates the 'TagMeSynchronise' model (named 'default')
+    to ensure that tags applied to those fields will be synchronised across relevant content types.
+    """
+
+    # Retrieve or create the default synchronization configuration
+    sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
+
+    # Get a list of unique content IDs from existing TaggedFieldModel instances
+    model_content_ids = (
+        TaggedFieldModel.objects.all().values_list("content_id", flat=True).distinct()
+    )
+
+    # Retrieve ContentType models for further processing
+    models_for_sync = ContentType.objects.filter(
+        id__in=model_content_ids
+    )  # Get models_for_sync from the list of content_id's
+
+    # Flag to track changes to the sync config
+    sync_updated: bool = False
+    for model in models_for_sync:
+        for field in model.model_class()._meta.fields:
+            # Check if the field has the 'synchronise' attribute, and it's set
+            # to True
+            if hasattr(field, "synchronise") and field.synchronise:
+                # Ensure the field is registered for synchronization
+                if not sync.synchronise.get(field.name, False):
+                    sync.synchronise[field.name] = []
+                # Add the ContentType ID to the sync list for this field
+                if model.id not in sync.synchronise[field.name]:
+                    sync.synchronise[field.name].append(model.id)
+                    sync_updated = True
+
+    # Save the updated synchronization configuration if changes were made
+    if sync_updated:
+        sync.save()
+        sync.check_field_sync_list_lengths()
+
+
 # def update_models_with_tagged_fields_table() -> None:
 #     """Updates the Tagged Field Models table for managing tagged fields.
 #
@@ -195,46 +238,3 @@ def generate_user_tag_table_records(
 #                             )  # Log an updated entry
 #         update_fields_that_should_be_synchronised()
 #
-
-
-def update_fields_that_should_be_synchronised():
-    """
-    Updates the synchronization configuration to include fields marked for tag synchronization.
-
-    This function scans all models and checks for fields that have the 'synchronise'
-    attribute set to True. If found, it updates the 'TagMeSynchronise' model (named 'default')
-    to ensure that tags applied to those fields will be synchronised across relevant content types.
-    """
-
-    # Retrieve or create the default synchronization configuration
-    sync, _ = TagMeSynchronise.objects.get_or_create(name="default")
-
-    # Get a list of unique content IDs from existing TaggedFieldModel instances
-    model_content_ids = (
-        TaggedFieldModel.objects.all().values_list("content_id", flat=True).distinct()
-    )
-
-    # Retrieve ContentType models for further processing
-    models_for_sync = ContentType.objects.filter(
-        id__in=model_content_ids
-    )  # Get models_for_sync from the list of content_id's
-
-    # Flag to track changes to the sync config
-    sync_updated: bool = False
-    for model in models_for_sync:
-        for field in model.model_class()._meta.fields:
-            # Check if the field has the 'synchronise' attribute, and it's set
-            # to True
-            if hasattr(field, "synchronise") and field.synchronise:
-                # Ensure the field is registered for synchronization
-                if not sync.synchronise.get(field.name, False):
-                    sync.synchronise[field.name] = []
-                # Add the ContentType ID to the sync list for this field
-                if model.id not in sync.synchronise[field.name]:
-                    sync.synchronise[field.name].append(model.id)
-                    sync_updated = True
-
-    # Save the updated synchronization configuration if changes were made
-    if sync_updated:
-        sync.save()
-        sync.check_field_sync_list_lengths()
