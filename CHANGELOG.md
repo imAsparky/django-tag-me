@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.04.13.1]
+
+### Code Refactoring
+- Remove print stmt, move commented code (tidy) [#255](https://github.com/imAsparky/django-tag-me/pull/255)
+
+
 ## [2025.02.20.1]
 
 ### Documentation
