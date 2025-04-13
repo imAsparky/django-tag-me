@@ -132,7 +132,6 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         if _tags_string:
             # Add empty string at start to override browser's automatic
             # selection of first option in select elements
-            print(f"\n$$$$$$$\nWIDGET TAG STRING {_tags_string}")
             self.choices = [""] + [
                 tag.strip() for tag in _tags_string.split(",") if tag.strip()
             ]
