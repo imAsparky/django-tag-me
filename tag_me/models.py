@@ -572,7 +572,7 @@ class UserTag(TagBase):
                         content=content_id,
                         model_name=ContentType.objects.get(id=content_id)
                         .model_class()
-                        .__name__,
+                        .__name__.lower(),
                         field_name=self.field_name,
                     )
 
