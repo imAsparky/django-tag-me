@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.05.14.1]
+
+### Bug Fixes
+- Synced tags save ok, fix contentype query (sync) [#257](https://github.com/imAsparky/django-tag-me/pull/257)
+
+
 ## [2025.04.13.1]
 
 ### Code Refactoring
