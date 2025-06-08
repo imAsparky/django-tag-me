@@ -1,29 +1,21 @@
-<div class="relative" x-on:@keydown.escape.prevent.stop="menuClose()">
+<div class="relative bg-blue-100" x-on:@keydown.escape.prevent.stop="menuClose()">
     <button type="button"
             class="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
-            @click="menuToggle();console.log('menu open',menuIsOpen(), !menuIsOpen())"
+            @click="menuToggle()"
             :aria-expanded="menuIsOpen()"
             :aria-controls="$id('search-menu-dropdown')">
         <span class="hidden lg:inline">Menu</span>
-        <svg id="#open-search-menu"
-             class="h-5 w-5 lg:hidden"
-             x-show="menuIsOpen()"
+        <!-- Single rotating hamburger icon for mobile -->
+        <svg class="h-5 w-5 lg:hidden transition-transform duration-200 ease-in-out"
+             x-bind:style="menuIsOpen() ? 'transform: rotate(45deg)' : 'transform: rotate(0deg)'"
              viewBox="0 0 24 24"
              fill="none"
              stroke="currentColor"
-             aria-hidden="menuIsOpen()"
-             data-slot="icon-hamburger-down">
+             aria-hidden="true"
+             data-slot="icon-hamburger">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
         </svg>
-        <svg class="h-5 w-5 lg:hidden"
-             x-show="!menuIsOpen()"
-             viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor"
-             aria-hidden="!menuIsOpen()"
-             data-slot="icon-hamburger-up">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
-        </svg>
+        <!-- Desktop arrow icon -->
         <svg class="h-5 w-5 hidden lg:inline"
              viewBox="0 0 20 20"
              fill="currentColor"
