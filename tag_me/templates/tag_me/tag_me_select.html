@@ -63,10 +63,9 @@ function getCookie(name) {
                 <div class="w-full">
                     <div class="my-2 p-1 flex border border-gray-200 bg-white rounded-md">
                         <div x-on:click="toggle()" class="flex flex-auto flex-wrap">
-                            <!-- iterating over selected elements -->
-                            <template x-for="(option,index) in selectedElms" :key="option.value">
-                                <div x-show="index < {{ display_number_selected }}"
-                                     class="flex justify-center items-center m-1 font-medium py-1 px-2 rounded-full text-indigo-700 bg-indigo-100 border border-indigo-300 ">
+                            <!-- iterating over selected elements (optimized) -->
+                            <template x-for="(option,index) in selectedElms.slice(0, {{ display_number_selected }})" :key="option.value">
+                                <div class="flex justify-center items-center m-1 font-medium py-1 px-2 rounded-full text-indigo-700 bg-indigo-100 border border-indigo-300 ">
                                     <div x-model="selectedElms[option]"
                                          x-text="option.text"
                                          class="text-xs lg:text-base font-normal leading-none max-w-full flex-initial">
