@@ -1,9 +1,10 @@
 <div class="relative" x-on:@keydown.escape.prevent.stop="menuClose()">
     <button type="button"
-            class="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
+            class="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded transition-colors duration-150"
             @click="menuToggle()"
             :aria-expanded="menuIsOpen()"
-            :aria-controls="$id('search-menu-dropdown')">
+            :aria-controls="$id('search-menu-dropdown')"
+            aria-label="Search menu options">
         <span class="hidden lg:inline">Menu</span>
         <!-- Single rotating hamburger icon for mobile -->
         <svg class="h-5 w-5 lg:hidden transition-transform duration-200 ease-in-out"
@@ -34,9 +35,11 @@
          class="absolute z-10 mt-5 right-0 px-4">
         <div class="w-80 flex-auto overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
             <div class="p-4">
-                <div x-show="canAddNewTag && permittedToAddTags"
-                     x-on:click="createNewTag(); menuClose()"
-                     class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50">
+                <button type="button"
+                        x-show="canAddNewTag && permittedToAddTags"
+                        x-on:click="createNewTag(); menuClose()"
+                        class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150 w-full text-left"
+                        aria-label="Add a new tag">
                     <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
                         <svg class="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
                              fill="none"
@@ -49,14 +52,14 @@
                         </svg>
                     </div>
                     <div>
-                        <a href="#" class="font-semibold text-gray-900">
-                            Add
-                            <span class="absolute inset-0"></span>
-                        </a>
+                        <span class="font-semibold text-gray-900">Add</span>
                         <p class="mt-1 text-gray-600">Add a new tag.</p>
                     </div>
-                </div>
-                <div class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50">
+                </button>
+                <button type="button"
+                        x-on:click="clearSearch(); menuClose()"
+                        class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150 w-full text-left"
+                        aria-label="Clear search bar">
                     <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
                         <svg class="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
                              fill="none"
@@ -69,16 +72,14 @@
                         </svg>
                     </div>
                     <div>
-                        <a href="#"
-                           x-on:click="clearSearch()"
-                           class="font-semibold text-gray-900">
-                            Clear
-                            <span class="absolute inset-0"></span>
-                        </a>
+                        <span class="font-semibold text-gray-900">Clear</span>
                         <p class="mt-1 text-gray-600">Clear search bar.</p>
                     </div>
-                </div>
-                <div class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50">
+                </button>
+                <button type="button"
+                        x-on:click="deselectTag(); menuClose()"
+                        class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150 w-full text-left"
+                        aria-label="Remove all selected tags">
                     <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
                         <svg class="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
                              fill="none"
@@ -91,15 +92,10 @@
                         </svg>
                     </div>
                     <div>
-                        <a href="#"
-                           x-on:click="deselectTag()"
-                           class="font-semibold text-gray-900">
-                            Remove
-                            <span class="absolute inset-0"></span>
-                        </a>
+                        <span class="font-semibold text-gray-900">Remove</span>
                         <p class="mt-1 text-gray-600">Unselect all tags.</p>
                     </div>
-                </div>
+                </button>
             </div>
             {% if help_url or mgmt_url %}
                 <div class="bg-gray-50 p-8">
