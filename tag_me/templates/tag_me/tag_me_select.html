@@ -18,12 +18,11 @@ function getCookie(name) {
 </script>
 <div id='tag-me-select-container-{{ name }}'
      x-data="alpineTagMeMultiSelect( { addTagURL: '{{ add_tag_url }}', elementId: 'id_{{ name }}', permittedToAddTags: {{ permitted_to_add_tags }}, allowMultipleSelect: {{ multiple }}, autoSelectNewTags: {{ auto_select_new_tags }}, search:'', selected: {{ values }}, })"
-     x-on:keydown.prevent.stop.alt="close()"
      x-on:click.outside="close()"
-     x-on:keydown.prevent.stop.excape="close()"
+     x-on:keydown.prevent.stop.escape="close()"
      x-id="['search-menu-dropdown']"
      tabindex="0"
-     class="w-full">
+     class="w-full ">
     <!-- Select Options -->
     <select id='id_{{ name }}'
             name='{{ name }}'
@@ -114,7 +113,7 @@ function getCookie(name) {
                 <div class="w-full">
                     <div x-show.transition.origin.top="isOpen()"
                          x-trap="isOpen()"
-                         class="absolute shadow-lg bg-white z-40 w-full lef-0 rounded max-h-80">
+                         class="absolute shadow-lg bg-white z-40 w-full left-0 rounded max-h-80">
                         <div class="flex flex-col w-full">
                             <div class="px-2 py-4 border-b-2">
                                 <!-- Search input-->
