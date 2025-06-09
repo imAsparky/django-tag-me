@@ -50,7 +50,15 @@ function getCookie(name) {
             x-bind:value="selectedValues()"
             x-bind:multiple="allowMultipleSelect"
             class="hidden">
-        {% for tag in choices %}<option value='{{ tag }}' data-search='{{ tag }}'>{{ tag }}</option>{% endfor %}
+        {% for tag in choices %}
+            <option value='{{ tag }}' data-search='{{ tag }}'>
+                {% if tag %}
+                    {{ tag }}
+                {% else %}
+                    ""
+                {% endif %}
+            </option>
+        {% endfor %}
     </select>
     <!-- original code by https://github.com/alexpechkarev/alpinejs-multiselect/ -->
     <div id="tag-me-select-{{ name }}"
@@ -64,13 +72,14 @@ function getCookie(name) {
                     <div class="my-2 p-3 flex border border-gray-200 bg-white rounded-md">
                         <div x-on:click="toggle()" class="flex flex-auto flex-wrap gap-2">
                             <!-- iterating over selected elements (optimized) -->
-                            <template x-for="(option,index) in selectedElms.slice(0, {{ display_number_selected }})" :key="option.value">
+                            <template x-for="(option,index) in selectedElms.slice(0, {{ display_number_selected }})"
+                                      :key="option.value">
                                 <div class="flex justify-center items-center font-medium py-1.5 px-3 rounded-full text-indigo-800 bg-indigo-50 border border-indigo-200 shadow-sm">
                                     <div x-model="selectedElms[option]"
                                          x-text="option.text"
                                          class="text-xs lg:text-base font-normal leading-none max-w-full flex-initial mr-2">
                                     </div>
-                                    <button type="button" 
+                                    <button type="button"
                                             x-on:click.stop="remove(index,option)"
                                             class="flex-shrink-0 ml-1 p-0.5 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded-full transition-all duration-150"
                                             :aria-label="'Remove tag: ' + option.text">
@@ -81,8 +90,7 @@ function getCookie(name) {
                                              stroke="currentColor"
                                              stroke-width="2"
                                              aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12">
-                                            </path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
                                     </button>
                                 </div>
