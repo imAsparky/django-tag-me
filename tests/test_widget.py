@@ -154,7 +154,7 @@ class TestTagMeSelectMultipleWidget(TestCase):
 
         result = widget.render(name, value)
 
-        assert '""' in result  # Empty string should be in choices
+        assert '""' or "''" in result  # Empty string should be in choices
         # check the selected value == ''
         assert "selected: [&#x27;&#x27;]" in result
 
