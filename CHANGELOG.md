@@ -2,6 +2,26 @@
 
 <!--next-version-placeholder-->
 
+## [2025.06.09.1]
+
+### Maintenance
+- Add Aria and focus rings (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Add aria labels (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Add arrow rotation for dropdown (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Add csrf cookie cache manager (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Fix padding so consistent across browsers (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Fix small screen hamburger rotation (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Fix typos in css and escape behaviour (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Improve pill appearance and layout (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Improve tag menu transitions (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Optimise tag selection loop (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Remove logger and fix invalid syntax (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+
+### Bug Fixes
+- Add explicit handling of empty value list (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+- Remove attrs breaking mozilla (ui) [#259](https://github.com/imAsparky/django-tag-me/pull/259)
+
+
 ## [2025.05.14.1]
 
 ### Bug Fixes
