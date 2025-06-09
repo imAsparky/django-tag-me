@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.06.09.2]
+
+### Bug Fixes
+- Empty string removed from top of tag list (ui) [#261](https://github.com/imAsparky/django-tag-me/pull/261)
+
+
 ## [2025.06.09.1]
 
 ### Maintenance

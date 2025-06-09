@@ -50,15 +50,7 @@ function getCookie(name) {
             x-bind:value="selectedValues()"
             x-bind:multiple="allowMultipleSelect"
             class="hidden">
-        {% for tag in choices %}
-            <option value='{{ tag }}' data-search='{{ tag }}'>
-                {% if tag %}
-                    {{ tag }}
-                {% else %}
-                    ""
-                {% endif %}
-            </option>
-        {% endfor %}
+        {% for tag in choices %}<option value='{{ tag }}' data-search='{{ tag }}'>{{ tag }}</option>{% endfor %}
     </select>
     <!-- original code by https://github.com/alexpechkarev/alpinejs-multiselect/ -->
     <div id="tag-me-select-{{ name }}"
@@ -72,7 +64,7 @@ function getCookie(name) {
                     <div class="my-2 p-3 flex border border-gray-200 bg-white rounded-md">
                         <div x-on:click="toggle()" class="flex flex-auto flex-wrap gap-2">
                             <!-- iterating over selected elements (optimized) -->
-                            <template x-for="(option,index) in selectedElms.slice(0, {{ display_number_selected }})"
+                            <template x-for="(option,index) in selectedElms.filter(opt => opt.text).slice(0, {{ display_number_selected }})"
                                       :key="option.value">
                                 <div class="flex justify-center items-center font-medium py-1.5 px-3 rounded-full text-indigo-800 bg-indigo-50 border border-indigo-200 shadow-sm">
                                     <div x-model="selectedElms[option]"
@@ -191,7 +183,7 @@ function getCookie(name) {
                                                 <div class="w-full items-center flex">
                                                     <div x-model="option" x-text="option.text" class="mx-2 leading-6"></div>
                                                     <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600"
-                                                          x-show="option.selected">
+                                                          x-show="option.selected && option.text">
                                                         <svg class="h-5 w-5"
                                                              xmlns="http://www.w3.org/2000/svg"
                                                              viewBox="0 0 20 20"
