@@ -1,12 +1,23 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.forms import Form
 from django.test import RequestFactory
-from django.contrib.contenttypes.models import ContentType
-from tag_me.db.forms.mixins import TagMeModelFormMixin
-from tag_me.db.mixins import TagMeViewMixin
+from django.views.generic import FormView
+
+from tag_me.forms.mixins import TagMeModelFormMixin
+from tag_me.views.mixins import TagMeViewMixin
 from tests.models import TaggedFieldTestModel
+
+
+@pytest.fixture
+def mock_logger():
+    """Mock the structlog logger for testing"""
+    with patch("tag_me.views.mixins.logger") as mock:
+        yield mock
 
 
 class TestTagMeForm(TagMeModelFormMixin, Form):
@@ -21,7 +32,7 @@ class InvalidTestForm(Form):
     pass
 
 
-class TestView(TagMeViewMixin):
+class TestView(TagMeViewMixin, FormView):
     """Test view class"""
 
     model = TaggedFieldTestModel
@@ -85,23 +96,26 @@ def test_get_initial_content_type(view_instance):
     assert content_type.model == expected_content_type.model
 
 
-def test_get_form_without_form_class(view_instance, caplog):
-    """Test get_form when no form_class is provided"""
-    # Override get_form_class to return our invalid form
-    view_instance.get_form_class = lambda: InvalidTestForm
-
-    with pytest.raises(ImproperlyConfigured) as exc_info:
-        view_instance.get_form(form_class=None)
-
-    assert "must inherit from TagMeModelFormMixin" in str(exc_info.value)
-    assert len(caplog.records) == 1
-    assert "must inherit from TagMeModelFormMixin" in caplog.records[0].message
-
-
-def test_get_form_logs_error_for_invalid_form(view_instance, caplog):
+def test_get_form_logs_error_for_invalid_form(view_instance, mock_logger):
     """Test that an error is logged when form doesn't inherit from TagMeModelFormMixin"""
+
     with pytest.raises(ImproperlyConfigured):
         view_instance.get_form(InvalidTestForm)
 
-    assert len(caplog.records) == 1
-    assert "must inherit from TagMeModelFormMixin" in caplog.records[0].message
+    mock_logger.error.assert_called_once()
+
+    # Check specific structlog call structure
+    call_kwargs = mock_logger.error.call_args.kwargs
+    assert call_kwargs["event"] == "get_form"
+    assert "form_class" in call_kwargs["data"]
+
+
+def test_get_form_without_form_class(view_instance, mock_logger):
+    """Test get_form when no form_class is provided"""
+    view_instance.get_form_class = lambda: InvalidTestForm
+
+    with pytest.raises(ImproperlyConfigured):
+        view_instance.get_form(form_class=None)
+
+    mock_logger.error.assert_called_once()
+    assert "get_form" in str(mock_logger.error.call_args)

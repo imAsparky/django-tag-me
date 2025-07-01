@@ -3,7 +3,7 @@
 from django.db.models.fields import forms
 from django.utils.translation import pgettext_lazy as _
 
-from tag_me.db.forms.mixins import TagMeModelFormMixin
+from tag_me.forms.mixins import TagMeModelFormMixin
 from tag_me.models import (
     UserTag,
     TaggedFieldModel,

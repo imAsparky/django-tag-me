@@ -141,7 +141,7 @@ would typically integrate it into a Django model:
    :caption: Defining a Django model with the TagMeCharField
 
    from django.db import models
-   from tag_me.db.fields import TagMeCharField
+   from tag_me.models.fields import TagMeCharField
 
    class MyModel(models.Model):
        ...  # Other model fields

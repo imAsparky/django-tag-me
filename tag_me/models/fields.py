@@ -11,7 +11,7 @@ from django.db import (
 )
 from django.db.models.fields import CharField
 
-from tag_me.db.forms.fields import TagMeCharField as TagMeCharField_FORM
+from tag_me.forms.fields import TagMeCharField as TagMeCharField_FORM
 from tag_me.models import TaggedFieldModel
 from tag_me.registry import SystemTagRegistry
 from tag_me.utils.collections import FieldTagListFormatter

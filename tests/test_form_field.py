@@ -3,7 +3,7 @@
 from django.core import validators
 from django.test import SimpleTestCase
 
-from tag_me.db.forms.fields import TagMeCharField
+from tag_me.forms.fields import TagMeCharField
 from tag_me.utils.collections import FieldTagListFormatter
 
 
@@ -27,15 +27,11 @@ class TestTagMeCharFieldForm(SimpleTestCase):
         )
 
         assert any(
-            x
-            for x in f.validators
-            if isinstance(x, validators.MaxLengthValidator)
+            x for x in f.validators if isinstance(x, validators.MaxLengthValidator)
         )
 
         assert any(
-            x
-            for x in f.validators
-            if isinstance(x, validators.MinLengthValidator)
+            x for x in f.validators if isinstance(x, validators.MinLengthValidator)
         )
 
         assert any(
