@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import pgettext_lazy as _
 
-from tag_me.db.models.fields import TagMeCharField
+from tag_me.models.fields import TagMeCharField
 from tag_me.models import TagBase
 
 User = get_user_model()

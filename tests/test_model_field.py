@@ -6,7 +6,7 @@ from django.db import models
 from django.test import SimpleTestCase
 from hypothesis.extra.django import TestCase
 
-from tag_me.db.models.fields import TagMeCharField
+from tag_me.models.fields import TagMeCharField
 from tag_me.models import UserTag
 from tag_me.utils.collections import FieldTagListFormatter
 from tests.models import TaggedFieldTestModel
@@ -416,20 +416,6 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
 
         assert f.to_python(null_tags) == ""
 
-    # ..todo:: probably a duplicate of test in test_collections. Review in refactor
-    # def test_tags_input_includes_null_tags(self):
-    #     null_tags = [
-    #         "null",
-    #         "Null",
-    #         "NULL",
-    #         "Not Null",
-    #         "Still Not Null",
-    #     ]
-    #
-    #     f = TagMeCharField()
-    #
-    #     assert f.to_python(null_tags) == "Not Null, Still Not Null"
-
 
 class TestTagMeCharFieldOtherMethods(TestCase):
     """Test other overridden Charfield Methods"""
@@ -438,8 +424,7 @@ class TestTagMeCharFieldOtherMethods(TestCase):
         f = TagMeCharField()
         f.model = UserTag()
         assert (
-            str(type(f.formfield()))
-            == "<class 'tag_me.db.forms.fields.TagMeCharField'>"
+            str(type(f.formfield())) == "<class 'tag_me.forms.fields.TagMeCharField'>"
         )
 
     def test_admin_form_field_form_class_widget(self):

@@ -9,8 +9,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms import CharField, ModelForm
 from django.test import TestCase
 
-from tag_me.db.forms.fields import TagMeCharField
-from tag_me.db.forms.mixins import (
+from tag_me.forms.fields import TagMeCharField
+from tag_me.forms.mixins import (
     AllFieldsTagMeModelFormMixin,
     TagMeModelFormMixin,
 )
