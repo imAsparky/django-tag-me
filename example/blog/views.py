@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 
-from tag_me.db.mixins import TagMeViewMixin
+from tag_me.views.mixins import TagMeViewMixin
 from .forms import (
     ArticleCreateForm,
     ArticleUpdateForm,

@@ -2,7 +2,7 @@
 
 from django import forms
 
-from tag_me.db.forms.mixins import TagMeModelFormMixin
+from tag_me.forms.mixins import TagMeModelFormMixin
 
 from .models import Article
 

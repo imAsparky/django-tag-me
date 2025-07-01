@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import pgettext_lazy as _
 from users.models import CustomUser
 
-from tag_me.db.models.fields import TagMeCharField
+from tag_me.models.fields import TagMeCharField
 
 User = get_user_model()
 
