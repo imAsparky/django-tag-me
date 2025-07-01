@@ -30,7 +30,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["Django>=4.0"]
+dependencies = [
+    "Django>=4.0",
+    "structlog",
+]
 
 [project.optional-dependencies]
 dev = [
