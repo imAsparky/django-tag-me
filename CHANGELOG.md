@@ -2,6 +2,22 @@
 
 <!--next-version-placeholder-->
 
+## [2025.07.01.1]
+
+### Maintenance
+- Add structlog for logging (deps) [#224](https://github.com/imAsparky/django-tag-me/pull/224)
+- Update for refactoring if import paths (example) [#224](https://github.com/imAsparky/django-tag-me/pull/224)
+
+### Documentation
+- Update import paths for refactor (structure) [#224](https://github.com/imAsparky/django-tag-me/pull/224)
+
+### Features
+- Add basic support for unfold-admin (unfold) [#263](https://github.com/imAsparky/django-tag-me/pull/263)
+
+### Testing
+- Update import paths (refactor) [#224](https://github.com/imAsparky/django-tag-me/pull/224)
+
+
 ## [2025.06.09.2]
 
 ### Bug Fixes
