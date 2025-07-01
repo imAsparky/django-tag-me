@@ -121,7 +121,7 @@ Tagging allows you to associate flexible keywords or categories with your model 
 .. code-block:: python
 
    from django.db import models
-   from tag_me.db.models.fields import TagMeCharField
+   from tag_me.models.fields import TagMeCharField
 
    class MyModel(models.Model)
 
@@ -151,7 +151,7 @@ See below for an example.
 .. code-block:: python
 
    from django import forms
-   from tag_me.db.forms.mixins import TagMeModelFormMixin
+   from tag_me.forms.mixins import TagMeModelFormMixin
    from tag_me.widgets import TagMeSelectMultipleWidget
    from .models import MyModel
 
@@ -174,7 +174,7 @@ for this mixin is for a search tool based on a users tags.
 .. code-block:: python
 
    from django import forms
-   from tag_me.db.forms.mixins import AllFieldsTagMeModelFormMixin
+   from tag_me.forms.mixins import AllFieldsTagMeModelFormMixin
    from tag_me.widgets import TagMeSelectMultipleWidget
    from .models import MyModel
 
@@ -201,7 +201,7 @@ See below for an example.
 .. code-block:: python
 
     from django.views.generic import CreateView
-    from tag_me.db.mixins import TagMeViewMixin
+    from tag_me.views.mixins import TagMeViewMixin
     from .forms import MyModelForm
     from .models import MyModel
 
