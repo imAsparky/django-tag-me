@@ -1,14 +1,15 @@
-<div class="relative" x-on:@keydown.escape.prevent.stop="menuClose()">
+<div class="relative"
+     x-on:keydown.escape="if(menuShow) { $event.preventDefault(); $event.stopPropagation(); menuClose('search'); }">
     <button type="button"
             class="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded transition-colors duration-150"
             @click="menuToggle()"
-            :aria-expanded="menuIsOpen()"
+            :aria-expanded="menuShow"
             :aria-controls="$id('search-menu-dropdown')"
             aria-label="Search menu options">
         <span class="hidden lg:inline">Menu</span>
         <!-- Single rotating hamburger icon for mobile -->
         <svg class="h-5 w-5 lg:hidden transition-transform duration-200 ease-in-out"
-             x-bind:style="menuIsOpen() ? 'transform: rotate(45deg)' : 'transform: rotate(0deg)'"
+             x-bind:style="menuShow ? 'transform: rotate(45deg)' : 'transform: rotate(0deg)'"
              viewBox="0 0 24 24"
              fill="none"
              stroke="currentColor"
@@ -18,7 +19,7 @@
         </svg>
         <!-- Desktop arrow icon with rotation -->
         <svg class="h-5 w-5 hidden lg:inline transition-transform duration-200 ease-in-out"
-             x-bind:style="menuIsOpen() ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'"
+             x-bind:style="menuShow ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'"
              viewBox="0 0 20 20"
              fill="currentColor"
              aria-hidden="true"
@@ -28,16 +29,17 @@
     </button>
     <div :id="$id('search-menu-dropdown')"
          x-ref="menuPanel"
-         x-show="menuIsOpen()"
-         x-trap="menuIsOpen()"
+         x-show="menuShow"
+         x-trap="menuShow"
          x-transition.scale.origin.top.duration.200ms
          x-cloak
          class="absolute z-10 mt-5 right-0">
         <div class="w-80 max-w-sm overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
             <div class="p-4">
                 <button type="button"
-                        x-show="canAddNewTag && permittedToAddTags"
+                        x-show="canAddNewTag && permittedToAddTags && !isCreatingTag"
                         x-on:click="createNewTag(); menuClose()"
+                        :class="styles.menuButton"
                         class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150 w-full text-left"
                         aria-label="Add a new tag">
                     <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
@@ -54,6 +56,24 @@
                     <div>
                         <span class="font-semibold text-gray-900">Add</span>
                         <p class="mt-1 text-gray-600">Add a new tag.</p>
+                    </div>
+                    <!-- Tag button - loading state -->
+                    <div x-show="isCreatingTag && permittedToAddTags"
+                         class="group relative flex gap-x-6 rounded-lg p-4 bg-gray-50 w-full text-left opacity-75">
+                        <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-100">
+                            <svg class="animate-spin h-6 w-6 text-indigo-600"
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-700">Creating tag...</span>
+                            <p class="mt-1 text-gray-500">Please wait.</p>
+                        </div>
                     </div>
                 </button>
                 <button type="button"
@@ -96,6 +116,29 @@
                         <p class="mt-1 text-gray-600">Unselect all tags.</p>
                     </div>
                 </button>
+            </div>
+            <!-- Error message display -->
+            <div x-show="tagCreationError"
+                 x-transition.slide.down.duration.200ms
+                 class="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-start space-x-2">
+                    <svg class="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0"
+                         xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 20 20"
+                         fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium text-red-800">Error creating tag</h4>
+                        <p class="mt-1 text-sm text-red-700" x-text="tagCreationError"></p>
+                    </div>
+                    <button @click="tagCreationError = null"
+                            class="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded p-1">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             {% if help_url or mgmt_url %}
                 <div class="bg-gray-50 p-8">

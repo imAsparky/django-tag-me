@@ -1,48 +1,14 @@
+    <!-- original code by https://github.com/alexpechkarev/alpinejs-multiselect/ -->
 <!-- Define component with preselected options -->
 {# elementId must be the same as select id #}
-<script>
-// Optimized cookie handling with caching
-const CookieManager = {
-  cache: new Map(),
-  lastParsed: 0,
-  
-  parse() {
-    const now = Date.now();
-    // Re-parse only if cache is older than 1 second
-    if (now - this.lastParsed > 1000) {
-      this.cache.clear();
-      if (document.cookie && document.cookie !== '') {
-        document.cookie.split(';').forEach(cookie => {
-          const trimmed = cookie.trim();
-          const equalIndex = trimmed.indexOf('=');
-          if (equalIndex > 0) {
-            const name = trimmed.substring(0, equalIndex);
-            const value = trimmed.substring(equalIndex + 1);
-            this.cache.set(name, decodeURIComponent(value));
-          }
-        });
-      }
-      this.lastParsed = now;
-    }
-  },
-  
-  get(name) {
-    this.parse();
-    return this.cache.get(name) || null;
-  }
-};
-
-// Backward compatibility - keep original function signature
-function getCookie(name) {
-  return CookieManager.get(name);
-}
-</script>
 <div id='tag-me-select-container-{{ name }}'
-     x-data="alpineTagMeMultiSelect( { addTagURL: '{{ add_tag_url }}', elementId: 'id_{{ name }}', permittedToAddTags: {{ permitted_to_add_tags }}, allowMultipleSelect: {{ multiple }}, autoSelectNewTags: {{ auto_select_new_tags }}, search:'', selected: {{ values }}, })"
+     x-data="alpineTagMeMultiSelect( { addTagURL: '{{ add_tag_url }}', elementId: 'id_{{ name }}', permittedToAddTags: {{ permitted_to_add_tags }}, allowMultipleSelect: {{ multiple|yesno:'true,false' }}, autoSelectNewTags: {{ auto_select_new_tags|yesno:'true,false' }}, displayNumberSelected: {{ display_number_selected }}, search:'', selected: {{ values }}, })"
      x-on:click.outside="close()"
      x-on:keydown.prevent.stop.escape="close()"
      x-id="['search-menu-dropdown']"
-     tabindex="0"
+     role="combobox"
+     aria-label="Tag selection"
+     :aria-expanded="show"
      class="w-full">
     <!-- Select Options -->
     <select id='id_{{ name }}'
@@ -50,29 +16,33 @@ function getCookie(name) {
             x-bind:value="selectedValues()"
             x-bind:multiple="allowMultipleSelect"
             class="hidden">
-        {% for tag in choices %}<option value='{{ tag }}' data-search='{{ tag }}'>{{ tag }}</option>{% endfor %}
+        {% for tag in choices %}
+            <option value='{{ tag|escapejs }}' data-search='{{ tag|escapejs }}'>{{ tag|escape }}</option>
+        {% endfor %}
     </select>
-    <!-- original code by https://github.com/alexpechkarev/alpinejs-multiselect/ -->
     <div id="tag-me-select-{{ name }}"
-         class="w-full flex flex-col items-center mx-auto">
+         class="w-full flex flex-col items-center mx-auto ">
         <!-- Selected Tags -->
         <input name="js_{{ name }}[]" type="hidden" x-bind:value="selectedValues()">
         <div class="inline-block relative w-full">
             <div class="flex flex-col items-center relative">
                 <!-- Selected elements container -->
                 <div class="w-full">
-                    <div class="my-2 p-3 flex border border-gray-200 bg-white rounded-md">
+                    <div class="my-2 p-3 flex border border-gray-200 bg-gray-700 rounded-md">
                         <div x-on:click="toggle()" class="flex flex-auto flex-wrap gap-2">
                             <!-- iterating over selected elements (optimized) -->
-                            <template x-for="(option,index) in selectedElms.filter(opt => opt.text).slice(0, {{ display_number_selected }})"
-                                      :key="option.value">
-                                <div class="flex justify-center items-center font-medium py-1.5 px-3 rounded-full text-indigo-800 bg-indigo-50 border border-indigo-200 shadow-sm">
+                            <template x-for="(option,index) in displayedSelectedElms" :key="option.value">
+                                <div class="flex justify-center items-center font-medium py-1.5 px-3 rounded-full text-indigo-800 bg-indigo-50 border border-indigo-200 shadow-sm"
+                                     role="option"
+                                     aria-selected="true"
+                                     :class="styles.selectedTag">
                                     <div x-model="selectedElms[option]"
                                          x-text="option.text"
                                          class="text-xs lg:text-base font-normal leading-none max-w-full flex-initial mr-2">
                                     </div>
                                     <button type="button"
                                             x-on:click.stop="remove(index,option)"
+                                            :class="styles.removeButton"
                                             class="flex-shrink-0 ml-1 p-0.5 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded-full transition-all duration-150"
                                             :aria-label="'Remove tag: ' + option.text">
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -105,16 +75,16 @@ function getCookie(name) {
                             </div>
                         </div>
                         <!-- Drop down toggle with single rotating icon -->
-                        <div class="text-gray-300 w-8 py-1 pl-2 pr-1 border-l flex items-center border-gray-200"
-                             x-data="{ isRotated: false }">
+                        <div class="text-gray-300 w-8 py-1 pl-2 pr-1 border-l flex items-center border-gray-200">
                             <button type="button"
-                                    x-on:click="menuClose(); toggle(); isRotated = !isRotated"
+                                    x-on:click="menuClose(); toggle()"
                                     class="cursor-pointer w-6 h-6 p-1 text-gray-600 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150"
-                                    :aria-expanded="isRotated"
+                                    :aria-expanded="show"
+                                    aria-controls="tag-me-select-{{ name }}"
                                     aria-label="Toggle dropdown menu">
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                      class="h-4 w-4 transition-transform duration-200 ease-in-out"
-                                     x-bind:style="isRotated ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'"
+                                     x-bind:style="show ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'"
                                      fill="none"
                                      viewBox="0 0 24 24"
                                      stroke="currentColor"
@@ -128,8 +98,8 @@ function getCookie(name) {
                 </div>
                 <!-- Dropdown container -->
                 <div class="w-full">
-                    <div x-show="isOpen()"
-                         x-trap="isOpen()"
+                    <div x-show="show"
+                         x-trap.inert.noscroll="show"
                          x-transition.scale.origin.top.duration.200ms
                          class="absolute shadow-lg bg-white z-40 w-full left-0 rounded max-h-80">
                         <div class="flex flex-col w-full">
@@ -150,14 +120,16 @@ function getCookie(name) {
                                            type="text"
                                            name="search-{{ name }}"
                                            autocomplete="off"
-                                           x-model.debounce.750ms="search"
-                                           @keyup.escape.prevent.stop="clearSearch()"
-                                           @keyup.delete.prevent.stop="deselectTag()"
+                                           x-model.debounce.300ms="search"
+                                           @keydown.backspace="if($event.target.value === '') deselectTag()"
+                                           @keydown.arrow-down.prevent="navigateDown()"
+                                           @keydown.arrow-up.prevent="navigateUp()"
+                                           @keydown.enter.prevent="selectFocused()"
                                            class="text-xs lg:text-base text-black focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border border-indigo-300 rounded-md h-10"
                                            placeholder="Search tags..."
                                            role="searchbox"
                                            aria-label="Search available tags"
-                                           :aria-expanded="!menuIsOpen()">
+                                           :aria-expanded="show">
                                     <!-- Searchbar menu -->
                                     <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
                                         {% include "tag_me/tag_me_select_search_bar_menu.html" %}
@@ -166,17 +138,19 @@ function getCookie(name) {
                             </div>
                             <!-- Options container -->
                             <ul role="listbox"
-                                tabindex="-1"
-                                x-show="!menuIsOpen()"
+                                tabindex="0"
+                                x-show="!menuShow"
                                 x-transition.slide.down.duration.300ms
                                 x-cloak
-                                @keyup.delete="deselectTag()"
                                 class="z-10 mt-0 w-full bg-white shadow-lg max-h-80 rounded-md py-0 text-xs lg:text-base ring-1 ring-black ring-opacity-5 focus:outline-none  overflow-y-auto sm:text-sm">
                                 <template x-for="(option,index) in options" :key="option.text">
                                     <li role="option"
+                                        :aria-selected="option.selected"
+                                        :class="focusedIndex === index ? 'bg-blue-50 ring-2 ring-blue-200' : ''"
                                         class="text-xs lg:text-base text-gray-900 cursor-default select-none relative py-2 pl-3 pr-3">
                                         <div x-bind:class="option.selected ? 'bg-indigo-100' : ''"
                                              @click="select(index,$event)"
+                                             :class="styles.dropdownOption"
                                              class="cursor-pointer w-full border-gray-100 rounded-t border-b hover:bg-slate-100">
                                             <div x-bind:class="option.selected ? 'border-indigo-600' : ''"
                                                  class="flex w-full items-center p-2 pl-2 border-transparent border-l-2 relative">
