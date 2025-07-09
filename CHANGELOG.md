@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## [2025.07.09.1]
+
+### Bug Fixes
+- Add CookieManager with caching (js) [#266](https://github.com/imAsparky/django-tag-me/pull/266)
+  > - optimize cookie parsing performance
+- Reduce redundant document.cookie parsing
+- Maintain getCookie() backward compatibility
+
+
 ## [2025.07.01.1]
 
 ### Maintenance
