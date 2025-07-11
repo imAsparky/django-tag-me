@@ -28,7 +28,7 @@
             <div class="flex flex-col items-center relative">
                 <!-- Selected elements container -->
                 <div class="w-full">
-                    <div class="my-2 p-3 flex border border-gray-200 bg-gray-700 rounded-md">
+                    <div class="my-2 p-3 flex border border-gray-200 rounded-md">
                         <div x-on:click="toggle()" class="flex flex-auto flex-wrap gap-2">
                             <!-- iterating over selected elements (optimized) -->
                             <template x-for="(option,index) in displayedSelectedElms" :key="option.value">
