@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.07.11.1]
+
+### Bug Fixes
+- Remove bg gray from tag container (template) [#268](https://github.com/imAsparky/django-tag-me/pull/268)
+
+
 ## [2025.07.09.1]
 
 ### Bug Fixes
