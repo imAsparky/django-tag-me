@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.08.06.1]
+
+### Bug Fixes
+- tag_me_pills templatetag correctly shows unicode (template) [#270](https://github.com/imAsparky/django-tag-me/pull/270)
+
+
 ## [2025.07.11.1]
 
 ### Bug Fixes
