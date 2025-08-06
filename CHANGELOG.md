@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.08.06.2]
+
+### Bug Fixes
+- Added missing import into tag_me_pills (template) [#273](https://github.com/imAsparky/django-tag-me/pull/273)
+
+
 ## [2025.08.06.1]
 
 ### Bug Fixes
