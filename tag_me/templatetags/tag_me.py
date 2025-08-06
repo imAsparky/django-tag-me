@@ -1,4 +1,6 @@
 # templatetags/custom_tags.py
+import codecs
+
 from django import template
 from django.utils.safestring import mark_safe
 
