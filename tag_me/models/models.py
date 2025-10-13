@@ -56,6 +56,19 @@ class TagBase(models.Model):
             "Tags ABC",
         )
 
+    search_tags = models.TextField(
+        verbose_name=_(
+            "Verbose name",
+            "Search Tags",
+        ),
+        default="",
+        blank=True,
+        help_text=_(
+            "Help",
+            "A list of every tag created, for use in search tools",
+        ),
+    )
+
     tags = models.CharField(
         verbose_name=_(
             "Verbose name",
@@ -67,7 +80,7 @@ class TagBase(models.Model):
         max_length=255,
         help_text=_(
             "Help",
-            "This is the tag",
+            "The tags that are considered active and in use by the user",
         ),
     )
 
@@ -91,20 +104,30 @@ class TagBase(models.Model):
         return self._meta.verbose_name
 
     def save(self, *args, **kwargs):
-        """Ported from django-taggit
-        https://github.com/jazzband/django-taggit/tree/master
-        """
+        """Base save method that handles slug generation and search_tags merging"""
+
+        # Update search_tags by merging current tags with historical tags
+        if self.tags:
+            tags_to_process = self.tags.rstrip(",")
+            search_tags_to_process = (self.search_tags or "").rstrip(",")
+
+            current_tags = set(
+                tag.strip() for tag in tags_to_process.split(",") if tag.strip()
+            )
+            existing_tags = set(
+                tag.strip() for tag in search_tags_to_process.split(",") if tag.strip()
+            )
+
+            search_tags_set = existing_tags.union(current_tags)
+            self.search_tags = ",".join(sorted(search_tags_set)) + ","
+
+        # Existing slug generation logic
         if self._state.adding and not self.slug:
             self.slug = self.slugify(self.tags)
             using = kwargs.get("using") or router.db_for_write(
                 type(self), instance=self
             )
-            # Make sure we write to the same db for all attempted writes,
-            # with a multi-master setup, theoretically we could try to
-            # write and rollback on different DBs
             kwargs["using"] = using
-            # Be opportunistic and try to save the tag, this should work for
-            # most cases ;)
             try:
                 with transaction.atomic(using=using):
                     res = super().save(*args, **kwargs)
@@ -538,34 +561,15 @@ class UserTag(TagBase):
         *args,
         **kwargs,
     ):
-        """
-        Saves the model instance and optionally synchronises related tags.
+        """Saves with optional tag synchronization"""
 
-        This method allows you to control whether related tags from synchronised
-        content types will also be updated when the model saves.
-        :param name: The name of the syncronisation key to use.
-                                Defaults to default
-        :param sync_tags_save: If True, tags on related content types configured
-                               for synchronisation will be updated.  Defaults to False.
-        :param args: Additional positional arguments passed to the superclass's save method.
-        :param kwargs: Additional keyword arguments passed to the superclass's save method.
-
-        """
-        # We don't need to gather synchronising information if the save is
-        # for synchronising tags.  The information has already been collected
+        # Handle synchronization if needed
         if not sync_tags_save:
-            sync, _ = TagMeSynchronise.objects.get_or_create(
-                name=name,
-            )
-            # Check if tags should be synced for a specific field
+            sync, _ = TagMeSynchronise.objects.get_or_create(name=name)
+
             if self.field_name in sync.synchronise.keys():
-                # Get other objects with this tag ( then exclude the current one)
-                content_ids = copy.deepcopy(
-                    sync.synchronise[self.field_name],
-                )
-                content_ids.remove(
-                    self.tagged_field.content_id,
-                )
+                content_ids = copy.deepcopy(sync.synchronise[self.field_name])
+                content_ids.remove(self.tagged_field.content_id)
 
                 for content_id in content_ids:
                     tagged_field_model = TaggedFieldModel.objects.get(
@@ -575,17 +579,14 @@ class UserTag(TagBase):
                         .__name__.lower(),
                         field_name=self.field_name,
                     )
-
                     instance = UserTag.objects.get(
                         user=self.user,
                         tagged_field=tagged_field_model,
                     )
-
                     instance.tags = self.tags
-                    instance.save(
-                        sync_tags_save=True,
-                    )
+                    instance.save(sync_tags_save=True)
 
+        # Call parent save (which handles search_tags merging)
         super().save(*args, **kwargs)
 
 

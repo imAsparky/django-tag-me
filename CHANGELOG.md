@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.10.13.1]
+
+### Maintenance
+- Add search_tags for all tags ever created (search) [#275](https://github.com/imAsparky/django-tag-me/pull/275)
+
+
 ## [2025.08.06.2]
 
 ### Bug Fixes
