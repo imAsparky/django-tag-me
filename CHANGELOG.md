@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2025.10.14.1]
+
+### Maintenance
+- Add front-end deps etc (git) [#277](https://github.com/imAsparky/django-tag-me/pull/277)
+
+### Code Refactoring
+- Add frontend and vite build (build) [#277](https://github.com/imAsparky/django-tag-me/pull/277)
+
+### Testing
+- Add test for frontend asset tooling (asset) [#277](https://github.com/imAsparky/django-tag-me/pull/277)
+
+
 ## [2025.10.13.1]
 
 ### Maintenance
