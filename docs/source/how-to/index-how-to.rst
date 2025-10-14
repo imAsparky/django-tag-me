@@ -19,4 +19,4 @@ How-To
    how-to-contributing
    how-to-tag-sync
    how-to-tagged-field
-
+   how-to-asset-loading

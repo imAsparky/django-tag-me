@@ -12,6 +12,10 @@ from django.template.loader import (
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
+from tag_me.assets import (
+    get_tag_me_css,
+    get_tag_me_js,
+)
 from tag_me.models import UserTag
 from tag_me.utils.collections import FieldTagListFormatter
 
@@ -21,6 +25,16 @@ logger = logging.getLogger(__name__)
 
 class TagMeSelectMultipleWidget(forms.SelectMultiple):
     multiple = True
+
+    class Media:
+        """
+        Widget media files.
+
+        Note: These use the Vite manifest to get hashed filenames.
+        """
+
+        css = {"all": (get_tag_me_css(),)}
+        js = (get_tag_me_js(),)
 
     # @override
     def render(self, name, value, attrs=None, renderer=None) -> str:

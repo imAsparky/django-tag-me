@@ -1,4 +1,6 @@
 # Project Files
+*/.vite/*
+frontend/node_modules/*
 
 
 # Project Folders
