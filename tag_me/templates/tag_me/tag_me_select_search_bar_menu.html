@@ -1,191 +1,194 @@
-<div class="relative"
-     x-on:keydown.escape="if(menuShow) { $event.preventDefault(); $event.stopPropagation(); menuClose('search'); }">
+{# tag_me/templates/tag_me/tag_me_select_search_bar_menu.html #}
+<!-- ADDED CLICK AWAY WITH STOP -->
+<div class="tm-relative"
+     @click.stop
+     @click.away="menuClose()"
+     x-on:keydown.escape="if(menuShow) { $event.preventDefault(); $event.stopPropagation(); menuClose(); }">
+    <!-- Menu Toggle Button -->
     <button type="button"
-            class="inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded transition-colors duration-150"
-            @click="menuToggle()"
+            class="tm-menu-btn"
+            @click.stop="menuToggle()"
             :aria-expanded="menuShow"
             :aria-controls="$id('search-menu-dropdown')"
             aria-label="Search menu options">
-        <span class="hidden lg:inline">Menu</span>
-        <!-- Single rotating hamburger icon for mobile -->
-        <svg class="h-5 w-5 lg:hidden transition-transform duration-200 ease-in-out"
+        <!-- Desktop Text -->
+        <span class="tm-hidden lg:tm-inline">Menu</span>
+        <!-- Mobile Hamburger Icon -->
+        <svg class="tm-menu-icon lg:tm-hidden"
              x-bind:style="menuShow ? 'transform: rotate(45deg)' : 'transform: rotate(0deg)'"
              viewBox="0 0 24 24"
              fill="none"
              stroke="currentColor"
-             aria-hidden="true"
-             data-slot="icon-hamburger">
+             aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
         </svg>
-        <!-- Desktop arrow icon with rotation -->
-        <svg class="h-5 w-5 hidden lg:inline transition-transform duration-200 ease-in-out"
+        <!-- Desktop Arrow Icon -->
+        <svg class="tm-menu-icon tm-hidden lg:tm-inline"
              x-bind:style="menuShow ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'"
              viewBox="0 0 20 20"
              fill="currentColor"
-             aria-hidden="true"
-             data-slot="icon-arrow">
+             aria-hidden="true">
             <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
         </svg>
     </button>
+    <!-- Dropdown Menu - REMOVED x-on:click.outside from here -->
     <div :id="$id('search-menu-dropdown')"
          x-ref="menuPanel"
          x-show="menuShow"
-         x-trap="menuShow"
          x-transition.scale.origin.top.duration.200ms
          x-cloak
-         class="absolute z-10 mt-5 right-0">
-        <div class="w-80 max-w-sm overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
-            <div class="p-4">
+         class="tm-menu-dropdown">
+        <div class="tm-menu-content">
+            <div class="tm-menu-section">
+                <!-- Add Tag Button -->
                 <button type="button"
                         x-show="canAddNewTag && permittedToAddTags && !isCreatingTag"
                         x-on:click="createNewTag(); menuClose()"
-                        :class="styles.menuButton"
-                        class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150 w-full text-left"
+                        class="tm-menu-item tm-group"
                         aria-label="Add a new tag">
-                    <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                        <svg class="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
+                    <div class="tm-menu-icon-wrapper">
+                        <svg class="tm-menu-item-icon"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke-width="1.5"
                              stroke="currentColor"
-                             aria-hidden="true"
-                             data-slot="icon">
+                             aria-hidden="true">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5 12h14m-7 7V5" />
                         </svg>
                     </div>
                     <div>
-                        <span class="font-semibold text-gray-900">Add</span>
-                        <p class="mt-1 text-gray-600">Add a new tag.</p>
-                    </div>
-                    <!-- Tag button - loading state -->
-                    <div x-show="isCreatingTag && permittedToAddTags"
-                         class="group relative flex gap-x-6 rounded-lg p-4 bg-gray-50 w-full text-left opacity-75">
-                        <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-100">
-                            <svg class="animate-spin h-6 w-6 text-indigo-600"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 fill="none"
-                                 viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="font-semibold text-gray-700">Creating tag...</span>
-                            <p class="mt-1 text-gray-500">Please wait.</p>
-                        </div>
+                        <span class="tm-menu-item-text">Add</span>
+                        <p class="tm-menu-item-description">Add a new tag.</p>
                     </div>
                 </button>
+                <!-- Loading State -->
+                <div x-show="isCreatingTag && permittedToAddTags"
+                     class="tm-loading-container tm-group">
+                    <div class="tm-menu-icon-wrapper">
+                        <svg class="tm-loading-spinner"
+                             xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24">
+                            <circle class="tm-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="tm-font-semibold tm-text-gray-700">Creating tag...</span>
+                        <p class="tm-mt-1 tm-text-gray-500">Please wait.</p>
+                    </div>
+                </div>
+                <!-- Clear Search Button -->
                 <button type="button"
                         x-on:click="clearSearch(); menuClose()"
-                        class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150 w-full text-left"
+                        class="tm-menu-item tm-group"
                         aria-label="Clear search bar">
-                    <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                        <svg class="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
+                    <div class="tm-menu-icon-wrapper">
+                        <svg class="tm-menu-item-icon"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke-width="1.5"
                              stroke="currentColor"
-                             aria-hidden="true"
-                             data-slot="icon">
+                             aria-hidden="true">
                             <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m6 6 12 12m3-6a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
                     </div>
                     <div>
-                        <span class="font-semibold text-gray-900">Clear</span>
-                        <p class="mt-1 text-gray-600">Clear search bar.</p>
+                        <span class="tm-menu-item-text">Clear</span>
+                        <p class="tm-menu-item-description">Clear search bar.</p>
                     </div>
                 </button>
+                <!-- Remove All Tags Button -->
                 <button type="button"
                         x-on:click="deselectTag(); menuClose()"
-                        class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded transition-colors duration-150 w-full text-left"
+                        class="tm-menu-item tm-group"
                         aria-label="Remove all selected tags">
-                    <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                        <svg class="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
+                    <div class="tm-menu-icon-wrapper">
+                        <svg class="tm-menu-item-icon"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke-width="1.5"
                              stroke="currentColor"
-                             aria-hidden="true"
-                             data-slot="icon">
+                             aria-hidden="true">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
                         </svg>
                     </div>
                     <div>
-                        <span class="font-semibold text-gray-900">Remove</span>
-                        <p class="mt-1 text-gray-600">Unselect all tags.</p>
+                        <span class="tm-menu-item-text">Remove</span>
+                        <p class="tm-menu-item-description">Unselect all tags.</p>
                     </div>
                 </button>
             </div>
-            <!-- Error message display -->
+            <!-- Error Message Display -->
             <div x-show="tagCreationError"
                  x-transition.slide.down.duration.200ms
-                 class="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div class="flex items-start space-x-2">
-                    <svg class="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0"
+                 class="tm-error-container">
+                <div class="tm-error-content">
+                    <svg class="tm-error-icon"
                          xmlns="http://www.w3.org/2000/svg"
                          viewBox="0 0 20 20"
                          fill="currentColor">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                     </svg>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-medium text-red-800">Error creating tag</h4>
-                        <p class="mt-1 text-sm text-red-700" x-text="tagCreationError"></p>
+                    <div class="tm-error-text-wrapper">
+                        <h4 class="tm-error-title">Error creating tag</h4>
+                        <p class="tm-error-message" x-text="tagCreationError"></p>
                     </div>
-                    <button @click="tagCreationError = null"
-                            class="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded p-1">
-                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <button @click="tagCreationError = null" class="tm-error-close-btn">
+                        <svg class="tm-error-close-icon" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
             </div>
+            <!-- Footer Links -->
             {% if help_url or mgmt_url %}
-                <div class="bg-gray-50 p-8">
-                    <ul role="list" class="mt-2 space-y-6">
+                <div class="tm-footer">
+                    <ul role="list" class="tm-footer-list">
                         {% if help_url %}
-                            <li class="relative">
-                                <div class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-white">
-                                    <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
+                            <li class="tm-footer-item">
+                                <div class="tm-footer-link-wrapper tm-group">
+                                    <div class="tm-footer-icon-wrapper">
                                         <svg xmlns="http://www.w3.org/2000/svg"
                                              fill="none"
                                              viewBox="0 0 24 24"
                                              stroke-width="2"
                                              stroke="currentColor"
-                                             class="h-6 w-6 mr-2 text-gray-600 group-hover:text-indigo-600">
+                                             class="tm-footer-icon">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
                                         </svg>
                                     </div>
                                     <div>
-                                        <a href="{{ help_url }}" class="font-semibold text-gray-900">
+                                        <a href="{{ help_url }}" class="tm-footer-link">
                                             Help
-                                            <span class="absolute inset-0"></span>
+                                            <span class="tm-absolute tm-inset-0"></span>
                                         </a>
-                                        <p class="mt-1 text-gray-600">Help with tags.</p>
+                                        <p class="tm-footer-description">Help with tags.</p>
                                     </div>
                                 </div>
                             </li>
                         {% endif %}
                         {% if mgmt_url %}
-                            <li class="relative">
-                                <div class="group relative flex gap-x-6 rounded-lg p-4 hover:bg-white">
-                                    <div class="mt-1 flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
+                            <li class="tm-footer-item">
+                                <div class="tm-footer-link-wrapper tm-group">
+                                    <div class="tm-footer-icon-wrapper">
                                         <svg xmlns="http://www.w3.org/2000/svg"
                                              fill="none"
                                              viewBox="0 0 24 24"
                                              stroke-width="2"
                                              stroke="currentColor"
-                                             class="h-6 w-6 mr-2 text-gray-600 group-hover:text-indigo-600">
+                                             class="tm-footer-icon">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
                                         </svg>
                                     </div>
                                     <div>
-                                        <a href="{{ mgmt_url }}" class="font-semibold text-gray-900">
+                                        <a href="{{ mgmt_url }}" class="tm-footer-link">
                                             Tag Management
-                                            <span class="absolute inset-0"></span>
+                                            <span class="tm-absolute tm-inset-0"></span>
                                         </a>
-                                        <p class="mt-1 text-gray-600">Tag admin centre.</p>
+                                        <p class="tm-footer-description">Tag admin centre.</p>
                                     </div>
                                 </div>
                             </li>
