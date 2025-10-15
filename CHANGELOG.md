@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2025.10.15.1]
+
+### Bug Fixes
+- Add `frontend/` & fix alpine component add functionality (tag) [#280](https://github.com/imAsparky/django-tag-me/pull/280)
+
+### Code Refactoring
+- Comment widget tests for merge (test) [#280](https://github.com/imAsparky/django-tag-me/pull/280)
+
+### Testing
+- Adjust limits for refactoring (limits) [#280](https://github.com/imAsparky/django-tag-me/pull/280)
+
+
 ## [2025.10.14.1]
 
 ### Maintenance
