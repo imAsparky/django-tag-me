@@ -2,7 +2,7 @@
 module.exports = {
 	prefix: 'tm-',
 	content: [
-		'./src/**/*.{js,jsx,ts,tsx,css}',  // ← Added .css here
+		'./src/**/*.{js,jsx,ts,tsx,css}',
 		'../tag_me/templates/**/*.html',
 	],
 	theme: {
@@ -23,13 +23,4 @@ module.exports = {
 		},
 	},
 	plugins: [],
-	// Can remove safelist now that we have @layer components
-	safelist: [
-		'tm-bg-indigo-50',
-		'tm-bg-indigo-100',
-		'tm-text-indigo-800',
-		'tm-text-indigo-900',
-		'tm-border-indigo-200',
-		'tm-border-indigo-300',
-	]
 }

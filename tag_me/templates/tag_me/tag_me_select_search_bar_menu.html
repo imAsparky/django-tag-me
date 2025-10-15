@@ -1,29 +1,128 @@
 {# tag_me/templates/tag_me/tag_me_select_search_bar_menu.html #}
-<!-- ADDED CLICK AWAY WITH STOP -->
-<div class="tm-relative"
+{# STEP 4 (Option D2): Desktop fully inline, Mobile keeps menu #}
+
+<!-- Quick Actions (Desktop Only - Always Visible When Relevant) -->
+<div class="tm-quick-actions">
+    <!-- Add Button (Desktop) -->
+    <button type="button"
+            x-show="canAddTag && !isCreatingTag"
+            x-transition.opacity.duration.150ms
+            @click.stop="createNewTag()"
+            class="tm-icon-btn tm-icon-btn-primary"
+            title="Add new tag">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="tm-h-5 tm-w-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor"
+             stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+    </button>
+    
+    <!-- Loading Spinner (Desktop) -->
+    <div x-show="isCreatingTag"
+         class="tm-inline-flex tm-items-center tm-px-2">
+        <svg class="tm-animate-spin tm-h-5 tm-w-5 tm-text-indigo-600"
+             xmlns="http://www.w3.org/2000/svg"
+             fill="none"
+             viewBox="0 0 24 24">
+            <circle class="tm-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+    </div>
+    
+    <!-- Clear Search Button -->
+    <button type="button"
+            x-show="search.length > 0 && !isCreatingTag"
+            x-transition.opacity.duration.150ms
+            @click.stop="clearSearch()"
+            class="tm-icon-btn"
+            title="Clear search">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="tm-h-5 tm-w-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor"
+             stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12m3-6a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+    </button>
+    
+    <!-- Remove All Tags Button -->
+    <button type="button"
+            x-show="selectedTags.size > 0 && !isCreatingTag"
+            x-transition.opacity.duration.150ms
+            @click.stop="deselectAll()"
+            class="tm-icon-btn tm-relative"
+            :title="'Remove ' + selectedTags.size + ' tags'">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="tm-h-5 tm-w-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor"
+             stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
+        </svg>
+        <span class="tm-icon-btn-badge" x-text="selectedTags.size"></span>
+    </button>
+    
+    <!-- Help Icon (Desktop) -->
+    <a x-show="helpUrl"
+       :href="helpUrl"
+       target="_blank"
+       class="tm-icon-btn"
+       title="Help">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="tm-h-5 tm-w-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor"
+             stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+        </svg>
+    </a>
+    
+    <!-- Management Icon (Desktop) -->
+    <a x-show="mgmtUrl"
+       :href="mgmtUrl"
+       class="tm-icon-btn"
+       target="_blank"
+       title="Tag Management">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="tm-h-5 tm-w-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor"
+             stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+        </svg>
+    </a>
+</div>
+
+<!-- Mobile Only: Menu Button -->
+<div class="tm-relative tm-block lg:tm-hidden"
      @click.stop
      @click.away="menuClose()"
      x-on:keydown.escape="if(menuShow) { $event.preventDefault(); $event.stopPropagation(); menuClose(); }">
-    <!-- Menu Toggle Button -->
+    <!-- Menu Toggle Button (Mobile Only) -->
     <button type="button"
             class="tm-menu-btn"
+            :class="menuButtonClass"
             @click.stop="menuToggle()"
             :aria-expanded="menuShow"
             :aria-controls="$id('search-menu-dropdown')"
-            aria-label="Search menu options">
-        <!-- Desktop Text -->
-        <span class="tm-hidden lg:tm-inline">Menu</span>
-        <!-- Mobile Hamburger Icon -->
-        <svg class="tm-menu-icon lg:tm-hidden"
-             x-bind:style="menuShow ? 'transform: rotate(45deg)' : 'transform: rotate(0deg)'"
-             viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor"
-             aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0-3.75-3.75M17.25 21 21 17.25" />
-        </svg>
-        <!-- Desktop Arrow Icon -->
-        <svg class="tm-menu-icon tm-hidden lg:tm-inline"
+            aria-label="Menu options">
+        
+        <!-- Smart Badge (Mobile Only) -->
+        <span x-show="menuBadge.show"
+              :class="menuBadge.cssClass"
+              x-text="menuBadge.count > 0 ? menuBadge.count : ''"
+              x-transition.opacity.duration.200ms></span>
+        
+        <!-- Chevron Icon -->
+        <svg class="tm-menu-icon"
              x-bind:style="menuShow ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'"
              viewBox="0 0 20 20"
              fill="currentColor"
@@ -31,7 +130,8 @@
             <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
         </svg>
     </button>
-    <!-- Dropdown Menu - REMOVED x-on:click.outside from here -->
+    
+    <!-- Dropdown Menu (Mobile Only) -->
     <div :id="$id('search-menu-dropdown')"
          x-ref="menuPanel"
          x-show="menuShow"
@@ -42,7 +142,7 @@
             <div class="tm-menu-section">
                 <!-- Add Tag Button -->
                 <button type="button"
-                        x-show="canAddNewTag && permittedToAddTags && !isCreatingTag"
+                        x-show="canAddTag && !isCreatingTag"
                         x-on:click="createNewTag(); menuClose()"
                         class="tm-menu-item tm-group"
                         aria-label="Add a new tag">
@@ -57,12 +157,15 @@
                         </svg>
                     </div>
                     <div>
-                        <span class="tm-menu-item-text">Add</span>
-                        <p class="tm-menu-item-description">Add a new tag.</p>
+                        <span class="tm-menu-item-text">Add Tag</span>
+                        <p class="tm-menu-item-description">
+                            Add "<span x-text="search"></span>" to library
+                        </p>
                     </div>
                 </button>
+                
                 <!-- Loading State -->
-                <div x-show="isCreatingTag && permittedToAddTags"
+                <div x-show="isCreatingTag"
                      class="tm-loading-container tm-group">
                     <div class="tm-menu-icon-wrapper">
                         <svg class="tm-loading-spinner"
@@ -70,8 +173,7 @@
                              fill="none"
                              viewBox="0 0 24 24">
                             <circle class="tm-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
+                            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     </div>
                     <div>
@@ -79,8 +181,10 @@
                         <p class="tm-mt-1 tm-text-gray-500">Please wait.</p>
                     </div>
                 </div>
+                
                 <!-- Clear Search Button -->
                 <button type="button"
+                        x-show="search.length > 0"
                         x-on:click="clearSearch(); menuClose()"
                         class="tm-menu-item tm-group"
                         aria-label="Clear search bar">
@@ -91,17 +195,19 @@
                              stroke-width="1.5"
                              stroke="currentColor"
                              aria-hidden="true">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m6 6 12 12m3-6a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            <path stroke-linecap="round" stroke-width="2" d="m6 6 12 12m3-6a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
                     </div>
                     <div>
-                        <span class="tm-menu-item-text">Clear</span>
+                        <span class="tm-menu-item-text">Clear Search</span>
                         <p class="tm-menu-item-description">Clear search bar.</p>
                     </div>
                 </button>
+                
                 <!-- Remove All Tags Button -->
                 <button type="button"
-                        x-on:click="deselectTag(); menuClose()"
+                        x-show="selectedTags.size > 0"
+                        x-on:click="deselectAll(); menuClose()"
                         class="tm-menu-item tm-group"
                         aria-label="Remove all selected tags">
                     <div class="tm-menu-icon-wrapper">
@@ -111,15 +217,18 @@
                              stroke-width="1.5"
                              stroke="currentColor"
                              aria-hidden="true">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
                         </svg>
                     </div>
                     <div>
-                        <span class="tm-menu-item-text">Remove</span>
-                        <p class="tm-menu-item-description">Unselect all tags.</p>
+                        <span class="tm-menu-item-text">Remove All</span>
+                        <p class="tm-menu-item-description">
+                            Unselect all <span x-text="selectedTags.size"></span> tags.
+                        </p>
                     </div>
                 </button>
             </div>
+            
             <!-- Error Message Display -->
             <div x-show="tagCreationError"
                  x-transition.slide.down.duration.200ms
@@ -135,13 +244,16 @@
                         <h4 class="tm-error-title">Error creating tag</h4>
                         <p class="tm-error-message" x-text="tagCreationError"></p>
                     </div>
-                    <button @click="tagCreationError = null" class="tm-error-close-btn">
+                    <button @click="tagCreationError = null" 
+                            class="tm-error-close-btn"
+                            aria-label="Dismiss error">
                         <svg class="tm-error-close-icon" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
             </div>
+            
             <!-- Footer Links -->
             {% if help_url or mgmt_url %}
                 <div class="tm-footer">
@@ -160,7 +272,7 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <a href="{{ help_url }}" class="tm-footer-link">
+                                        <a :href="helpUrl" class="tm-footer-link" target="_blank">
                                             Help
                                             <span class="tm-absolute tm-inset-0"></span>
                                         </a>
@@ -184,7 +296,7 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <a href="{{ mgmt_url }}" class="tm-footer-link">
+                                        <a :href="mgmtUrl" class="tm-footer-link">
                                             Tag Management
                                             <span class="tm-absolute tm-inset-0"></span>
                                         </a>

@@ -1,5 +1,4 @@
 // frontend/src/tag-me.js
-
 /**
  * Django Tag-Me - Alpine.js Multi-Select Component
  * 
@@ -10,21 +9,54 @@
 // Import styles
 import './css/tag-me.css'
 
-// Import component modules
-import { CookieManager } from './js/cookie-manager.js'
+// Import component
 import { createAlpineComponent } from './js/alpine-component.js'
-
-// Make CookieManager available globally for backward compatibility
-if (typeof window !== 'undefined') {
-	window.getCookie = (name) => CookieManager.get(name)
-}
 
 // Register component with Alpine.js
 if (typeof window !== 'undefined') {
 	console.log('🔍 Tag-Me: Initializing...')
 
+	// DEBUG: Check what we imported
+	console.log('📦 createAlpineComponent imported:', typeof createAlpineComponent)
+
+	// DEBUG: Create test instance to verify it has new methods
+	try {
+		const testConfig = {
+			choices: [],
+			selected: [],
+			addTagURL: '',
+			permittedToAddTags: true,
+			allowMultiple: true,
+			autoSelectNewTags: true,
+			displayNumberSelected: 2,
+			helpUrl: '',
+			mgmtUrl: ''
+		}
+
+		console.log('🧪 Creating test instance...')
+		const testInstance = createAlpineComponent(testConfig)
+
+		console.log('🧪 Test instance created successfully')
+		console.log('🧪 Has toggle?', typeof testInstance.toggle)
+		console.log('🧪 Has menuBadge?', 'menuBadge' in testInstance)
+		console.log('🧪 Has menuButtonClass?', 'menuButtonClass' in testInstance)
+		console.log('🧪 Has showInlineAdd?', 'showInlineAdd' in testInstance)
+
+		// Try to access menuBadge
+		try {
+			const badge = testInstance.menuBadge
+			console.log('🧪 menuBadge returns:', badge)
+		} catch (e) {
+			console.error('🧪 Error accessing menuBadge:', e)
+		}
+
+	} catch (e) {
+		console.error('❌ Failed to create test instance:', e)
+	}
+
 	const registerComponent = () => {
 		if (typeof window.Alpine !== 'undefined' && window.Alpine.data) {
+			console.log('📝 Registering component with Alpine...')
 			window.Alpine.data('alpineTagMeMultiSelect', createAlpineComponent)
 			console.log('✅ Django Tag-Me component registered with Alpine.js')
 			return true
@@ -57,7 +89,9 @@ if (typeof window !== 'undefined') {
 			}
 		}, 5000)
 	}
+
+	console.log('✅ Tag-Me initialization complete')
 }
 
-// Export for module usage (harmless for IIFE)
-export { CookieManager, createAlpineComponent }
+// Export for module usage
+export { createAlpineComponent }

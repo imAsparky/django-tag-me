@@ -1,8 +1,19 @@
 {# tag_me/templates/tag_me/tag_me_select.html #}
-{# Alpine.js multi-select widget with Tag-Me component classes #}
+{# Nuclear Hybrid with Drag-to-Reorder #}
+
 <!-- Main Container -->
 <div id='tag-me-select-container-{{ name }}'
-     x-data="alpineTagMeMultiSelect({ addTagURL: '{{ add_tag_url }}', elementId: 'id_{{ name }}', permittedToAddTags: {{ permitted_to_add_tags }}, allowMultipleSelect: {{ multiple|yesno:'true,false' }}, autoSelectNewTags: {{ auto_select_new_tags|yesno:'true,false' }}, displayNumberSelected: {{ display_number_selected }}, search: '', selected: {{ values }}, })"
+     x-data="alpineTagMeMultiSelect({
+         addTagURL: '{{ add_tag_url }}',
+         permittedToAddTags: {{ permitted_to_add_tags }},
+         allowMultiple: {{ multiple|yesno:'true,false' }},
+         autoSelectNewTags: {{ auto_select_new_tags|yesno:'true,false' }},
+         displayNumberSelected: {{ display_number_selected }},
+         choices: {{ choices|safe }},
+         selected: {{ values|safe }},
+         helpUrl: '{{ help_url|default:"" }}',
+         mgmtUrl: '{{ mgmt_url|default:"" }}'
+     })"
      x-on:click.outside="close()"
      x-on:keydown.prevent.stop.escape="close()"
      x-id="['search-menu-dropdown']"
@@ -10,37 +21,35 @@
      aria-label="Tag selection"
      :aria-expanded="show"
      class="tm-container">
-    <!-- Hidden Select Element -->
-    <select id='id_{{ name }}'
-            name='{{ name }}'
-            x-bind:value="selectedValues()"
-            x-bind:multiple="allowMultipleSelect"
-            class="tm-sr-only">
-        {% for tag in choices %}
-            <option value='{{ tag|escapejs }}' data-search='{{ tag|escapejs }}'>{{ tag|escape }}</option>
-        {% endfor %}
-    </select>
+    
+    <!-- Hidden Input for Form Submission -->
+    <input type="hidden" 
+           name="{{ name }}" 
+           x-model="formValue">
+    
     <!-- Widget Container -->
     <div id="tag-me-select-{{ name }}" class="tm-inner-container">
-        <!-- Selected Tags and Input -->
-        <input name="js_{{ name }}[]" type="hidden" x-bind:value="selectedValues()">
         <div class="tm-flex-container">
             <!-- Selected Tags Display -->
             <div class="tm-w-full">
                 <div class="tm-selected-container">
-                    <!-- Tags List + Toggle Button -->
-                    <div x-on:click="toggle()" class="tm-selected-tags-wrapper">
+                    <!-- Tags List + Toggle Button (Sortable Container) -->
+                    <div x-on:click="toggle()" 
+                         class="tm-selected-tags-wrapper"
+                         x-ref="tagContainer">
                         <!-- Display Selected Tags (up to displayNumberSelected) -->
-                        <template x-for="(option, index) in displayedSelectedElms" :key="option.value">
-                            <div class="tm-tag-pill" role="option" aria-selected="true">
-                                <div x-model="selectedElms[option]"
-                                     x-text="option.text"
+                        <template x-for="tagName in displayedSelected" :key="tagName">
+                            <div class="tm-tag-pill" 
+                                 role="option" 
+                                 aria-selected="true"
+                                 style="cursor: move;">
+                                <div x-text="tagName"
                                      class="tm-text-xs lg:tm-text-base tm-font-normal tm-leading-none tm-max-w-full tm-flex-initial tm-mr-2">
                                 </div>
                                 <button type="button"
-                                        x-on:click.stop="remove(index, option)"
+                                        x-on:click.stop="removeTag(tagName)"
                                         class="tm-tag-remove-btn"
-                                        :aria-label="'Remove tag: ' + option.text">
+                                        :aria-label="'Remove tag: ' + tagName">
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                          class="tm-h-4 tm-w-4"
                                          fill="none"
@@ -53,21 +62,23 @@
                                 </button>
                             </div>
                         </template>
+                        
                         <!-- "More" Indicator -->
-                        <div x-show="selectedElms.length > {{ display_number_selected }}"
-                             class="tm-more-indicator">
+                        <div x-show="overflowCount > 0" class="tm-more-indicator">
                             <div class="tm-text-xs lg:tm-text-base tm-font-normal tm-leading-none tm-max-w-full tm-flex-initial">
                                 <span class="tm-more-badge">
-                                    <span x-text="selectedElms.length - {{ display_number_selected }}"></span>
+                                    <span x-text="overflowCount"></span>
                                 </span>
                                 more selected
                             </div>
                         </div>
+                        
                         <!-- Placeholder Text -->
-                        <div x-show="selectedElms.length == 0" class="tm-flex-1">
+                        <div x-show="selectedTags.size === 0" class="tm-flex-1">
                             <p class="tm-placeholder">Select Tags</p>
                         </div>
                     </div>
+                    
                     <!-- Dropdown Toggle Button -->
                     <div class="tm-toggle-wrapper">
                         <button type="button"
@@ -90,6 +101,7 @@
                     </div>
                 </div>
             </div>
+            
             <!-- Dropdown Container -->
             <div class="tm-w-full">
                 <div x-show="show"
@@ -111,13 +123,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
                                 </div>
+                                
                                 <!-- Search Input -->
                                 <input id="search-{{ name }}"
                                        type="text"
                                        name="search-{{ name }}"
                                        autocomplete="off"
                                        x-model.debounce.300ms="search"
-                                       @keydown.backspace="if($event.target.value === '') deselectTag()"
+                                       @keydown.backspace="if($event.target.value === '') deselectAll()"
                                        @keydown.arrow-down.prevent="navigateDown()"
                                        @keydown.arrow-up.prevent="navigateUp()"
                                        @keydown.enter.prevent="selectFocused()"
@@ -126,10 +139,14 @@
                                        role="searchbox"
                                        aria-label="Search available tags"
                                        :aria-expanded="show">
+                                
                                 <!-- Search Bar Menu (Add/Clear/Remove buttons) -->
-                                <div class="tm-menu-button-wrapper">{% include "tag_me/tag_me_select_search_bar_menu.html" %}</div>
+                                <div class="tm-menu-button-wrapper">
+                                    {% include "tag_me/tag_me_select_search_bar_menu.html" %}
+                                </div>
                             </div>
                         </div>
+                        
                         <!-- Options List -->
                         <ul role="listbox"
                             tabindex="0"
@@ -137,20 +154,22 @@
                             x-transition.slide.down.duration.300ms
                             x-cloak
                             class="tm-options-list">
-                            <template x-for="(option, index) in options" :key="option.text">
+                            <!-- Existing Tags -->
+                            <template x-for="(tagName, index) in filteredTags" :key="tagName">
                                 <li role="option"
-                                    :aria-selected="option.selected"
-                                    :class="focusedIndex === index ? 'tm-option-focused' : ''"
+                                    :aria-selected="isSelected(tagName)"
+                                    :class="isFocused(tagName) ? 'tm-option-focused' : ''"
                                     class="tm-option-item">
-                                    <div x-bind:class="option.selected ? 'tm-option-content-selected' : ''"
-                                         @click="select(index, $event)"
+                                    <div x-bind:class="isSelected(tagName) ? 'tm-option-content-selected' : ''"
+                                         @click="toggleTag(tagName)"
                                          class="tm-option-content">
-                                        <div x-bind:class="option.selected ? 'tm-option-inner-selected' : ''"
+                                        <div x-bind:class="isSelected(tagName) ? 'tm-option-inner-selected' : ''"
                                              class="tm-option-inner">
                                             <div class="tm-option-text-wrapper">
-                                                <div x-model="option" x-text="option.text" class="tm-option-text"></div>
+                                                <div x-text="tagName" class="tm-option-text"></div>
+                                                
                                                 <!-- Checkmark for Selected -->
-                                                <span class="tm-option-checkmark" x-show="option.selected && option.text">
+                                                <span class="tm-option-checkmark" x-show="isSelected(tagName)">
                                                     <svg class="tm-checkmark-icon"
                                                          xmlns="http://www.w3.org/2000/svg"
                                                          viewBox="0 0 20 20"

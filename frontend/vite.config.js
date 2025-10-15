@@ -69,8 +69,8 @@ export default defineConfig({
 		devSourcemap: !isProduction,
 		postcss: {
 			plugins: [
-				tailwindcss,      // ← ES6 import, not require
-				autoprefixer,     // ← ES6 import, not require
+				tailwindcss,
+				autoprefixer,
 			]
 		}
 	},
