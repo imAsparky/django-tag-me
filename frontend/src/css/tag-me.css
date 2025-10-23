@@ -19,9 +19,17 @@ tm-font-medium tm-py-1.5 tm-px-3 tm-rounded-full
 tm-text-indigo-800 tm-bg-indigo-50
 tm-border tm-border-indigo-200 tm-shadow-sm
 tm-transition-colors tm-duration-150 tm-mr-2 tm-mb-1;
+/* Prevent text selection during drag */
+user-select: none;
+-webkit-user-select: none;
+/* Show grab cursor on hover, grabbing when dragging */
+cursor: grab;
 }
 .tm-tag-pill:hover {
 @apply tm-bg-indigo-100;
+}
+.tm-tag-pill:active {
+cursor: grabbing;
 }
 /*
 * Tag Remove Button
@@ -34,6 +42,8 @@ tm-transition-all tm-duration-150
 hover:tm-text-indigo-900 hover:tm-bg-indigo-100
 focus:tm-outline-none focus:tm-ring-2
 focus:tm-ring-indigo-500 focus:tm-ring-offset-1;
+/* Keep pointer cursor for the remove button */
+cursor: pointer;
 }
 /*
 * Main Container
@@ -406,6 +416,21 @@ tm-font-medium tm-flex tm-items-center tm-gap-2;
 }
 .tm-menu-content-scrollable::-webkit-scrollbar-thumb:hover {
 @apply tm-bg-gray-400;
+}
+/* ========================================
+* SORTABLE.JS DRAG STATES
+* ======================================== */
+/* Standard Sortable.js visual feedback classes */
+.sortable-ghost {
+opacity: 0.4;
+cursor: grabbing;
+}
+.sortable-chosen {
+cursor: grabbing;
+}
+.sortable-drag {
+opacity: 1;
+cursor: grabbing;
 }
 }
 /*

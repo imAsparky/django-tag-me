@@ -1,6 +1,5 @@
 {# tag_me/templates/tag_me/tag_me_select_search_bar_menu.html #}
 {# STEP 4 (Option D2): Desktop fully inline, Mobile keeps menu #}
-
 <!-- Quick Actions (Desktop Only - Always Visible When Relevant) -->
 <div class="tm-quick-actions">
     <!-- Add Button (Desktop) -->
@@ -19,19 +18,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
     </button>
-    
     <!-- Loading Spinner (Desktop) -->
-    <div x-show="isCreatingTag"
-         class="tm-inline-flex tm-items-center tm-px-2">
+    <div x-show="isCreatingTag" class="tm-inline-flex tm-items-center tm-px-2">
         <svg class="tm-animate-spin tm-h-5 tm-w-5 tm-text-indigo-600"
              xmlns="http://www.w3.org/2000/svg"
              fill="none"
              viewBox="0 0 24 24">
             <circle class="tm-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
         </svg>
     </div>
-    
     <!-- Clear Search Button -->
     <button type="button"
             x-show="search.length > 0 && !isCreatingTag"
@@ -48,7 +45,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12m3-6a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
     </button>
-    
     <!-- Remove All Tags Button -->
     <button type="button"
             x-show="selectedTags.size > 0 && !isCreatingTag"
@@ -66,7 +62,6 @@
         </svg>
         <span class="tm-icon-btn-badge" x-text="selectedTags.size"></span>
     </button>
-    
     <!-- Help Icon (Desktop) -->
     <a x-show="helpUrl"
        :href="helpUrl"
@@ -82,7 +77,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
         </svg>
     </a>
-    
     <!-- Management Icon (Desktop) -->
     <a x-show="mgmtUrl"
        :href="mgmtUrl"
@@ -100,7 +94,6 @@
         </svg>
     </a>
 </div>
-
 <!-- Mobile Only: Menu Button -->
 <div class="tm-relative tm-block lg:tm-hidden"
      @click.stop
@@ -114,13 +107,11 @@
             :aria-expanded="menuShow"
             :aria-controls="$id('search-menu-dropdown')"
             aria-label="Menu options">
-        
         <!-- Smart Badge (Mobile Only) -->
         <span x-show="menuBadge.show"
               :class="menuBadge.cssClass"
               x-text="menuBadge.count > 0 ? menuBadge.count : ''"
               x-transition.opacity.duration.200ms></span>
-        
         <!-- Chevron Icon -->
         <svg class="tm-menu-icon"
              x-bind:style="menuShow ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'"
@@ -130,7 +121,6 @@
             <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
         </svg>
     </button>
-    
     <!-- Dropdown Menu (Mobile Only) -->
     <div :id="$id('search-menu-dropdown')"
          x-ref="menuPanel"
@@ -163,17 +153,16 @@
                         </p>
                     </div>
                 </button>
-                
                 <!-- Loading State -->
-                <div x-show="isCreatingTag"
-                     class="tm-loading-container tm-group">
+                <div x-show="isCreatingTag" class="tm-loading-container tm-group">
                     <div class="tm-menu-icon-wrapper">
                         <svg class="tm-loading-spinner"
                              xmlns="http://www.w3.org/2000/svg"
                              fill="none"
                              viewBox="0 0 24 24">
                             <circle class="tm-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <path class="tm-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
                         </svg>
                     </div>
                     <div>
@@ -181,7 +170,6 @@
                         <p class="tm-mt-1 tm-text-gray-500">Please wait.</p>
                     </div>
                 </div>
-                
                 <!-- Clear Search Button -->
                 <button type="button"
                         x-show="search.length > 0"
@@ -203,7 +191,6 @@
                         <p class="tm-menu-item-description">Clear search bar.</p>
                     </div>
                 </button>
-                
                 <!-- Remove All Tags Button -->
                 <button type="button"
                         x-show="selectedTags.size > 0"
@@ -228,7 +215,6 @@
                     </div>
                 </button>
             </div>
-            
             <!-- Error Message Display -->
             <div x-show="tagCreationError"
                  x-transition.slide.down.duration.200ms
@@ -244,7 +230,7 @@
                         <h4 class="tm-error-title">Error creating tag</h4>
                         <p class="tm-error-message" x-text="tagCreationError"></p>
                     </div>
-                    <button @click="tagCreationError = null" 
+                    <button @click="tagCreationError = null"
                             class="tm-error-close-btn"
                             aria-label="Dismiss error">
                         <svg class="tm-error-close-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -253,7 +239,6 @@
                     </button>
                 </div>
             </div>
-            
             <!-- Footer Links -->
             {% if help_url or mgmt_url %}
                 <div class="tm-footer">
