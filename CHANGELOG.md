@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.10.23.1]
+
+### Bug Fixes
+- Resolve drag-to-reorder conflicts with text inputs and improve UX (sort) [#284](https://github.com/imAsparky/django-tag-me/pull/284)
+
+
 ## [2025.10.15.1]
 
 ### Bug Fixes
