@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.10.25.2]
+
+### Maintenance
+- Update django and vite (deps) [#289](https://github.com/imAsparky/django-tag-me/pull/289)
+
+
 ## [2025.10.25.1]
 
 ### Bug Fixes
