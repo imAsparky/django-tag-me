@@ -5,125 +5,88 @@ import logging
 from pathlib import Path
 
 from django.contrib.staticfiles import finders
+from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
 
-def get_vite_asset(asset_name):
+@lru_cache(maxsize=1)
+def _load_vite_manifest():
     """
-    Get the actual filename of a Vite asset from the manifest.
-    Handles hashed filenames for cache busting.
+    Load and cache the Vite manifest.
 
-    Args:
-        asset_name (str): The original asset name (e.g., 'tag-me.js', 'tag-me.css')
+    The manifest is cached for the lifetime of the Python process. The cache
+    automatically clears on server restart, which is required when deploying
+    new tag-me versions with updated assets anyway.
 
     Returns:
-        str: The actual filename with hash (e.g., 'js/tag-me.abc123.js')
+        dict: The parsed manifest JSON
 
-    Examples:
-        >>> get_vite_asset('src/tag-me.js')
-        'tag_me/dist/js/tag-me.a1b2c3d4.js'
-
-        >>> get_vite_asset('tag-me.css')
-        'tag_me/dist/css/tag-me.e5f6g7h8.css'
+    Raises:
+        FileNotFoundError: If manifest not found
+        ValueError: If manifest contains invalid JSON
     """
+    manifest_path_str = finders.find("tag_me/dist/manifest.json")
+
+    if not manifest_path_str:
+        raise FileNotFoundError(
+            "Vite manifest not found at tag_me/dist/manifest.json. "
+            "Run 'npm run prod' to build assets."
+        )
+
+    manifest_path = Path(str(manifest_path_str))
+
     try:
-        # Find the manifest file
-        manifest_path_str = finders.find("tag_me/dist/.vite/manifest.json")
-
-        if not manifest_path_str:
-            # Fallback to original filename if no manifest
-            logger.warning(
-                f"Vite manifest not found for {asset_name}, using fallback path"
-            )
-            return f"tag_me/dist/{asset_name}"
-
-        # Read the manifest
-        manifest_path = Path(manifest_path_str)
-        manifest = json.loads(manifest_path.read_text())
-
-        # Handle specific asset lookups based on manifest structure
-        match asset_name:
-            case "src/tag-me.js" | "tag-me.js":
-                # Look for JavaScript entry
-                js_entry = manifest.get("src/tag-me.js", {})
-                if file_path := js_entry.get("file", ""):
-                    asset_path = f"tag_me/dist/{file_path}"
-                else:
-                    asset_path = "tag_me/dist/js/tag-me.js"
-                return asset_path
-
-            case name if name == "tag-me.css" or name.endswith(".css"):
-                # Look for CSS in the JS entry (Vite includes CSS in JS manifest)
-                js_entry = manifest.get("src/tag-me.js", {})
-                css_files = js_entry.get("css", [])
-
-                if css_files:
-                    # Return the first CSS file (usually only one)
-                    asset_path = f"tag_me/dist/{css_files[0]}"
-                else:
-                    asset_path = "tag_me/dist/css/tag-me.css"
-                return asset_path
-
-            case _:
-                # Final fallback: return original path
-                logger.warning(f"Unknown asset type: {asset_name}, using fallback path")
-                return f"tag_me/dist/{asset_name}"
-
-    except FileNotFoundError:
-        msg = f"Warning: Vite manifest file not found for {asset_name}"
-        logger.exception(msg)
-        return f"tag_me/dist/{asset_name}"
-
-    except json.JSONDecodeError:
-        msg = f"Warning: Invalid JSON in Vite manifest for {asset_name}"
-        logger.exception(msg)
-        return f"tag_me/dist/{asset_name}"
-
-    except KeyError as e:
-        msg = f"Warning: Missing key in Vite manifest for {asset_name}: {e}"
-        logger.exception(msg)
-        return f"tag_me/dist/{asset_name}"
+        return json.loads(manifest_path.read_text())
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in Vite manifest: {e}")
 
 
 def get_tag_me_js():
-    """Get the tag-me JS file path from manifest."""
-    try:
-        manifest_path = finders.find("tag_me/dist/.vite/manifest.json")
-        if not manifest_path:
-            logger.warning("Manifest not found, using fallback JS")
-            return "tag_me/dist/js/tag-me.js"
+    """
+    Get the cache-busted JS file path.
 
-        manifest = json.loads(Path(manifest_path).read_text())
-        js_entry = manifest.get("src/tag-me.js", {})
+    Returns:
+        str: Path to hashed JS file (e.g., 'tag_me/dist/js/tag-me.abc123.js')
 
-        if file_path := js_entry.get("file", ""):
-            return f"tag_me/dist/{file_path}"
+    Raises:
+        FileNotFoundError: If manifest not found
+        ValueError: If JS entry not in manifest
+    """
+    manifest = _load_vite_manifest()
 
-        return "tag_me/dist/js/tag-me.js"
-    except Exception as e:
-        logger.exception(f"Error loading JS from manifest: {e}")
-        return "tag_me/dist/js/tag-me.js"
+    js_entry = manifest.get("src/tag-me.js", {})
+    file_path = js_entry.get("file")
+
+    if not file_path:
+        raise ValueError(
+            "JS entry 'src/tag-me.js' not found in manifest. "
+            f"Available keys: {list(manifest.keys())}"
+        )
+
+    return f"tag_me/dist/{file_path}"
 
 
 def get_tag_me_css():
-    """Get the tag-me CSS file path from manifest."""
-    try:
-        manifest_path = finders.find("tag_me/dist/.vite/manifest.json")
-        if not manifest_path:
-            logger.warning("Manifest not found, using fallback CSS")
-            return "tag_me/dist/css/tag-me.css"
+    """
+    Get the cache-busted CSS file path.
 
-        manifest = json.loads(Path(manifest_path).read_text())
+    Returns:
+        str: Path to hashed CSS file (e.g., 'tag_me/dist/css/tag-me.def456.css')
 
-        # CSS is a separate entry called "style.css"
-        css_entry = manifest.get("style.css", {})
+    Raises:
+        FileNotFoundError: If manifest not found
+        ValueError: If CSS entry not in manifest
+    """
+    manifest = _load_vite_manifest()
 
-        if file_path := css_entry.get("file", ""):
-            return f"tag_me/dist/{file_path}"
+    css_entry = manifest.get("style.css", {})
+    file_path = css_entry.get("file")
 
-        # Fallback to unhashed filename
-        return "tag_me/dist/css/tag-me.css"
-    except Exception as e:
-        logger.exception(f"Error loading CSS from manifest: {e}")
-        return "tag_me/dist/css/tag-me.css"
+    if not file_path:
+        raise ValueError(
+            "CSS entry 'style.css' not found in manifest. "
+            f"Available keys: {list(manifest.keys())}"
+        )
+
+    return f"tag_me/dist/{file_path}"
