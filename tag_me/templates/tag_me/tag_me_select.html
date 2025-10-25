@@ -1,5 +1,4 @@
 {# tag_me/templates/tag_me/tag_me_select.html #}
-{# Nuclear Hybrid with Drag-to-Reorder #}
 <!-- Main Container -->
 <div id='tag-me-select-container-{{ name }}'
      x-data="alpineTagMeMultiSelect({ addTagURL: '{{ add_tag_url }}', permittedToAddTags: {{ permitted_to_add_tags }}, allowMultiple: {{ multiple|yesno:'true,false' }}, autoSelectNewTags: {{ auto_select_new_tags|yesno:'true,false' }}, displayNumberSelected: {{ display_number_selected }}, choices: {{ choices|safe }}, selected: {{ values|safe }}, helpUrl: '{{ help_url|default:"" }}', mgmtUrl: '{{ mgmt_url|default:"" }}' })"
@@ -18,11 +17,11 @@
             <!-- Selected Tags Display -->
             <div class="tm-w-full">
                 <div class="tm-selected-container">
-                    <!-- Tags List + Toggle Button (Sortable Container) -->
-                    <div class="tm-selected-tags-wrapper" x-ref="tagContainer">
+                    <!-- Tags List + Toggle Button -->
+                    <div class="tm-selected-tags-wrapper" @click="toggle()">
                         <!-- Display Selected Tags (up to displayNumberSelected) -->
                         <template x-for="tagName in displayedSelected" :key="tagName">
-                            <div class="tm-tag-pill" role="option" aria-selected="true">
+                            <div class="tm-tag-pill" role="option" aria-selected="true" @click.stop>
                                 <div x-text="tagName"
                                      class="tm-text-xs lg:tm-text-base tm-font-normal tm-leading-none tm-max-w-full tm-flex-initial tm-mr-2">
                                 </div>
