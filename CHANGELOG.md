@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.10.25.3]
+
+### Bug Fixes
+- Reinstate selected tag container pointer behavior (ui) [#286](https://github.com/imAsparky/django-tag-me/pull/286)
+
+
 ## [2025.10.25.2]
 
 ### Maintenance

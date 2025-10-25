@@ -81,35 +81,6 @@ export function createAlpineComponent(config) {
       window.addEventListener('resize', () => {
         this.screenWidth = window.innerWidth;
       });
-      // Flag to prevent double-firing of onEnd
-      this._isReordering = false;
-      // Initialize Sortable.js on selected tags container
-      this.$nextTick(() => {
-        if (typeof Sortable !== 'undefined' && this.$refs.tagContainer) {
-          new Sortable(this.$refs.tagContainer, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            dragClass: 'sortable-drag',
-            draggable: '.tm-tag-pill',
-            setData: function (dataTransfer, dragEl) {
-              dataTransfer.effectAllowed = 'move';
-              dataTransfer.setData('Text', '');
-            },
-            // Use onUpdate which fires BEFORE DOM mutation
-            onUpdate: (evt) => {
-              if (this._isReordering) return;
-              this._isReordering = true;
-              // Cancel Sortable's DOM change
-              evt.preventDefault();
-              this.reorderTags(evt.oldIndex, evt.newIndex);
-              this.$nextTick(() => {
-                this._isReordering = false;
-              });
-            }
-          });
-        }
-      });
     },
     // ============================================
     // COMPUTED PROPERTIES (Alpine caches these)
@@ -302,27 +273,7 @@ export function createAlpineComponent(config) {
     isSelected(tagName) {
       return this.selectedTags.has(tagName);
     },
-    /**
-    * Reorder tags after drag-drop
-    * @param {number} oldIndex - Original DOM position
-    * @param {number} newIndex - New DOM position
-    */
-    reorderTags(oldIndex, newIndex) {
-      console.log('🔄 Reorder called:', { oldIndex, newIndex });
-      console.log('📋 Current tagOrder:', [...this.tagOrder]);
-      console.log('👁️ Displayed tags:', this.displayedSelected);
-      // Work directly with tagOrder for the displayed portion
-      const displayedCount = Math.min(this.tagOrder.length, this.maxDisplay);
-      // Only reorder if both indices are within displayed range
-      if (oldIndex < displayedCount && newIndex < displayedCount) {
-        // Simple splice on tagOrder
-        const [movedTag] = this.tagOrder.splice(oldIndex, 1);
-        this.tagOrder.splice(newIndex, 0, movedTag);
-        console.log('✅ New tagOrder:', [...this.tagOrder]);
-      } else {
-        console.warn('⚠️ Indices out of range:', { oldIndex, newIndex, displayedCount });
-      }
-    },
+
     // ============================================
     // TAG CREATION (Updates tag library)
     // ============================================
