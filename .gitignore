@@ -2,6 +2,8 @@
 */.vite/*
 frontend/node_modules/*
 
+# See bottorm for static file inclusion
+
 
 # Project Folders
 coverage_html_report/
@@ -178,3 +180,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# This overrides the Python dist/ ignore
+!tag_me/static/tag_me/dist/
+!tag_me/static/tag_me/dist/**
+

@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## [2025.10.25.1]
+
+### Bug Fixes
+- Improve manifest loading robustness and type safety (asset) [#287](https://github.com/imAsparky/django-tag-me/pull/287)
+
+### Testing
+- Achieve 100% coverage for asset manifest loading (asset) [#287](https://github.com/imAsparky/django-tag-me/pull/287)
+
+
 ## [2025.10.23.1]
 
 ### Bug Fixes
