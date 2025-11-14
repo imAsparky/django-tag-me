@@ -4,18 +4,16 @@
 *
 * - Set-based state management
 * - Order array for drag-to-reorder functionality
-* - No reliance on DOM
-<select>
-    element state
-    * - Reactive computed properties (Alpine caches these)
-    * - Simplified tag addition (no full rebuild)
-    * - Better keyboard navigation
-    * - Desktop inline actions, mobile menu
-    * - Drag-to-reorder selected tags
-    *
-    * @param {Object} config - Configuration object from Django template
-    * @returns {Object} Alpine component instance
-    */
+* - No reliance on DOM <select> element state
+* - Reactive computed properties (Alpine caches these)
+* - Simplified tag addition (no full rebuild)
+* - Better keyboard navigation
+* - Desktop inline actions, mobile menu
+* - Drag-to-reorder selected tags
+*
+* @param {Object} config - Configuration object from Django template
+* @returns {Object} Alpine component instance
+*/
 export function createAlpineComponent(config) {
   return {
     // ============================================
@@ -45,6 +43,8 @@ export function createAlpineComponent(config) {
     show: false,
     /** Menu (Add/Clear/Remove) visibility */
     menuShow: false,
+    /** Bottom sheet visibility (mobile add tag) */
+    bottomSheetShow: false,
     /** Tag creation in progress */
     isCreatingTag: false,
     /** Tag creation error message */
@@ -53,6 +53,18 @@ export function createAlpineComponent(config) {
     focusedTag: null,
     /** Current screen width (for responsive logic) */
     screenWidth: window.innerWidth,
+    /** ARIA announcement for screen readers */
+    ariaAnnouncement: '',
+    /** Swipe gesture state */
+    swipeState: {
+      startX: null,
+      startY: null,
+      currentX: null,
+      deltaX: 0,
+      isActive: false,
+      element: null,
+      animationFrame: null
+    },
     // ============================================
     // CONFIGURATION (from Django)
     // ============================================
@@ -87,17 +99,19 @@ export function createAlpineComponent(config) {
     // ============================================
     /**
     * Check if screen is desktop size
+    * CHANGED: Now uses 768px breakpoint (md:) instead of 1024px (lg:)
     * @returns {boolean}
     */
     get isDesktop() {
-      return this.screenWidth >= 1024;
+      return this.screenWidth >= 768;
     },
     /**
     * Check if screen is mobile size
+    * CHANGED: Now uses 768px breakpoint (md:) instead of 1024px (lg:)
     * @returns {boolean}
     */
     get isMobile() {
-      return this.screenWidth < 1024;
+      return this.screenWidth < 768;
     },
     /**
     * Filtered tags based on search input
@@ -238,6 +252,8 @@ export function createAlpineComponent(config) {
         this.selectedTags.delete(tagName);
         // Remove from order array
         this.tagOrder = this.tagOrder.filter(t => t !== tagName);
+        // ARIA announcement
+        this.ariaAnnouncement = `Removed tag: ${tagName}`;
       } else {
         // Check single-select limit
         if (!this.allowMultiple && this.selectedTags.size >= 1) {
@@ -248,6 +264,8 @@ export function createAlpineComponent(config) {
         this.selectedTags.add(tagName);
         // Add to end of order array
         this.tagOrder.push(tagName);
+        // ARIA announcement
+        this.ariaAnnouncement = `Added tag: ${tagName}`;
       }
     },
     /**
@@ -257,13 +275,18 @@ export function createAlpineComponent(config) {
     removeTag(tagName) {
       this.selectedTags.delete(tagName);
       this.tagOrder = this.tagOrder.filter(t => t !== tagName);
+      // ARIA announcement
+      this.ariaAnnouncement = `Removed tag: ${tagName}`;
     },
     /**
     * Clear all selected tags
     */
     deselectAll() {
+      const count = this.selectedTags.size;
       this.selectedTags.clear();
       this.tagOrder = [];
+      // ARIA announcement
+      this.ariaAnnouncement = `Removed all ${count} tags`;
     },
     /**
     * Check if a tag is selected
@@ -320,11 +343,17 @@ export function createAlpineComponent(config) {
         if (this.autoSelectNewTags) {
           this.selectedTags.add(addedTag);
           this.tagOrder.push(addedTag);
+          // ARIA announcement
+          this.ariaAnnouncement = `Created and selected tag: ${addedTag}`;
+        } else {
+          // ARIA announcement
+          this.ariaAnnouncement = `Created tag: ${addedTag}`;
         }
-        // Clear search and close menu
+        // Clear search and close menu/sheet
         this.search = '';
         this.tagCreationError = null;
         this.menuShow = false;
+        this.bottomSheetShow = false;
         console.log(`✅ Tag "${addedTag}" added to library and ${this.autoSelectNewTags ? 'selected' : 'available'}`);
       } catch (error) {
         console.error('Tag creation failed:', error);
@@ -357,6 +386,7 @@ export function createAlpineComponent(config) {
     close() {
       this.show = false;
       this.menuShow = false;
+      this.bottomSheetShow = false;
       this.focusedTag = null;
     },
     /**
@@ -366,6 +396,7 @@ export function createAlpineComponent(config) {
       this.show = !this.show;
       if (!this.show) {
         this.menuShow = false;
+        this.bottomSheetShow = false;
         this.focusedTag = null;
       }
     },
@@ -388,6 +419,25 @@ export function createAlpineComponent(config) {
       this.menuShow = !this.menuShow;
     },
     // ============================================
+    // MOBILE BOTTOM SHEET
+    // ============================================
+    /**
+    * Open bottom sheet for adding tag (mobile only)
+    */
+    openBottomSheet() {
+      this.bottomSheetShow = true;
+      this.tagCreationError = null;
+      // Close the mobile menu if it's open
+      this.menuShow = false;
+    },
+    /**
+    * Close bottom sheet
+    */
+    closeBottomSheet() {
+      this.bottomSheetShow = false;
+      this.tagCreationError = null;
+    },
+    // ============================================
     // KEYBOARD NAVIGATION
     // ============================================
     /**
@@ -399,6 +449,8 @@ export function createAlpineComponent(config) {
       const currentIndex = tags.indexOf(this.focusedTag);
       const nextIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, tags.length - 1);
       this.focusedTag = tags[nextIndex];
+      // ARIA announcement
+      this.ariaAnnouncement = `Focused: ${this.focusedTag}`;
     },
     /**
     * Navigate up in filtered tag list
@@ -409,6 +461,8 @@ export function createAlpineComponent(config) {
       const currentIndex = tags.indexOf(this.focusedTag);
       const prevIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
       this.focusedTag = tags[prevIndex];
+      // ARIA announcement
+      this.ariaAnnouncement = `Focused: ${this.focusedTag}`;
     },
     /**
     * Select the currently focused tag
@@ -431,6 +485,163 @@ export function createAlpineComponent(config) {
     */
     resetFocus() {
       this.focusedTag = null;
+    },
+    // ============================================
+    // SWIPE GESTURES (Mobile Touch Interactions)
+    // ============================================
+    /**
+    * Handle touch start - begin tracking swipe
+    * @param {TouchEvent} event - Touch event
+    * @param {HTMLElement} element - The list item being swiped
+    */
+    handleSwipeStart(event, element) {
+      console.log('🟢 SWIPE START', { isMobile: this.isMobile, hasElement: !!element });
+      if (!this.isMobile) return;
+
+      const touch = event.touches[0];
+      this.swipeState.startX = touch.clientX;
+      this.swipeState.startY = touch.clientY;
+      this.swipeState.currentX = touch.clientX;
+      this.swipeState.deltaX = 0;
+      this.swipeState.isActive = false;
+      this.swipeState.element = element;
+
+      // Disable transition during swipe for immediate feedback
+      element.style.transition = 'none';
+    },
+    /**
+    * Handle touch move - update visual feedback
+    * @param {TouchEvent} event - Touch event
+    */
+    handleSwipeMove(event) {
+      console.log('🔵 SWIPE MOVE', { isMobile: this.isMobile, hasStart: !!this.swipeState.startX });
+      if (!this.isMobile || !this.swipeState.startX || !this.swipeState.element) return;
+
+      const touch = event.touches[0];
+      this.swipeState.currentX = touch.clientX;
+
+      const deltaX = this.swipeState.currentX - this.swipeState.startX;
+      const deltaY = touch.clientY - this.swipeState.startY;
+
+      // Only activate swipe if horizontal movement exceeds vertical
+      // This prevents interfering with vertical scrolling
+      if (!this.swipeState.isActive && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        this.swipeState.isActive = true;
+        // Prevent scrolling once we've determined this is a horizontal swipe
+        event.preventDefault();
+      }
+
+      if (this.swipeState.isActive) {
+        event.preventDefault();
+        this.swipeState.deltaX = deltaX;
+
+        // Update visual feedback using RAF for smooth performance
+        if (this.swipeState.animationFrame) {
+          cancelAnimationFrame(this.swipeState.animationFrame);
+        }
+
+        this.swipeState.animationFrame = requestAnimationFrame(() => {
+          if (this.swipeState.element) {
+            const element = this.swipeState.element;
+            const threshold = element.offsetWidth * 0.5;
+
+            // Cap the translation at threshold distance for better feel
+            const cappedDelta = Math.max(-threshold, Math.min(threshold, this.swipeState.deltaX));
+
+            // Apply transform
+            element.style.transform = `translateX(${cappedDelta}px)`;
+
+            // Add visual hint classes based on direction and state
+            if (Math.abs(cappedDelta) > threshold * 0.3) {
+              element.classList.add('swipe-active');
+            } else {
+              element.classList.remove('swipe-active');
+            }
+          }
+        });
+      }
+    },
+    /**
+     * Handle touch end - complete or cancel swipe with success animation
+     * OPTION 2: Animates to edge before snapping back
+     * @param {TouchEvent} event - Touch event
+     * @param {string} tagName - Name of the tag being swiped
+     */
+    handleSwipeEnd(event, tagName) {
+      if (!this.isMobile || !this.swipeState.element) {
+        this.resetSwipe();
+        return;
+      }
+
+      const element = this.swipeState.element;
+      const threshold = element.offsetWidth * 0.5;
+      const deltaX = this.swipeState.deltaX;
+
+      // Check if swipe exceeded threshold (either direction)
+      if (this.swipeState.isActive && Math.abs(deltaX) >= threshold) {
+        // SUCCESS ANIMATION SEQUENCE
+
+        // 1. Animate to edge (show success)
+        const direction = deltaX > 0 ? 1 : -1;
+        const targetX = element.offsetWidth * 0.7 * direction; // 70% of width
+
+        // Enable smooth transition
+        element.style.transition = 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)';
+        element.style.transform = `translateX(${targetX}px)`;
+
+        // 2. Toggle tag state after brief moment (while sliding)
+        setTimeout(() => {
+          this.toggleTag(tagName);
+        }, 75); // Mid-animation toggle
+
+        // 3. Snap back with new state
+        setTimeout(() => {
+          if (this.swipeState.element === element) {
+            // Re-enable standard transition
+            element.style.transition = 'transform 0.2s ease-out';
+            element.style.transform = '';
+            element.classList.remove('swipe-active');
+
+            // Clean up after snap-back completes
+            setTimeout(() => {
+              this.resetSwipe();
+            }, 200);
+          }
+        }, 150); // Start snap-back
+
+      } else {
+        // BELOW THRESHOLD - Just snap back
+        element.style.transition = 'transform 0.2s ease-out';
+        element.style.transform = '';
+        element.classList.remove('swipe-active');
+
+        setTimeout(() => {
+          this.resetSwipe();
+        }, 200);
+      }
+    },
+
+    /**
+    * Reset swipe state and clean up visual feedback
+    */
+    resetSwipe() {
+      if (this.swipeState.animationFrame) {
+        cancelAnimationFrame(this.swipeState.animationFrame);
+      }
+
+      if (this.swipeState.element) {
+        this.swipeState.element.style.transform = '';
+        this.swipeState.element.style.transition = '';
+        this.swipeState.element.classList.remove('swipe-active');
+      }
+
+      this.swipeState.startX = null;
+      this.swipeState.startY = null;
+      this.swipeState.currentX = null;
+      this.swipeState.deltaX = 0;
+      this.swipeState.isActive = false;
+      this.swipeState.element = null;
+      this.swipeState.animationFrame = null;
     },
     // ============================================
     // UTILITIES
