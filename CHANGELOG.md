@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.11.14.1]
+
+### Features
+- Add support for mobile in the browser (mobile) [#294](https://github.com/imAsparky/django-tag-me/pull/294)
+
+
 ## [2025.10.25.3]
 
 ### Bug Fixes
