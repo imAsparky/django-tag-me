@@ -8,6 +8,7 @@
   Only the search bar action area is different between mobile/desktop.
   Everything else is shared with responsive Tailwind classes.
 {% endcomment %}
+
 <style>
 /* Custom Scrollbar Styles - Light and Dark Mode */
 .menu-scrollable::-webkit-scrollbar {
@@ -85,6 +86,7 @@
   }
 }
 </style>
+
 <!-- Main Container -->
 <div id='tag-me-select-container-{{ name }}'
      x-data="alpineTagMeMultiSelect({ addTagURL: '{{ add_tag_url }}', permittedToAddTags: {{ permitted_to_add_tags }}, allowMultiple: {{ multiple|yesno:'true,false' }}, autoSelectNewTags: {{ auto_select_new_tags|yesno:'true,false' }}, displayNumberSelected: {{ display_number_selected }}, choices: {{ choices|safe }}, selected: {{ values|safe }}, helpUrl: 'https://google.com ', mgmtUrl: 'https://google.com' })"
@@ -97,266 +99,296 @@
      :aria-expanded="show"
      :aria-describedby="$id('keyboard-instructions')"
      class="w-full">
-    <!-- Hidden Input for Form Submission -->
-    <input type="hidden" name="{{ name }}" x-model="formValue">
-    <!-- Aria-live region for screen reader announcements -->
-    <div aria-live="polite"
-         aria-atomic="true"
-         class="sr-only"
-         x-text="ariaAnnouncement"></div>
-    <!-- Keyboard instructions for screen readers -->
-    <div :id="$id('keyboard-instructions')" class="sr-only">
-        Use arrow keys to navigate options. Press Enter to select. Press Escape to close. Press Backspace in empty search to clear all selections.
-    </div>
-    <!-- Widget Container -->
-    <div id="tag-me-select-{{ name }}"
-         class="relative w-full"
-         x-ref="widgetContainer">
-        <!-- Input-like Container (Closed State) - SHARED -->
-        <div class="relative w-full">
-            <div class="block w-full md:h-[37px] rounded-md bg-white dark:bg-white/5 border-0 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-300 transition-all duration-200 focus-within:ring-2 focus-within:ring-indigo-500"
-                 :class="show ? 'ring-2 ring-indigo-500' : ''">
-                <!-- Selected Tags Display + Clickable Area -->
-                <div class="flex items-center py-2 md:py-1.5 pr-11 md:pr-10 pl-3 cursor-pointer"
-                     @click="toggle()">
-                    <!-- Tags Container -->
-                    <div class="flex flex-wrap gap-2 md:gap-2 flex-1 items-center">
-                        <!-- Display Selected Tags (up to displayNumberSelected) -->
-                        <template x-for="tagName in displayedSelected" :key="tagName">
-                            <div class="inline-flex justify-center items-center font-medium py-1.5 px-3 md:py-1 md:px-2.5 rounded-md md:rounded-full text-white bg-indigo-500 shadow-sm transition-all duration-150 hover:bg-indigo-400 hover:shadow-md hover:scale-105"
-                                 style="cursor: default"
-                                 role="option"
-                                 aria-selected="true"
-                                 @click.stop
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 scale-90"
-                                 x-transition:enter-end="opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-150"
-                                 x-transition:leave-start="opacity-100 scale-100"
-                                 x-transition:leave-end="opacity-0 scale-90">
-                                <div x-text="tagName"
-                                     class="text-xs font-normal leading-none max-w-full flex-initial mr-1"></div>
-                                <button type="button"
-                                        x-on:click.stop="removeTag(tagName)"
-                                        class="flex-shrink-0 p-1 md:p-0 text-white/80 rounded transition-all duration-150 hover:text-white hover:bg-white/20 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-500"
-                                        style="cursor: pointer"
-                                        :aria-label="'Remove ' + tagName + ' tag'"
-                                        :title="'Remove ' + tagName">
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                         class="h-4 w-4 md:h-3.5 md:w-3.5"
-                                         fill="none"
-                                         viewBox="0 0 24 24"
-                                         stroke="currentColor"
-                                         stroke-width="2.5"
-                                         aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </template>
-                        <!-- "More" Indicator -->
-                        <div x-show="overflowCount > 0"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 scale-90"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-90"
-                             class="inline-flex justify-center items-center font-medium py-1.5 px-3 md:py-1 md:px-2.5 rounded-md md:rounded-full text-white bg-indigo-600 shadow-sm">
-                            <span class="text-xs font-normal leading-none">
-                                <span class="inline-flex px-1.5 rounded text-xs font-normal bg-white/20 text-white mr-1 align-middle">
-                                    +<span x-text="overflowCount"></span>
-                                </span>
-                                more
-                            </span>
-                        </div>
-                        <!-- Placeholder Text -->
-                        <span x-show="selectedTags.size === 0"
-                              class="flex-1 text-sm text-gray-500 dark:text-gray-500">Select tags...</span>
-                    </div>
-                </div>
-                <!-- Dropdown Toggle Button (Always Visible) -->
+
+  <!-- Hidden Input for Form Submission -->
+  <input type="hidden" name="{{ name }}" x-model="formValue">
+
+  <!-- Aria-live region for screen reader announcements -->
+  <div aria-live="polite"
+       aria-atomic="true"
+       class="sr-only"
+       x-text="ariaAnnouncement"></div>
+
+  <!-- Keyboard instructions for screen readers -->
+  <div :id="$id('keyboard-instructions')" class="sr-only">
+    Use arrow keys to navigate options. Press Enter to select. Press Escape to close. Press Backspace in empty search to clear all selections.
+  </div>
+
+  <!-- Widget Container -->
+  <div id="tag-me-select-{{ name }}"
+       class="relative w-full"
+       x-ref="widgetContainer">
+
+    <!-- Input-like Container (Closed State) - SHARED -->
+    <div class="relative w-full">
+      <div class="block w-full md:h-[37px] rounded-md bg-white dark:bg-white/5 border-0 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-300 transition-all duration-200 focus-within:ring-2 focus-within:ring-indigo-500"
+           :class="show ? 'ring-2 ring-indigo-500' : ''">
+
+        <!-- Selected Tags Display + Clickable Area -->
+        <div class="flex items-center py-2 md:py-1.5 pr-11 md:pr-10 pl-3 cursor-pointer"
+             @click="toggle()">
+
+          <!-- Tags Container -->
+          <div class="flex flex-wrap gap-2 md:gap-2 flex-1 items-center">
+
+            <!-- Display Selected Tags (up to displayNumberSelected) -->
+            <template x-for="tagName in displayedSelected" :key="tagName">
+              <div class="inline-flex justify-center items-center font-medium py-1.5 px-3 md:py-1 md:px-2.5 rounded-md md:rounded-full text-white bg-indigo-500 shadow-sm transition-all duration-150 hover:bg-indigo-400 hover:shadow-md hover:scale-105"
+                   style="cursor: default"
+                   role="option"
+                   aria-selected="true"
+                   @click.stop
+                   x-transition:enter="transition ease-out duration-200"
+                   x-transition:enter-start="opacity-0 scale-90"
+                   x-transition:enter-end="opacity-100 scale-100"
+                   x-transition:leave="transition ease-in duration-150"
+                   x-transition:leave-start="opacity-100 scale-100"
+                   x-transition:leave-end="opacity-0 scale-90">
+                <div x-text="tagName"
+                     class="text-xs font-normal leading-none max-w-full flex-initial mr-1"></div>
                 <button type="button"
-                        x-on:click="toggle()"
-                        class="absolute inset-y-0 right-0 flex items-center px-3 md:px-2 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-150 focus:outline-none rounded-r-md"
-                        :aria-expanded="show"
-                        aria-controls="tag-me-select-{{ name }}"
-                        aria-label="Toggle tag selection dropdown">
-                    <svg viewBox="0 0 20 20"
-                         fill="currentColor"
-                         data-slot="icon"
-                         aria-hidden="true"
-                         class="h-5 w-5"
-                         :style="show ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
-                        <path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd" />
-                    </svg>
+                        x-on:click.stop="removeTag(tagName)"
+                        class="flex-shrink-0 p-1 md:p-0 text-white/80 rounded transition-all duration-150 hover:text-white hover:bg-white/20 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-500"
+                        style="cursor: pointer"
+                        :aria-label="'Remove ' + tagName + ' tag'"
+                        :title="'Remove ' + tagName">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       class="h-4 w-4 md:h-3.5 md:w-3.5"
+                       fill="none"
+                       viewBox="0 0 24 24"
+                       stroke="currentColor"
+                       stroke-width="2.5"
+                       aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
                 </button>
+              </div>
+            </template>
+
+            <!-- "More" Indicator -->
+            <div x-show="overflowCount > 0"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-90"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-90"
+                 class="inline-flex justify-center items-center font-medium py-1.5 px-3 md:py-1 md:px-2.5 rounded-md md:rounded-full text-white bg-indigo-600 shadow-sm">
+              <span class="text-xs font-normal leading-none">
+                <span class="inline-flex px-1.5 rounded text-xs font-normal bg-white/20 text-white mr-1 align-middle">
+                  +<span x-text="overflowCount"></span>
+                </span>
+                more
+              </span>
             </div>
+
+            <!-- Placeholder Text -->
+            <span x-show="selectedTags.size === 0"
+                  class="flex-1 text-sm text-gray-500 dark:text-gray-500">Select tags...</span>
+          </div>
         </div>
-        <!-- End Input-like Container -->
-        <!-- Dropdown Container - SHARED -->
-        <div x-show="show"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 translate-y-1"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-100"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-1"
-             x-cloak
-             x-init=" const updatePosition = () => { if (!$refs.widgetContainer) { console.warn('tag-me-select: widgetContainer ref not found'); return; }  if ($el.dataset.positioned === 'true') { return; }  const isMobileView = window.innerWidth < 768;  if (isMobileView) { const rect = $refs.widgetContainer.getBoundingClientRect(); const viewportWidth = window.innerWidth; const margin = 8;  const spaceOnLeft = rect.left; const spaceOnRight = viewportWidth - rect.right;  if (spaceOnLeft > spaceOnRight) { $el.style.right = '0'; $el.style.left = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, rect.right - margin) + 'px'; } else { $el.style.left = '0'; $el.style.right = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, viewportWidth - rect.left - margin) + 'px'; } } else { $el.style.width = '100%'; $el.style.left = '0'; $el.style.right = '0'; }  $el.dataset.positioned = 'true'; };  $watch('show', value => { if (value) { $el.dataset.positioned = 'false'; setTimeout(updatePosition, 10); } }); "
-             class="absolute z-50 mt-2 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-white/10">
-            <div class="flex flex-col w-full">
-                <!-- Search Section - SHARED -->
-                <div class="px-3 py-3 border-b border-gray-200 dark:border-white/10">
-                    <div class="relative">
-                        <!-- Search Icon -->
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-5 w-5 text-gray-400 dark:text-gray-400"
-                                 fill="none"
-                                 viewBox="0 0 24 24"
-                                 stroke="currentColor"
-                                 stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </div>
-                        <!-- Search Input - SHARED -->
-                        <input id="search-{{ name }}"
-                               type="text"
-                               name="search-{{ name }}"
-                               autocomplete="off"
-                               x-model.debounce.300ms="search"
-                               @keydown.backspace="if($event.target.value === '') deselectAll()"
-                               @keydown.arrow-down.prevent="navigateDown()"
-                               @keydown.arrow-up.prevent="navigateUp()"
-                               @keydown.enter.prevent="selectFocused()"
-                               class="block w-full rounded-md bg-gray-50 dark:bg-white/5 py-2.5 md:py-2 pr-16 md:pr-12 pl-10 text-base text-gray-900 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-indigo-400 transition-colors duration-150 sm:text-sm/6"
-                               placeholder="Search tags..."
-                               role="searchbox"
-                               aria-label="Search available tags"
-                               aria-autocomplete="list"
-                               :aria-activedescendant="focusedTag ? 'tag-option-' + focusedTag : null"
-                               :aria-controls="show ? 'tag-listbox-{{ name }}' : null"
-                               :aria-expanded="show">
-                        <!-- Search Bar Actions - ONLY DIFFERENT PART -->
-                        <div class="absolute inset-y-0 right-0 flex items-center py-1.5 pr-2 md:pr-1.5">
-                            <!-- Desktop: Inline action buttons -->
-                            <div class="hidden md:block">{% include "tag_me/tag_me_select_search_bar_desktop.html" %}</div>
-                            <!-- Mobile: Context-aware action button (will be built in Phase C) -->
-                            <div class="block md:hidden">{% include "tag_me/tag_me_select_search_bar_mobile.html" %}</div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Options List - SHARED -->
-                <ul id="tag-listbox-{{ name }}"
-                    role="listbox"
-                    tabindex="-1"
-                    aria-label="Available tags"
-                    x-show="!menuShow"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-cloak
-                    class="max-h-60 w-full overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-800 pt-1 mb-0 text-base outline-none menu-scrollable sm:text-sm">
-                    <!-- Search Result Count -->
-                    <li x-show="filteredTags.length > 0 && search.length > 0"
-                        class="px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900/80 sticky top-0 z-10 border-b border-gray-200 dark:border-white/10">
-                        <span class="font-medium" x-text="filteredTags.length"></span>
-                        <span x-text="filteredTags.length === 1 ? 'result' : 'results'"></span>
-                    </li>
-                    <!-- Existing Tags -->
-                    <template x-for="(tagName, index) in filteredTags" :key="tagName">
-                        <li role="option"
-                            :id="'tag-option-' + tagName"
-                            :aria-selected="isSelected(tagName)"
-                            :aria-label="tagName + (isSelected(tagName) ? ' (selected)' : '')"
-                            @click="toggleTag(tagName)"
-                            @touchstart="handleSwipeStart($event, $el)"
-                            @touchmove="handleSwipeMove($event)"
-                            @touchend="handleSwipeEnd($event, tagName)"
-                            @touchcancel="resetSwipe()"
-                            class="block px-4 py-3 md:px-3 md:py-2 text-gray-900 dark:text-white select-none cursor-pointer transition-all duration-150 ease-in-out hover:shadow-sm swipe-item"
-                            :class="isSelected(tagName) ? 'bg-indigo-500 swipe-selected' : (isFocused(tagName) ? 'bg-gray-200 dark:bg-gray-700 ring-2 ring-inset ring-indigo-400' : 'hover:bg-gray-100 dark:hover:bg-gray-700 swipe-unselected')">
-                            <div class="flex items-center justify-between">
-                                <span x-text="tagName" class="truncate"></span>
-                                <!-- Checkmark for Selected -->
-                                <span class="flex-shrink-0 ml-2 transition-all duration-200"
-                                      x-show="isSelected(tagName)"
-                                      x-transition:enter="transition ease-out duration-200"
-                                      x-transition:enter-start="opacity-0 scale-50"
-                                      x-transition:enter-end="opacity-100 scale-100"
-                                      x-transition:leave="transition ease-in duration-150"
-                                      x-transition:leave-start="opacity-100 scale-100"
-                                      x-transition:leave-end="opacity-0 scale-50">
-                                    <svg class="h-5 w-5 text-white"
-                                         xmlns="http://www.w3.org/2000/svg"
-                                         viewBox="0 0 20 20"
-                                         fill="currentColor"
-                                         aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                </span>
-                            </div>
-                        </li>
-                    </template>
-                    <!-- Empty Library State -->
-                    <li x-show="filteredTags.length === 0 && search.length === 0"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0"
-                        x-transition:enter-end="opacity-100"
-                        class="px-4 py-8 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor"
-                             aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">No tags in library</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-500">Start typing to create your first tag!</p>
-                    </li>
-                    <!-- No Search Results Message -->
-                    <li x-show="filteredTags.length === 0 && search.length > 0"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0"
-                        x-transition:enter-end="opacity-100"
-                        class="px-4 py-8 text-center">
-                        <svg class="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor"
-                             aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">No tags found</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-500">
-                            No matches for "<span x-text="search" class="font-medium text-gray-600 dark:text-gray-400"></span>"
-                        </p>
-                        <p class="mt-2 text-xs text-gray-400 dark:text-gray-600"
-                           x-show="canAddTag">Try a different search or create a new tag</p>
-                    </li>
-                </ul>
-                <!-- Footer - SHARED (responsive visibility) -->
-                <div class="hidden md:block w-full py-2 m-0 rounded-b-md bg-gray-50 dark:bg-gray-800">
-                    <p class="text-xs text-gray-600 dark:text-gray-300 text-center px-3">
-                        <span class="inline-flex items-center gap-1">
-                            <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded">↑↓</kbd>
-                            navigate
-                            <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded ml-2">Enter</kbd>
-                            select
-                            <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded ml-2">Esc</kbd>
-                            close
-                        </span>
-                    </p>
-                </div>
-                <!-- Mobile Footer with Help/Management -->
-                <div class="block md:hidden">{% include "tag_me/tag_me_mobile_footer.html" %}</div>
-            </div>
-        </div>
-        <!-- End Dropdown Container -->
+
+        <!-- Dropdown Toggle Button (Always Visible) -->
+        <button type="button"
+                x-on:click="toggle()"
+                class="absolute inset-y-0 right-0 flex items-center px-3 md:px-2 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-150 focus:outline-none rounded-r-md"
+                :aria-expanded="show"
+                aria-controls="tag-me-select-{{ name }}"
+                aria-label="Toggle tag selection dropdown">
+          <svg viewBox="0 0 20 20"
+               fill="currentColor"
+               data-slot="icon"
+               aria-hidden="true"
+               class="h-5 w-5"
+               :style="show ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
+            <path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
     </div>
-    <!-- End Widget Container -->
-    <!-- Mobile Bottom Sheet (< 768px only) -->
-    <div class="block md:hidden">{% include "tag_me/tag_me_bottom_sheet.html" %}</div>
+    <!-- End Input-like Container -->
+
+    <!-- Dropdown Container - SHARED -->
+    <div x-show="show"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 translate-y-1"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 translate-y-1"
+         x-cloak
+         x-init=" const updatePosition = () => { if (!$refs.widgetContainer) { console.warn('tag-me-select: widgetContainer ref not found'); return; }  if ($el.dataset.positioned === 'true') { return; }  const isMobileView = window.innerWidth < 768;  if (isMobileView) { const rect = $refs.widgetContainer.getBoundingClientRect(); const viewportWidth = window.innerWidth; const margin = 8;  const spaceOnLeft = rect.left; const spaceOnRight = viewportWidth - rect.right;  if (spaceOnLeft > spaceOnRight) { $el.style.right = '0'; $el.style.left = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, rect.right - margin) + 'px'; } else { $el.style.left = '0'; $el.style.right = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, viewportWidth - rect.left - margin) + 'px'; } } else { $el.style.width = '100%'; $el.style.left = '0'; $el.style.right = '0'; }  $el.dataset.positioned = 'true'; };  $watch('show', value => { if (value) { $el.dataset.positioned = 'false'; setTimeout(updatePosition, 10); } }); "
+         class="absolute z-50 mt-2 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-white/10">
+
+      <div class="flex flex-col w-full">
+
+        <!-- Search Section - SHARED -->
+        <div class="px-3 py-3 border-b border-gray-200 dark:border-white/10">
+          <div class="relative">
+
+            <!-- Search Icon -->
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="h-5 w-5 text-gray-400 dark:text-gray-400"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor"
+                   stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+
+            <!-- Search Input - SHARED -->
+            <input id="search-{{ name }}"
+                   type="text"
+                   name="search-{{ name }}"
+                   autocomplete="off"
+                   x-model.debounce.300ms="search"
+                   @keydown.backspace="if($event.target.value === '') deselectAll()"
+                   @keydown.arrow-down.prevent="navigateDown()"
+                   @keydown.arrow-up.prevent="navigateUp()"
+                   @keydown.enter.prevent="selectFocused()"
+                   class="block w-full rounded-md bg-gray-50 dark:bg-white/5 py-2.5 md:py-2 pr-16 md:pr-12 pl-10 text-base text-gray-900 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-indigo-400 transition-colors duration-150 sm:text-sm/6"
+                   placeholder="Search tags..."
+                   role="searchbox"
+                   aria-label="Search available tags"
+                   aria-autocomplete="list"
+                   :aria-activedescendant="focusedTag ? 'tag-option-' + focusedTag : null"
+                   :aria-controls="show ? 'tag-listbox-{{ name }}' : null"
+                   :aria-expanded="show">
+
+            <!-- Search Bar Actions - ONLY DIFFERENT PART -->
+            <div class="absolute inset-y-0 right-0 flex items-center py-1.5 pr-2 md:pr-1.5">
+              <!-- Desktop: Inline action buttons -->
+              <div class="hidden md:block">{% include "tag_me/tag_me_select_search_bar_desktop.html" %}</div>
+
+              <!-- Mobile: Context-aware action button (will be built in Phase C) -->
+              <div class="block md:hidden">{% include "tag_me/tag_me_select_search_bar_mobile.html" %}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Options List - SHARED -->
+        <ul id="tag-listbox-{{ name }}"
+            role="listbox"
+            tabindex="-1"
+            aria-label="Available tags"
+            x-show="!menuShow"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-cloak
+            class="max-h-60 w-full overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-800 pt-1 mb-0 text-base outline-none menu-scrollable sm:text-sm">
+
+          <!-- Search Result Count -->
+          <li x-show="filteredTags.length > 0 && search.length > 0"
+              class="px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900/80 sticky top-0 z-10 border-b border-gray-200 dark:border-white/10">
+            <span class="font-medium" x-text="filteredTags.length"></span>
+            <span x-text="filteredTags.length === 1 ? 'result' : 'results'"></span>
+          </li>
+
+          <!-- Existing Tags -->
+          <template x-for="(tagName, index) in filteredTags" :key="tagName">
+            <li role="option"
+                :id="'tag-option-' + tagName"
+                :aria-selected="isSelected(tagName)"
+                :aria-label="tagName + (isSelected(tagName) ? ' (selected)' : '')"
+                @click="toggleTag(tagName)"
+                @touchstart="handleSwipeStart($event, $el)"
+                @touchmove="handleSwipeMove($event)"
+                @touchend="handleSwipeEnd($event, tagName)"
+                @touchcancel="resetSwipe()"
+                class="block px-4 py-3 md:px-3 md:py-2 text-gray-900 dark:text-white select-none cursor-pointer transition-all duration-150 ease-in-out hover:shadow-sm swipe-item"
+                :class="isSelected(tagName) ? 'bg-indigo-500 swipe-selected' : (isFocused(tagName) ? 'bg-gray-200 dark:bg-gray-700 ring-2 ring-inset ring-indigo-400' : 'hover:bg-gray-100 dark:hover:bg-gray-700 swipe-unselected')">
+              <div class="flex items-center justify-between">
+                <span x-text="tagName" class="truncate"></span>
+
+                <!-- Checkmark for Selected -->
+                <span class="flex-shrink-0 ml-2 transition-all duration-200"
+                      x-show="isSelected(tagName)"
+                      x-transition:enter="transition ease-out duration-200"
+                      x-transition:enter-start="opacity-0 scale-50"
+                      x-transition:enter-end="opacity-100 scale-100"
+                      x-transition:leave="transition ease-in duration-150"
+                      x-transition:leave-start="opacity-100 scale-100"
+                      x-transition:leave-end="opacity-0 scale-50">
+                  <svg class="h-5 w-5 text-white"
+                       xmlns="http://www.w3.org/2000/svg"
+                       viewBox="0 0 20 20"
+                       fill="currentColor"
+                       aria-hidden="true">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </span>
+              </div>
+            </li>
+          </template>
+
+          <!-- Empty Library State -->
+          <li x-show="filteredTags.length === 0 && search.length === 0"
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0"
+              x-transition:enter-end="opacity-100"
+              class="px-4 py-8 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">No tags in library</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-500">Start typing to create your first tag!</p>
+          </li>
+
+          <!-- No Search Results Message -->
+          <li x-show="filteredTags.length === 0 && search.length > 0"
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0"
+              x-transition:enter-end="opacity-100"
+              class="px-4 py-8 text-center">
+            <svg class="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">No tags found</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-500">
+              No matches for "<span x-text="search" class="font-medium text-gray-600 dark:text-gray-400"></span>"
+            </p>
+            <p class="mt-2 text-xs text-gray-400 dark:text-gray-600"
+               x-show="canAddTag">Try a different search or create a new tag</p>
+          </li>
+        </ul>
+
+        <!-- Footer - SHARED (responsive visibility) -->
+        <div class="hidden md:block w-full py-2 m-0 rounded-b-md bg-gray-50 dark:bg-gray-800">
+          <p class="text-xs text-gray-600 dark:text-gray-300 text-center px-3">
+            <span class="inline-flex items-center gap-1">
+              <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded">↑↓</kbd>
+              navigate
+              <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded ml-2">Enter</kbd>
+              select
+              <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded ml-2">Esc</kbd>
+              close
+            </span>
+          </p>
+        </div>
+
+        <!-- Mobile Footer with Help/Management -->
+        <div class="block md:hidden">{% include "tag_me/tag_me_mobile_footer.html" %}</div>
+
+      </div>
+    </div>
+    <!-- End Dropdown Container -->
+
+  </div>
+  <!-- End Widget Container -->
+
+  <!-- Mobile Bottom Sheet (< 768px only) -->
+  <div class="block md:hidden">{% include "tag_me/tag_me_bottom_sheet.html" %}</div>
+
 </div>
 <!-- End Main Container -->

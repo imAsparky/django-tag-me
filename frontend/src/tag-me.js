@@ -6,7 +6,7 @@
 * Alpine.js should be available as window.Alpine.
 */
 // Import styles
-import './css/tag-me.css'
+// import './css/tag-me.css'
 // Import component
 import { createAlpineComponent } from './js/alpine-component.js'
 // Register component with Alpine.js
