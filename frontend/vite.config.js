@@ -2,8 +2,7 @@
 import { defineConfig } from 'vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import tailwindcss from 'tailwindcss'
-import autoprefixer from 'autoprefixer'
+import tailwindcss from '@tailwindcss/vite'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -11,6 +10,9 @@ const __dirname = path.dirname(__filename)
 const isProduction = process.env.NODE_ENV === 'production'
 
 export default defineConfig({
+  plugins: [
+    tailwindcss(),  // ← NEW
+  ],
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/tag-me.js'),
@@ -67,12 +69,6 @@ export default defineConfig({
   },
   css: {
     devSourcemap: !isProduction,
-    postcss: {
-      plugins: [
-        tailwindcss,
-        autoprefixer,
-      ]
-    }
   },
   server: {
     port: 5175

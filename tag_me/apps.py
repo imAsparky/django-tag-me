@@ -28,6 +28,34 @@ class DjangoTagMeConfig(AppConfig):
         if not hasattr(settings, "DJ_TAG_ME_SYSTEM_TAGS_POPULATED"):
             settings.DJ_TAG_ME_SYSTEM_TAGS_POPULATED = False
 
+        # === CSS Manifest Configuration ===
+        # These settings allow tag-me to use your main project's CSS
+        # instead of tag-me's own CSS file.
+
+        if not hasattr(settings, "TAGME_CSS_MANIFEST_PATH"):
+            # Default: Use tag-me's own CSS manifest
+            # Override this to use your project's manifest:
+            #   TAGME_CSS_MANIFEST_PATH = 'static/.vite/manifest.json'
+            settings.TAGME_CSS_MANIFEST_PATH = None
+
+        if not hasattr(settings, "TAGME_CSS_MANIFEST_KEY"):
+            # Default: Look for 'style.css' entry in manifest
+            # Override if your CSS uses a different key:
+            #   TAGME_CSS_MANIFEST_KEY = 'src/css/main.css'
+            settings.TAGME_CSS_MANIFEST_KEY = "style.css"
+
+        if not hasattr(settings, "TAGME_CSS_BASE_PATH"):
+            # Default: Tag-me's CSS is in 'tag_me/dist/'
+            # Override when using your project's CSS:
+            #   TAGME_CSS_BASE_PATH = 'dist'  # or 'static/dist', etc.
+            settings.TAGME_CSS_BASE_PATH = "tag_me/dist"
+
+        if not hasattr(settings, "TAGME_CSS_FALLBACK"):
+            # Default: Fallback CSS path for development (when no manifest exists)
+            # Override for your project:
+            #   TAGME_CSS_FALLBACK = 'css/main.css'
+            settings.TAGME_CSS_FALLBACK = "tag_me/dist/css/tag-me*.css"
+
         # These settings are useful for loading default user tags during the initial migration
         # and for development/testing purposes. To use this:
         #

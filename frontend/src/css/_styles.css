@@ -1,0 +1,140 @@
+@import "tailwindcss" prefix(tm);
+
+/* Configure dark mode to use .dark class */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Source Django templates */
+@source "../../../tag_me/templates/**/*.html";
+
+/* 
+ * Django Tag-Me Color Theme
+ * 
+ * Customize these OKLCH colors to match your brand.
+ * OKLCH provides perceptually uniform colors for better consistency.
+ * All colors have light and dark mode variants for complete control.
+ * 
+ * Example customization in your own CSS:
+ * 
+ * @theme {
+ *   --color-primary-base: oklch(0.55 0.22 27);  // Change to red
+ * }
+ * 
+ * @layer base {
+ *   .dark {
+ *     --color-primary-base: oklch(0.65 0.20 27);
+ *   }
+ * }
+ */
+
+@theme {
+  /* === PRIMARY INTERACTIVE ELEMENTS === */
+  /* Main brand color - buttons, selected states, interactive elements */
+  --color-primary-base: oklch(0.61 0.20 266);      /* Indigo-500 equivalent */
+  --color-primary-hover: oklch(0.55 0.24 267);     /* Indigo-600 equivalent */
+  --color-primary-light: oklch(0.70 0.17 269);     /* Indigo-400 equivalent */
+  --color-primary-bg: oklch(0.96 0.02 268);        /* Indigo-50 equivalent */
+  
+  /* === BACKGROUNDS === */
+  /* Base backgrounds and elevated surfaces (dropdowns, modals, cards) */
+  --color-bg-base: oklch(1.00 0 0);                /* White */
+  --color-bg-raised: oklch(0.98 0 0);              /* Gray-50 equivalent */
+  --color-bg-hover: oklch(0.96 0 0);               /* Gray-100 equivalent */
+  
+  /* === TEXT COLORS === */
+  /* Text hierarchy from primary to muted */
+  --color-text-primary: oklch(0.23 0.01 270);      /* Gray-900 equivalent */
+  --color-text-secondary: oklch(0.53 0.02 258);    /* Gray-600 equivalent */
+  --color-text-muted: oklch(0.61 0.01 258);        /* Gray-500 equivalent */
+  --color-text-on-primary: oklch(1.00 0 0);        /* White */
+  
+  /* === PLACEHOLDERS === */
+  /* Input placeholder text */
+  --color-placeholder: oklch(0.61 0.01 258);       /* Gray-400 equivalent */
+  
+  /* === BORDERS === */
+  /* Border colors for inputs, containers, dividers */
+  --color-border-base: oklch(0.91 0.00 286);       /* Gray-200 equivalent */
+  --color-border-light: oklch(0.96 0 0);           /* Gray-100 equivalent */
+  --color-border-focus: oklch(0.61 0.20 266);      /* Indigo-500 equivalent */
+  
+  /* === SUCCESS STATES === */
+  /* Positive feedback, confirmations, success messages */
+  --color-success-base: oklch(0.65 0.17 164);      /* Green-500 equivalent */
+  --color-success-bg: oklch(0.97 0.04 166);        /* Green-50 equivalent */
+  --color-success-border: oklch(0.88 0.11 163);    /* Green-200 equivalent */
+  --color-success-text: oklch(0.36 0.11 168);      /* Green-800 equivalent */
+  --color-success-text-secondary: oklch(0.46 0.15 165); /* Green-700 equivalent */
+  
+  /* === ERROR/DANGER === */
+  /* Error messages, validation errors, destructive actions */
+  --color-error-base: oklch(0.63 0.25 27);         /* Red-500 equivalent */
+  --color-error-bg: oklch(0.98 0.02 17);           /* Red-50 equivalent */
+  --color-error-border: oklch(0.91 0.10 17);       /* Red-200 equivalent */
+  --color-error-text: oklch(0.42 0.19 27);         /* Red-800 equivalent */
+  --color-error-text-secondary: oklch(0.50 0.23 25); /* Red-700 equivalent */
+  
+  /* === FOCUS RINGS === */
+  /* Focus indicators for keyboard navigation */
+  --color-focus-ring: oklch(0.61 0.20 266);        /* Indigo-500 equivalent */
+  --color-focus-ring-offset: oklch(1.00 0 0);      /* White */
+  
+  /* === OVERLAYS === */
+  /* Semi-transparent layers for modals, dropdowns, effects */
+  --color-overlay-backdrop: oklch(0 0 0 / 0.5);    /* Black 50% opacity */
+  --color-overlay-subtle: oklch(0 0 0 / 0.05);     /* Black 5% opacity */
+  --color-overlay-medium: oklch(0 0 0 / 0.1);      /* Black 10% opacity */
+}
+
+/* === DARK MODE COLOR OVERRIDES === */
+/* Redefine colors when .dark class is present on html element */
+@layer base {
+  .dark {
+    /* PRIMARY INTERACTIVE ELEMENTS - Dark Mode */
+    --color-primary-base: oklch(0.70 0.17 269);    /* Indigo-400 for better contrast */
+    --color-primary-hover: oklch(0.61 0.20 266);   /* Indigo-500 for hover */
+    --color-primary-light: oklch(0.78 0.13 270);   /* Indigo-300 lighter accent */
+    --color-primary-bg: oklch(0.27 0.07 277);      /* Indigo-950 dark tint */
+    
+    /* BACKGROUNDS - Dark Mode */
+    --color-bg-base: oklch(0.23 0.01 270);         /* Gray-900 base */
+    --color-bg-raised: oklch(0.28 0.01 263);       /* Gray-800 elevated */
+    --color-bg-hover: oklch(0.36 0.01 259);        /* Gray-700 hover */
+    
+    /* TEXT COLORS - Dark Mode */
+    --color-text-primary: oklch(0.98 0 0);         /* Gray-50 primary text */
+    --color-text-secondary: oklch(0.84 0.00 264);  /* Gray-300 secondary */
+    --color-text-muted: oklch(0.69 0.00 264);      /* Gray-400 muted */
+    --color-text-on-primary: oklch(1.00 0 0);      /* White (stays white) */
+    
+    /* PLACEHOLDERS - Dark Mode */
+    --color-placeholder: oklch(0.53 0.02 258);     /* Gray-500 darker placeholder */
+    
+    /* BORDERS - Dark Mode */
+    --color-border-base: oklch(0.36 0.01 259);     /* Gray-700 borders */
+    --color-border-light: oklch(1.00 0 0 / 0.1);   /* White 10% subtle */
+    --color-border-focus: oklch(0.70 0.17 269);    /* Indigo-400 focus */
+    
+    /* SUCCESS STATES - Dark Mode */
+    --color-success-base: oklch(0.75 0.15 161);    /* Green-400 */
+    --color-success-bg: oklch(0.36 0.11 168 / 0.5); /* Green-900 50% */
+    --color-success-border: oklch(0.65 0.17 164 / 0.5); /* Green-500 50% */
+    --color-success-text: oklch(0.88 0.11 163);    /* Green-200 */
+    --color-success-text-secondary: oklch(0.80 0.14 162); /* Green-300 */
+    
+    /* ERROR/DANGER - Dark Mode */
+    --color-error-base: oklch(0.71 0.20 27);       /* Red-400 */
+    --color-error-bg: oklch(0.35 0.14 27 / 0.5);   /* Red-900 50% */
+    --color-error-border: oklch(0.63 0.25 27 / 0.5); /* Red-500 50% */
+    --color-error-text: oklch(0.86 0.13 21);       /* Red-200 */
+    --color-error-text-secondary: oklch(0.71 0.20 27); /* Red-400 */
+    
+    /* FOCUS RINGS - Dark Mode */
+    --color-focus-ring: oklch(0.70 0.17 269);      /* Indigo-400 */
+    --color-focus-ring-offset: oklch(0.28 0.01 263); /* Gray-800 offset */
+    
+    /* OVERLAYS - Dark Mode */
+    --color-overlay-backdrop: oklch(0 0 0 / 0.5);  /* Black 50% (same) */
+    --color-overlay-subtle: oklch(1.00 0 0 / 0.05); /* White 5% */
+    --color-overlay-medium: oklch(1.00 0 0 / 0.1);  /* White 10% */
+  }
+}
