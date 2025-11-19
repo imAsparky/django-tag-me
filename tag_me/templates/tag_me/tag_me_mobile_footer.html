@@ -6,7 +6,7 @@
 {% endcomment %}
 <!-- Mobile Footer (only show if links exist) -->
 <div x-show="hasLinks"
-     class="tm:sticky tm:bottom-0 tm:w-full tm:py-3 tm:px-4 tm:bg-bg-raised/95 tm:backdrop-blur-sm tm:border-t tm:border-border-base tm:rounded-b-md">
+     class="tm:sticky tm:bottom-0 tm:z-sticky tm:w-full tm:py-3 tm:px-4 tm:bg-bg-raised/95 tm:backdrop-blur-sm tm:border-t tm:border-border-base tm:rounded-b-md">
     <div class="tm:flex tm:items-center tm:justify-center tm:gap-6">
         <!-- Help Link -->
         <a x-show="helpUrl"
@@ -57,8 +57,13 @@ MAPPING DECISIONS:
 - focus:ring-indigo-500 → focus:ring-focus-ring (focus indicator)
 - focus:ring-offset-white dark:focus:ring-offset-gray-900 → focus:ring-offset-focus-ring-offset
 GAPS / TOKENS TO ADD:
-- Z-INDEX: Need to add z-index utilities to tag-me styles.css
-Example: --z-sticky: 1020; (for sticky positioning)
-Currently using: sticky (Tailwind utility, but may need z-index control)
+- Z-INDEX: ✅ RESOLVED - Added z-index utilities to tag-me styles.css in @layer utilities
+Using: tm:z-sticky (1020) for footer positioning
+Z-INDEX ARCHITECTURAL DECISION:
+- Footer uses z-sticky (1020) for semantic and architectural correctness
+- Rationale: Sticky elements float above scrolling content
+- Context: Footer is inside dropdown (z-dropdown: 1000), needs higher z-index
+- Semantic: "sticky" name matches both positioning type and z-index purpose
+- Robustness: Works in dropdown, modal, or standalone contexts
 ALL CHANGES: Only class="" attributes modified. No Alpine.js, HTML structure, or other attributes changed.
 {% endcomment %}
