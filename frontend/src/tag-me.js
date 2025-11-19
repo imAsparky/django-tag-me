@@ -6,14 +6,14 @@
 * Alpine.js should be available as window.Alpine.
 */
 // Import styles
-import './css/tag-me.css'
+import './css/styles.css'
 // Import component
 import { createAlpineComponent } from './js/alpine-component.js'
 // Register component with Alpine.js
 if (typeof window !== 'undefined') {
-  console.log('🔍 Tag-Me: Initializing...')
+  console.debug('🔍 Tag-Me: Initializing...')
   // DEBUG: Check what we imported
-  console.log('📦 createAlpineComponent imported:', typeof createAlpineComponent)
+  console.debug('📦 createAlpineComponent imported:', typeof createAlpineComponent)
   // DEBUG: Create test instance to verify it has new methods
   try {
     const testConfig = {
@@ -27,17 +27,17 @@ if (typeof window !== 'undefined') {
       helpUrl: '',
       mgmtUrl: ''
     }
-    console.log('🧪 Creating test instance...')
+    console.debug('🧪 Creating test instance...')
     const testInstance = createAlpineComponent(testConfig)
-    console.log('🧪 Test instance created successfully')
-    console.log('🧪 Has toggle?', typeof testInstance.toggle)
-    console.log('🧪 Has menuBadge?', 'menuBadge' in testInstance)
-    console.log('🧪 Has menuButtonClass?', 'menuButtonClass' in testInstance)
-    console.log('🧪 Has showInlineAdd?', 'showInlineAdd' in testInstance)
+    console.debug('🧪 Test instance created successfully')
+    console.debug('🧪 Has toggle?', typeof testInstance.toggle)
+    console.debug('🧪 Has menuBadge?', 'menuBadge' in testInstance)
+    console.debug('🧪 Has menuButtonClass?', 'menuButtonClass' in testInstance)
+    console.debug('🧪 Has showInlineAdd?', 'showInlineAdd' in testInstance)
     // Try to access menuBadge
     try {
       const badge = testInstance.menuBadge
-      console.log('🧪 menuBadge returns:', badge)
+      console.debug('🧪 menuBadge returns:', badge)
     } catch (e) {
       console.error('🧪 Error accessing menuBadge:', e)
     }
@@ -46,21 +46,21 @@ if (typeof window !== 'undefined') {
   }
   const registerComponent = () => {
     if (typeof window.Alpine !== 'undefined' && window.Alpine.data) {
-      console.log('📝 Registering component with Alpine...')
+      console.debug('📝 Registering component with Alpine...')
       window.Alpine.data('alpineTagMeMultiSelect', createAlpineComponent)
-      console.log('✅ Django Tag-Me component registered with Alpine.js')
+      console.debug('✅ Django Tag-Me component registered with Alpine.js')
       return true
     }
     return false
   }
   // Try immediate registration (if Alpine already loaded)
   if (!registerComponent()) {
-    console.log('⏳ Waiting for Alpine.js to initialize...')
+    console.debug('⏳ Waiting for Alpine.js to initialize...')
     // Wait for Alpine to initialize
     document.addEventListener('alpine:init', () => {
-      console.log('🎯 alpine:init event received')
+      console.debug('🎯 alpine:init event received')
       if (registerComponent()) {
-        console.log('✅ Registration complete')
+        console.debug('✅ Registration complete')
       } else {
         console.error('❌ Alpine.js found but registration failed')
       }
@@ -76,7 +76,7 @@ if (typeof window !== 'undefined') {
       }
     }, 5000)
   }
-  console.log('✅ Tag-Me initialization complete')
+  console.debug('✅ Tag-Me initialization complete')
 }
 // Export for module usage
 export { createAlpineComponent }

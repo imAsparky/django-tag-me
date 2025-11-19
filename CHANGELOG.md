@@ -2,6 +2,21 @@
 
 <!--next-version-placeholder-->
 
+## [2025.11.19.1]
+
+### Maintenance
+- Update frontend to use Tailwind 4 (conf) [#296](https://github.com/imAsparky/django-tag-me/pull/296)
+- Update paths/add defaults via settings (assets) [#296](https://github.com/imAsparky/django-tag-me/pull/296)
+- Update production release (build) [#296](https://github.com/imAsparky/django-tag-me/pull/296)
+- Update to use tokens, add no_prefix templates (templates) [#296](https://github.com/imAsparky/django-tag-me/pull/296)
+
+### Documentation
+- Add migration guide (style) [#296](https://github.com/imAsparky/django-tag-me/pull/296)
+
+### Testing
+- Update error message tests (asset) [#296](https://github.com/imAsparky/django-tag-me/pull/296)
+
+
 ## [2025.11.14.1]
 
 ### Features

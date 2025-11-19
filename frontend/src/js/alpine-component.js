@@ -6,8 +6,7 @@
 * - Order array for drag-to-reorder functionality
 * - No reliance on DOM <select> element state
 * - Reactive computed properties (Alpine caches these)
-* - Simplified tag addition (no full rebuild)
-* - Better keyboard navigation
+* - Keyboard navigation
 * - Desktop inline actions, mobile menu
 * - Drag-to-reorder selected tags
 *
@@ -99,7 +98,7 @@ export function createAlpineComponent(config) {
     // ============================================
     /**
     * Check if screen is desktop size
-    * CHANGED: Now uses 768px breakpoint (md:) instead of 1024px (lg:)
+    * Uses 768px breakpoint (md:)
     * @returns {boolean}
     */
     get isDesktop() {
@@ -107,7 +106,7 @@ export function createAlpineComponent(config) {
     },
     /**
     * Check if screen is mobile size
-    * CHANGED: Now uses 768px breakpoint (md:) instead of 1024px (lg:)
+    * Uses 768px breakpoint (md:)
     * @returns {boolean}
     */
     get isMobile() {
@@ -185,7 +184,6 @@ export function createAlpineComponent(config) {
     * @returns {Object} { type: 'none'|'add'|'actions', count: number, show: boolean }
     */
     get menuBadge() {
-      // Priority 1: Add action available (red dot)
       if (this.canAddTag) {
         return {
           type: 'add',
@@ -354,7 +352,7 @@ export function createAlpineComponent(config) {
         this.tagCreationError = null;
         this.menuShow = false;
         this.bottomSheetShow = false;
-        console.log(`✅ Tag "${addedTag}" added to library and ${this.autoSelectNewTags ? 'selected' : 'available'}`);
+        console.debug(`✅ Tag "${addedTag}" added to library and ${this.autoSelectNewTags ? 'selected' : 'available'}`);
       } catch (error) {
         console.error('Tag creation failed:', error);
         this.tagCreationError = error.message || 'Failed to create tag. Please try again.';
@@ -495,7 +493,7 @@ export function createAlpineComponent(config) {
     * @param {HTMLElement} element - The list item being swiped
     */
     handleSwipeStart(event, element) {
-      console.log('🟢 SWIPE START', { isMobile: this.isMobile, hasElement: !!element });
+      console.debug('🟢 SWIPE START', { isMobile: this.isMobile, hasElement: !!element });
       if (!this.isMobile) return;
 
       const touch = event.touches[0];
@@ -514,7 +512,7 @@ export function createAlpineComponent(config) {
     * @param {TouchEvent} event - Touch event
     */
     handleSwipeMove(event) {
-      console.log('🔵 SWIPE MOVE', { isMobile: this.isMobile, hasStart: !!this.swipeState.startX });
+      console.debug('🔵 SWIPE MOVE', { isMobile: this.isMobile, hasStart: !!this.swipeState.startX });
       if (!this.isMobile || !this.swipeState.startX || !this.swipeState.element) return;
 
       const touch = event.touches[0];

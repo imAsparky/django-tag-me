@@ -1,9 +1,16 @@
 # tests/test_assets.py
 import json
 from pathlib import Path
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, mock_open, patch
+
 from django.test import TestCase
-from tag_me.assets import get_tag_me_css, get_tag_me_js, _load_vite_manifest
+
+from tag_me.assets import (
+    ViteManifestError,
+    _load_vite_manifest,
+    get_tag_me_css,
+    get_tag_me_js,
+)
 
 
 class TestViteAssetLoading(TestCase):
@@ -73,11 +80,13 @@ class TestViteAssetLoading(TestCase):
 
         mock_find.return_value = None
 
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(ViteManifestError) as context:
             get_tag_me_js()
 
         self.assertIn("Vite manifest not found", str(context.exception))
-        self.assertIn("npm run prod", str(context.exception))
+        self.assertIn(
+            "Ensure assets were built before deployment", str(context.exception)
+        )
 
     @patch("tag_me.assets.finders.find")
     @patch("tag_me.assets.Path")
@@ -88,10 +97,10 @@ class TestViteAssetLoading(TestCase):
         mock_path_instance.read_text.return_value = "{ invalid json }"
         mock_path.return_value = mock_path_instance
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ViteManifestError) as context:
             get_tag_me_js()
 
-        self.assertIn("Invalid JSON", str(context.exception))
+        self.assertIn("Invalid JSON in Vite manifest at", str(context.exception))
 
     @patch("tag_me.assets.finders.find")
     @patch("tag_me.assets.Path")
@@ -109,10 +118,13 @@ class TestViteAssetLoading(TestCase):
         mock_path_instance.read_text.return_value = json.dumps(mock_manifest)
         mock_path.return_value = mock_path_instance
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ViteManifestError) as context:
             get_tag_me_js()
 
-        self.assertIn("JS entry 'src/tag-me.js' not found", str(context.exception))
+        self.assertIn(
+            "JavaScript entry 'src/tag-me.js' not found in tag-me manifest.",
+            str(context.exception),
+        )
         self.assertIn("Available keys:", str(context.exception))
 
     @patch("tag_me.assets.finders.find")
@@ -131,7 +143,7 @@ class TestViteAssetLoading(TestCase):
         mock_path_instance.read_text.return_value = json.dumps(mock_manifest)
         mock_path.return_value = mock_path_instance
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ViteManifestError) as context:
             get_tag_me_css()
 
         self.assertIn("CSS entry 'style.css' not found", str(context.exception))
@@ -153,10 +165,12 @@ class TestViteAssetLoading(TestCase):
         mock_path_instance.read_text.return_value = json.dumps(mock_manifest)
         mock_path.return_value = mock_path_instance
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ViteManifestError) as context:
             get_tag_me_js()
 
-        self.assertIn("JS entry 'src/tag-me.js' not found", str(context.exception))
+        self.assertIn(
+            "No 'file' key in JS entry. Entry contents:", str(context.exception)
+        )
 
     @patch("tag_me.assets.finders.find")
     @patch("tag_me.assets.Path")
@@ -174,10 +188,13 @@ class TestViteAssetLoading(TestCase):
         mock_path_instance.read_text.return_value = json.dumps(mock_manifest)
         mock_path.return_value = mock_path_instance
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ViteManifestError) as context:
             get_tag_me_css()
 
-        self.assertIn("CSS entry 'style.css' not found", str(context.exception))
+        self.assertIn(
+            "No 'file' key in CSS entry. Entry contents: {'src': 'style.css'}",
+            str(context.exception),
+        )
 
     # ============================================
     # CACHE BEHAVIOR TESTS

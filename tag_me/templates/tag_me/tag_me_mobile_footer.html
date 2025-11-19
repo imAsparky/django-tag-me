@@ -4,46 +4,66 @@
   Always visible at bottom of dropdown with Help/Management links
   Only shows if URLs are provided
 {% endcomment %}
-
 <!-- Mobile Footer (only show if links exist) -->
 <div x-show="hasLinks"
-     class="sticky bottom-0 w-full py-3 px-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t border-gray-200 dark:border-white/10 rounded-b-md">
-  <div class="flex items-center justify-center gap-6">
-
-    <!-- Help Link -->
-    <a x-show="helpUrl"
-       :href="helpUrl"
-       target="_blank"
-       class="inline-flex items-center gap-2 min-w-[44px] min-h-[44px] px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-lg transition-colors duration-150 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900"
-       aria-label="Help">
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="h-5 w-5 flex-shrink-0"
-           fill="none"
-           viewBox="0 0 24 24"
-           stroke="currentColor"
-           stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-      </svg>
-      <span>Help</span>
-    </a>
-
-    <!-- Management Link -->
-    <a x-show="mgmtUrl"
-       :href="mgmtUrl"
-       target="_blank"
-       class="inline-flex items-center gap-2 min-w-[44px] min-h-[44px] px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-lg transition-colors duration-150 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900"
-       aria-label="Tag Management">
-      <svg xmlns="http://www.w3.org/2000/svg"
-           class="h-5 w-5 flex-shrink-0"
-           fill="none"
-           viewBox="0 0 24 24"
-           stroke="currentColor"
-           stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-      </svg>
-      <span>Manage</span>
-    </a>
-
-  </div>
+     class="tm:sticky tm:bottom-0 tm:z-sticky tm:w-full tm:py-3 tm:px-4 tm:bg-bg-raised/95 tm:backdrop-blur-sm tm:border-t tm:border-border-base tm:rounded-b-md">
+    <div class="tm:flex tm:items-center tm:justify-center tm:gap-6">
+        <!-- Help Link -->
+        <a x-show="helpUrl"
+           :href="helpUrl"
+           target="_blank"
+           class="tm:inline-flex tm:items-center tm:gap-2 tm:min-w-[44px] tm:min-h-[44px] tm:px-3 tm:py-2 tm:text-sm tm:font-medium tm:text-text-secondary tm:rounded-lg tm:transition-colors tm:duration-150 hover:tm:text-text-primary hover:tm:bg-bg-hover tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-2 tm:focus:ring-offset-focus-ring-offset"
+           aria-label="Help">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="tm:h-5 tm:w-5 tm:flex-shrink-0"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+            </svg>
+            <span>Help</span>
+        </a>
+        <!-- Management Link -->
+        <a x-show="mgmtUrl"
+           :href="mgmtUrl"
+           target="_blank"
+           class="tm:inline-flex tm:items-center tm:gap-2 tm:min-w-[44px] tm:min-h-[44px] tm:px-3 tm:py-2 tm:text-sm tm:font-medium tm:text-text-secondary tm:rounded-lg tm:transition-colors tm:duration-150 hover:tm:text-text-primary hover:tm:bg-bg-hover tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-2 tm:focus:ring-offset-focus-ring-offset"
+           aria-label="Tag Management">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="tm:h-5 tm:w-5 tm:flex-shrink-0"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+            </svg>
+            <span>Manage</span>
+        </a>
+    </div>
 </div>
+{% comment %}
+TEMPLATE MIGRATION NOTES - FOOTER
+=================================
+Date: November 18, 2025
+Migrated by: Claude
+MAPPING DECISIONS:
+- bg-white/95 dark:bg-gray-800/95 → bg-bg-raised/95 (elevated surface with opacity)
+- border-gray-200 dark:border-white/10 → border-border-base (standard outline)
+- text-gray-600 dark:text-gray-300 → text-text-secondary (secondary text)
+- hover:text-gray-900 dark:hover:text-white → hover:text-text-primary (primary text)
+- hover:bg-gray-100 dark:hover:bg-gray-700 → hover:bg-bg-hover (hover background)
+- focus:ring-indigo-500 → focus:ring-focus-ring (focus indicator)
+- focus:ring-offset-white dark:focus:ring-offset-gray-900 → focus:ring-offset-focus-ring-offset
+GAPS / TOKENS TO ADD:
+- Z-INDEX: ✅ RESOLVED - Added z-index utilities to tag-me styles.css in @layer utilities
+Using: tm:z-sticky (1020) for footer positioning
+Z-INDEX ARCHITECTURAL DECISION:
+- Footer uses z-sticky (1020) for semantic and architectural correctness
+- Rationale: Sticky elements float above scrolling content
+- Context: Footer is inside dropdown (z-dropdown: 1000), needs higher z-index
+- Semantic: "sticky" name matches both positioning type and z-index purpose
+- Robustness: Works in dropdown, modal, or standalone contexts
+ALL CHANGES: Only class="" attributes modified. No Alpine.js, HTML structure, or other attributes changed.
+{% endcomment %}

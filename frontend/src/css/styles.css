@@ -1,0 +1,300 @@
+@import "tailwindcss" prefix(tm);
+
+/* Configure dark mode to use .dark class - matches main project */
+@custom-variant dark (&:is(.dark *));
+
+/* Source Django templates */
+@source "../../../tag_me/templates/**/*.html";
+
+/* 
+ * Django Tag-Me Color Theme
+ * 
+ * FLEXIBLE INTEGRATION STRATEGY:
+ * - Standalone: Uses tag-me's default OKLCH colors with full dark mode support
+ * - Integrated: Automatically inherits host project's Material Design 3 tokens
+ * 
+ * How it works:
+ * - var(--color-primary) tries to use host's --color-primary token
+ * - If not found, falls back to tag-me's default oklch(0.61 0.20 266)
+ * - Dark mode works the same way - tries host's .dark, falls back to tag-me's
+ * 
+ * Host Project Integration:
+ * In your main project's CSS, define MD3 tokens in @theme and @layer theme:
+ * 
+ * @theme {
+ *   --color-primary: oklch(0.47 0.24 266);
+ *   --color-surface: oklch(0.98 0 0);
+ *   --color-on-surface: oklch(0.20 0.01 270);
+ *   // ... etc
+ * }
+ * 
+ * @layer theme {
+ *   .dark {
+ *     --color-primary: oklch(0.70 0.18 266);
+ *     --color-surface: oklch(0.15 0.01 270);
+ *     // ... etc
+ *   }
+ * }
+ * 
+ * Tag-me will automatically use your colors and dark mode! ✨
+ */
+
+@theme {
+  /* === PRIMARY INTERACTIVE ELEMENTS === */
+  /* Main brand color - buttons, selected states, interactive elements */
+  /* Maps to: --color-primary (MD3) */
+  --color-primary-base: var(--color-primary, oklch(0.61 0.20 266));
+  
+  /* Hover state - slightly darker */
+  /* Fallback: Darker version of primary */
+  --color-primary-hover: var(--color-primary, oklch(0.55 0.24 267));
+  
+  /* Light accent */
+  /* Fallback: Lighter version of primary */
+  --color-primary-light: var(--color-primary, oklch(0.70 0.17 269));
+  
+  /* Primary tinted background */
+  /* Maps to: --color-primary-container (MD3) */
+  --color-primary-bg: var(--color-primary-container, oklch(0.96 0.02 268));
+  
+  /* === BACKGROUNDS === */
+  /* Base background */
+  /* Maps to: --color-surface (MD3) */
+  --color-bg-base: var(--color-surface, oklch(1.00 0 0));
+  
+  /* Elevated surfaces (cards, panels) */
+  /* Maps to: --color-surface-container (MD3) */
+  --color-bg-raised: var(--color-surface-container, oklch(0.98 0 0));
+  
+  /* Hover state background */
+  /* Maps to: --color-surface-container-high (MD3) */
+  --color-bg-hover: var(--color-surface-container-high, oklch(0.96 0 0));
+  
+  /* === TEXT COLORS === */
+  /* Primary text */
+  /* Maps to: --color-on-surface (MD3) */
+  --color-text-primary: var(--color-on-surface, oklch(0.23 0.01 270));
+  
+  /* Secondary text */
+  /* Maps to: --color-on-surface-variant (MD3) */
+  --color-text-secondary: var(--color-on-surface-variant, oklch(0.53 0.02 258));
+  
+  /* Muted text */
+  /* Maps to: --color-on-surface-variant (MD3) */
+  --color-text-muted: var(--color-on-surface-variant, oklch(0.61 0.01 258));
+  
+  /* Text on primary color backgrounds */
+  /* Maps to: --color-on-primary (MD3) */
+  --color-text-on-primary: var(--color-on-primary, oklch(1.00 0 0));
+  
+  /* === PLACEHOLDERS === */
+  /* Input placeholder text */
+  /* Maps to: --color-on-surface-variant (MD3) */
+  --color-placeholder: var(--color-on-surface-variant, oklch(0.61 0.01 258));
+  
+  /* === BORDERS === */
+  /* Base border color */
+  /* Maps to: --color-outline (MD3) */
+  --color-border-base: var(--color-outline, oklch(0.91 0.00 286));
+  
+  /* Light/subtle borders */
+  /* Maps to: --color-outline-variant (MD3) */
+  --color-border-light: var(--color-outline-variant, oklch(0.96 0 0));
+  
+  /* Focus state border */
+  /* Maps to: --color-primary (MD3) */
+  --color-border-focus: var(--color-primary, oklch(0.61 0.20 266));
+  
+  /* === SUCCESS STATES === */
+  /* Success base color */
+  /* Maps to: --color-success (MD3) */
+  --color-success-base: var(--color-success, oklch(0.65 0.17 164));
+  
+  /* Success background */
+  /* Maps to: --color-success-container (MD3) */
+  --color-success-bg: var(--color-success-container, oklch(0.97 0.04 166));
+  
+  /* Success border */
+  /* Fallback: Lighter success color */
+  --color-success-border: var(--color-success, oklch(0.88 0.11 163));
+  
+  /* Success text */
+  /* Maps to: --color-on-success-container (MD3) */
+  --color-success-text: var(--color-on-success-container, oklch(0.36 0.11 168));
+  
+  /* Success secondary text */
+  /* Fallback: Darker success shade */
+  --color-success-text-secondary: var(--color-on-success-container, oklch(0.46 0.15 165));
+  
+  /* === ERROR/DANGER === */
+  /* Error base color */
+  /* Maps to: --color-error (MD3) */
+  --color-error-base: var(--color-error, oklch(0.63 0.25 27));
+  
+  /* Error background */
+  /* Maps to: --color-error-container (MD3) */
+  --color-error-bg: var(--color-error-container, oklch(0.98 0.02 17));
+  
+  /* Error border */
+  /* Fallback: Lighter error color */
+  --color-error-border: var(--color-error, oklch(0.91 0.10 17));
+  
+  /* Error text */
+  /* Maps to: --color-on-error-container (MD3) */
+  --color-error-text: var(--color-on-error-container, oklch(0.42 0.19 27));
+  
+  /* Error secondary text */
+  /* Fallback: Darker error shade */
+  --color-error-text-secondary: var(--color-on-error-container, oklch(0.50 0.23 25));
+  
+  /* === FOCUS RINGS === */
+  /* Focus indicator */
+  /* Maps to: --color-primary (MD3) */
+  --color-focus-ring: var(--color-primary, oklch(0.61 0.20 266));
+  
+  /* Focus ring offset */
+  /* Maps to: --color-surface (MD3) */
+  --color-focus-ring-offset: var(--color-surface, oklch(1.00 0 0));
+  
+  /* === OVERLAYS === */
+  /* Modal backdrop */
+  --color-overlay-backdrop: oklch(0 0 0 / 0.5);
+  
+  /* Subtle overlay */
+  --color-overlay-subtle: oklch(0 0 0 / 0.05);
+  
+  /* Medium overlay */
+  --color-overlay-medium: oklch(0 0 0 / 0.1);
+  
+  /* === Z-INDEX SCALE === */
+  /* Semantic layering - matches main project z-index system */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-notification: 1080;
+}
+
+/* === DARK MODE COLOR OVERRIDES === */
+/* 
+ * Provides working dark mode for standalone usage
+ * When integrated with host project, host's .dark values take precedence
+ * via the var() cascade
+ * 
+ * IMPORTANT: Must NOT be in @layer - needs to be unlayered to override :root
+ * The --tm- prefix must be added manually since prefix() only applies to @theme
+ */
+.dark {
+  /* PRIMARY INTERACTIVE ELEMENTS - Dark Mode */
+  --tm-color-primary-base: var(--color-primary, oklch(0.70 0.17 269));
+  --tm-color-primary-hover: var(--color-primary, oklch(0.61 0.20 266));
+  --tm-color-primary-light: var(--color-primary, oklch(0.78 0.13 270));
+  --tm-color-primary-bg: var(--color-primary-container, oklch(0.27 0.07 277));
+  
+  /* BACKGROUNDS - Dark Mode */
+  --tm-color-bg-base: var(--color-surface, oklch(0.23 0.01 270));
+  --tm-color-bg-raised: var(--color-surface-container, oklch(0.28 0.01 263));
+  --tm-color-bg-hover: var(--color-surface-container-high, oklch(0.36 0.01 259));
+  
+  /* TEXT COLORS - Dark Mode */
+  --tm-color-text-primary: var(--color-on-surface, oklch(0.98 0 0));
+  --tm-color-text-secondary: var(--color-on-surface-variant, oklch(0.84 0.00 264));
+  --tm-color-text-muted: var(--color-on-surface-variant, oklch(0.69 0.00 264));
+  --tm-color-text-on-primary: var(--color-on-primary, oklch(1.00 0 0));
+  
+  /* PLACEHOLDERS - Dark Mode */
+  --tm-color-placeholder: var(--color-on-surface-variant, oklch(0.53 0.02 258));
+  
+  /* BORDERS - Dark Mode */
+  --tm-color-border-base: var(--color-outline, oklch(0.36 0.01 259));
+  --tm-color-border-light: var(--color-outline-variant, oklch(1.00 0 0 / 0.1));
+  --tm-color-border-focus: var(--color-primary, oklch(0.70 0.17 269));
+  
+  /* SUCCESS STATES - Dark Mode */
+  --tm-color-success-base: var(--color-success, oklch(0.75 0.15 161));
+  --tm-color-success-bg: var(--color-success-container, oklch(0.36 0.11 168 / 0.5));
+  --tm-color-success-border: var(--color-success, oklch(0.65 0.17 164 / 0.5));
+  --tm-color-success-text: var(--color-on-success-container, oklch(0.88 0.11 163));
+  --tm-color-success-text-secondary: var(--color-on-success-container, oklch(0.80 0.14 162));
+  
+  /* ERROR/DANGER - Dark Mode */
+  --tm-color-error-base: var(--color-error, oklch(0.71 0.20 27));
+  --tm-color-error-bg: var(--color-error-container, oklch(0.35 0.14 27 / 0.5));
+  --tm-color-error-border: var(--color-error, oklch(0.63 0.25 27 / 0.5));
+  --tm-color-error-text: var(--color-on-error-container, oklch(0.86 0.13 21));
+  --tm-color-error-text-secondary: var(--color-on-error-container, oklch(0.71 0.20 27));
+  
+  /* FOCUS RINGS - Dark Mode */
+  --tm-color-focus-ring: var(--color-primary, oklch(0.70 0.17 269));
+  --tm-color-focus-ring-offset: var(--color-surface, oklch(0.28 0.01 263));
+  
+  /* OVERLAYS - Dark Mode */
+  --tm-color-overlay-backdrop: oklch(0 0 0 / 0.5);
+  --tm-color-overlay-subtle: oklch(1.00 0 0 / 0.05);
+  --tm-color-overlay-medium: oklch(1.00 0 0 / 0.1);
+}
+
+/* === Z-INDEX UTILITIES === */
+/*
+ * Z-index tokens don't auto-generate utilities like colors do.
+ * We manually create them here so templates can use semantic names.
+ */
+@layer utilities {
+  .tm\:z-dropdown { z-index: var(--z-dropdown); }
+  .tm\:z-sticky { z-index: var(--z-sticky); }
+  .tm\:z-fixed { z-index: var(--z-fixed); }
+  .tm\:z-modal-backdrop { z-index: var(--z-modal-backdrop); }
+  .tm\:z-modal { z-index: var(--z-modal); }
+  .tm\:z-popover { z-index: var(--z-popover); }
+  .tm\:z-tooltip { z-index: var(--z-tooltip); }
+  .tm\:z-notification { z-index: var(--z-notification); }
+}
+
+/* ============================================================================
+ * IMPORTANT NOTES - PREFIX AND DARK MODE
+ * ============================================================================
+ * 
+ * PREFIX BEHAVIOR:
+ * ----------------
+ * The prefix(tm) directive affects utility classes BUT NOT @theme variables:
+ * 
+ *   @theme {
+ *     --color-primary: blue;     // Variable name stays --color-primary
+ *   }
+ *   
+ *   Generated utilities:
+ *     .tm\:bg-primary            // Utility gets tm: prefix
+ *     .tm\:text-primary          // Utility gets tm: prefix
+ * 
+ * However, the prefix DOES apply to @custom-variant:
+ *   @custom-variant dark (&:is(.dark *));
+ * 
+ * This means dark mode utilities also get prefixed:
+ *   .tm\:dark\:bg-primary       // Both tm: and dark: prefixes
+ * 
+ * CRITICAL: The dark mode variant selector MUST match your main project's
+ * @custom-variant exactly, or dark mode won't trigger correctly.
+ * 
+ * Z-INDEX UTILITIES:
+ * ------------------
+ * Unlike colors, z-index tokens in @theme do NOT auto-generate utilities.
+ * 
+ * This WORKS automatically:
+ *   @theme { --color-primary: blue; }
+ *   → Creates: .tm\:bg-primary, .tm\:text-primary, etc.
+ * 
+ * This DOES NOT work automatically:
+ *   @theme { --z-modal: 1050; }
+ *   → Does NOT create: .tm\:z-modal ❌
+ * 
+ * Solution: Manually create utilities in @layer utilities (see above).
+ * This allows semantic names in templates instead of arbitrary values:
+ *   ✅ class="tm:z-modal"       (semantic, maintainable)
+ *   ❌ class="tm:z-[1050]"      (brittle, hard to maintain)
+ * 
+ * ============================================================================
+ */
