@@ -3,7 +3,7 @@
   REFACTORED: Shared structure with conditional search bar actions
   Breakpoint: md: (768px)
   - Desktop (>= 768px): Inline action buttons
-  - Mobile (< 768px): Context-aware action button (to be built)
+  - Mobile (< 768px): Context-aware action button
   
   Only the search bar action area is different between mobile/desktop.
   Everything else is shared with responsive Tailwind classes.
@@ -14,27 +14,25 @@
   width: 0.5rem;
 }
 .menu-scrollable::-webkit-scrollbar-track {
-  background-color: #e5e7eb;
+  background-color: oklch(0.91 0.00 286); /* border-base light */
   border-radius: 9999px;
 }
 .menu-scrollable::-webkit-scrollbar-thumb {
-  background-color: #9ca3af;
+  background-color: oklch(0.61 0.01 258); /* text-muted */
   border-radius: 9999px;
 }
 .menu-scrollable::-webkit-scrollbar-thumb:hover {
-  background-color: #6b7280;
+  background-color: oklch(0.53 0.02 258); /* text-secondary */
 }
 
-@media (prefers-color-scheme: dark) {
-  .menu-scrollable::-webkit-scrollbar-track {
-    background-color: #1f2937;
-  }
-  .menu-scrollable::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
-  }
-  .menu-scrollable::-webkit-scrollbar-thumb:hover {
-    background-color: #6b7280;
-  }
+.dark .menu-scrollable::-webkit-scrollbar-track {
+  background-color: oklch(0.36 0.01 259); /* border-base dark */
+}
+.dark .menu-scrollable::-webkit-scrollbar-thumb {
+  background-color: oklch(0.53 0.02 258); /* text-secondary dark - from placeholder */
+}
+.dark .menu-scrollable::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.69 0.00 264); /* text-muted dark */
 }
 
 /* Screen Reader Only - for accessibility */
@@ -70,19 +68,17 @@
 }
 
 .swipe-item.swipe-unselected.swipe-active::before {
-  background-color: rgba(99, 102, 241, 0.3);
+  background-color: oklch(0.61 0.20 266 / 0.3); /* primary-base with 30% opacity */
   opacity: 1;
 }
 
 .swipe-item.swipe-selected.swipe-active::before {
-  background-color: rgba(209, 213, 219, 0.4);
+  background-color: oklch(0.91 0.00 286 / 0.4); /* border-base with 40% opacity */
   opacity: 1;
 }
 
-@media (prefers-color-scheme: dark) {
-  .swipe-item.swipe-selected.swipe-active::before {
-    background-color: rgba(107, 114, 128, 0.4);
-  }
+.dark .swipe-item.swipe-selected.swipe-active::before {
+  background-color: oklch(0.53 0.02 258 / 0.4); /* text-secondary dark with 40% opacity */
 }
 </style>
 <!-- Main Container -->
@@ -96,7 +92,7 @@
      aria-haspopup="listbox"
      :aria-expanded="show"
      :aria-describedby="$id('keyboard-instructions')"
-     class="w-full">
+     class="tm:w-full">
     <!-- Hidden Input for Form Submission -->
     <input type="hidden" name="{{ name }}" x-model="formValue">
     <!-- Aria-live region for screen reader announcements -->
@@ -110,20 +106,20 @@
     </div>
     <!-- Widget Container -->
     <div id="tag-me-select-{{ name }}"
-         class="relative w-full"
+         class="tm:relative tm:w-full"
          x-ref="widgetContainer">
         <!-- Input-like Container (Closed State) - SHARED -->
-        <div class="relative w-full">
-            <div class="block w-full md:h-[37px] rounded-md bg-white dark:bg-white/5 border-0 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-300 transition-all duration-200 focus-within:ring-2 focus-within:ring-indigo-500"
-                 :class="show ? 'ring-2 ring-indigo-500' : ''">
+        <div class="tm:relative tm:w-full">
+            <div class="tm:block tm:w-full tm:md:h-[37px] tm:rounded-md tm:bg-bg-base tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-border-base tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-border-focus"
+                 :class="show ? 'tm:ring-2 tm:ring-border-focus' : ''">
                 <!-- Selected Tags Display + Clickable Area -->
-                <div class="flex items-center py-2 md:py-1.5 pr-11 md:pr-10 pl-3 cursor-pointer"
+                <div class="tm:flex tm:items-center tm:py-2 tm:md:py-1.5 tm:pr-11 tm:md:pr-10 tm:pl-3 tm:cursor-pointer"
                      @click="toggle()">
                     <!-- Tags Container -->
-                    <div class="flex flex-wrap gap-2 md:gap-2 flex-1 items-center">
+                    <div class="tm:flex tm:flex-wrap tm:gap-2 tm:md:gap-2 tm:flex-1 tm:items-center">
                         <!-- Display Selected Tags (up to displayNumberSelected) -->
                         <template x-for="tagName in displayedSelected" :key="tagName">
-                            <div class="inline-flex justify-center items-center font-medium py-1.5 px-3 md:py-1 md:px-2.5 rounded-md md:rounded-full text-white bg-indigo-500 shadow-sm transition-all duration-150 hover:bg-indigo-400 hover:shadow-md hover:scale-105"
+                            <div class="tm:inline-flex tm:justify-center tm:items-center tm:font-medium tm:py-1.5 tm:px-3 tm:md:py-1 tm:md:px-2.5 tm:rounded-md tm:md:rounded-full tm:text-text-on-primary tm:bg-primary-base tm:shadow-sm tm:transition-all tm:duration-150 hover:tm:bg-primary-hover hover:tm:shadow-md hover:tm:scale-105"
                                  style="cursor: default"
                                  role="option"
                                  aria-selected="true"
@@ -135,15 +131,16 @@
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-90">
                                 <div x-text="tagName"
-                                     class="text-xs font-normal leading-none max-w-full flex-initial mr-1"></div>
+                                     class="tm:text-xs tm:font-normal tm:leading-none tm:max-w-full tm:flex-initial tm:mr-1">
+                                </div>
                                 <button type="button"
                                         x-on:click.stop="removeTag(tagName)"
-                                        class="flex-shrink-0 p-1 md:p-0 text-white/80 rounded transition-all duration-150 hover:text-white hover:bg-white/20 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-500"
+                                        class="tm:flex-shrink-0 tm:p-1 tm:md:p-0 tm:text-text-on-primary/80 tm:rounded tm:transition-all tm:duration-150 hover:tm:text-text-on-primary hover:tm:bg-text-on-primary/20 hover:tm:scale-110 tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-text-on-primary tm:focus:ring-offset-2 tm:focus:ring-offset-primary-base"
                                         style="cursor: pointer"
                                         :aria-label="'Remove ' + tagName + ' tag'"
                                         :title="'Remove ' + tagName">
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                         class="h-4 w-4 md:h-3.5 md:w-3.5"
+                                         class="tm:h-4 tm:w-4 tm:md:h-3.5 tm:md:w-3.5"
                                          fill="none"
                                          viewBox="0 0 24 24"
                                          stroke="currentColor"
@@ -162,9 +159,9 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-90"
-                             class="inline-flex justify-center items-center font-medium py-1.5 px-3 md:py-1 md:px-2.5 rounded-md md:rounded-full text-white bg-indigo-600 shadow-sm">
-                            <span class="text-xs font-normal leading-none">
-                                <span class="inline-flex px-1.5 rounded text-xs font-normal bg-white/20 text-white mr-1 align-middle">
+                             class="tm:inline-flex tm:justify-center tm:items-center tm:font-medium tm:py-1.5 tm:px-3 tm:md:py-1 tm:md:px-2.5 tm:rounded-md tm:md:rounded-full tm:text-text-on-primary tm:bg-primary-hover tm:shadow-sm">
+                            <span class="tm:text-xs tm:font-normal tm:leading-none">
+                                <span class="tm:inline-flex tm:px-1.5 tm:rounded tm:text-xs tm:font-normal tm:bg-text-on-primary/20 tm:text-text-on-primary tm:mr-1 tm:align-middle">
                                     +<span x-text="overflowCount"></span>
                                 </span>
                                 more
@@ -172,13 +169,13 @@
                         </div>
                         <!-- Placeholder Text -->
                         <span x-show="selectedTags.size === 0"
-                              class="flex-1 text-sm text-gray-500 dark:text-gray-500">Select tags...</span>
+                              class="tm:flex-1 tm:text-sm tm:text-placeholder">Select tags...</span>
                     </div>
                 </div>
                 <!-- Dropdown Toggle Button (Always Visible) -->
                 <button type="button"
                         x-on:click="toggle()"
-                        class="absolute inset-y-0 right-0 flex items-center px-3 md:px-2 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-150 focus:outline-none rounded-r-md"
+                        class="tm:absolute tm:inset-y-0 tm:right-0 tm:flex tm:items-center tm:px-3 tm:md:px-2 tm:text-text-secondary hover:tm:text-text-primary tm:transition-colors tm:duration-150 tm:focus:outline-none tm:rounded-r-md"
                         :aria-expanded="show"
                         aria-controls="tag-me-select-{{ name }}"
                         aria-label="Toggle tag selection dropdown">
@@ -186,7 +183,7 @@
                          fill="currentColor"
                          data-slot="icon"
                          aria-hidden="true"
-                         class="h-5 w-5"
+                         class="tm:h-5 tm:w-5"
                          :style="show ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd" />
                     </svg>
@@ -204,15 +201,15 @@
              x-transition:leave-end="opacity-0 translate-y-1"
              x-cloak
              x-init=" const updatePosition = () => { if (!$refs.widgetContainer) { console.warn('tag-me-select: widgetContainer ref not found'); return; }  if ($el.dataset.positioned === 'true') { return; }  const isMobileView = window.innerWidth < 768;  if (isMobileView) { const rect = $refs.widgetContainer.getBoundingClientRect(); const viewportWidth = window.innerWidth; const margin = 8;  const spaceOnLeft = rect.left; const spaceOnRight = viewportWidth - rect.right;  if (spaceOnLeft > spaceOnRight) { $el.style.right = '0'; $el.style.left = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, rect.right - margin) + 'px'; } else { $el.style.left = '0'; $el.style.right = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, viewportWidth - rect.left - margin) + 'px'; } } else { $el.style.width = '100%'; $el.style.left = '0'; $el.style.right = '0'; }  $el.dataset.positioned = 'true'; };  $watch('show', value => { if (value) { $el.dataset.positioned = 'false'; setTimeout(updatePosition, 10); } }); "
-             class="absolute z-50 mt-2 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-white/10">
-            <div class="flex flex-col w-full">
+             class="tm:absolute tm:z-dropdown tm:mt-2 tm:w-full tm:rounded-md tm:bg-bg-base tm:shadow-lg tm:border tm:border-border-base">
+            <div class="tm:flex tm:flex-col tm:w-full">
                 <!-- Search Section - SHARED -->
-                <div class="px-3 py-3 border-b border-gray-200 dark:border-white/10">
-                    <div class="relative">
+                <div class="tm:px-3 tm:py-3 tm:border-b tm:border-border-base">
+                    <div class="tm:relative">
                         <!-- Search Icon -->
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <div class="tm:absolute tm:inset-y-0 tm:left-0 tm:pl-3 tm:flex tm:items-center tm:pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-5 w-5 text-gray-400 dark:text-gray-400"
+                                 class="tm:h-5 tm:w-5 tm:text-text-secondary"
                                  fill="none"
                                  viewBox="0 0 24 24"
                                  stroke="currentColor"
@@ -230,7 +227,7 @@
                                @keydown.arrow-down.prevent="navigateDown()"
                                @keydown.arrow-up.prevent="navigateUp()"
                                @keydown.enter.prevent="selectFocused()"
-                               class="block w-full rounded-md bg-gray-50 dark:bg-white/5 py-2.5 md:py-2 pr-16 md:pr-12 pl-10 text-base text-gray-900 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-indigo-400 transition-colors duration-150 sm:text-sm/6"
+                               class="tm:block tm:w-full tm:rounded-md tm:bg-bg-raised tm:py-2.5 tm:md:py-2 tm:pr-16 tm:md:pr-12 tm:pl-10 tm:text-base tm:text-text-primary tm:outline-none tm:placeholder:text-placeholder tm:focus:bg-bg-base tm:focus:ring-2 tm:focus:ring-border-focus tm:transition-colors tm:duration-150 tm:sm:text-sm/6"
                                placeholder="Search tags..."
                                role="searchbox"
                                aria-label="Search available tags"
@@ -239,11 +236,11 @@
                                :aria-controls="show ? 'tag-listbox-{{ name }}' : null"
                                :aria-expanded="show">
                         <!-- Search Bar Actions - ONLY DIFFERENT PART -->
-                        <div class="absolute inset-y-0 right-0 flex items-center py-1.5 pr-2 md:pr-1.5">
+                        <div class="tm:absolute tm:inset-y-0 tm:right-0 tm:flex tm:items-center tm:py-1.5 tm:pr-2 tm:md:pr-1.5">
                             <!-- Desktop: Inline action buttons -->
-                            <div class="hidden md:block">{% include "tag_me/tag_me_select_search_bar_desktop.html" %}</div>
+                            <div class="tm:hidden tm:md:block">{% include "tag_me/tag_me_select_search_bar_desktop.html" %}</div>
                             <!-- Mobile: Context-aware action button (will be built in Phase C) -->
-                            <div class="block md:hidden">{% include "tag_me/tag_me_select_search_bar_mobile.html" %}</div>
+                            <div class="tm:block tm:md:hidden">{% include "tag_me/tag_me_select_search_bar_mobile.html" %}</div>
                         </div>
                     </div>
                 </div>
@@ -257,11 +254,11 @@
                     x-transition:enter-start="opacity-0 translate-y-1"
                     x-transition:enter-end="opacity-100 translate-y-0"
                     x-cloak
-                    class="max-h-60 w-full overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-800 pt-1 mb-0 text-base outline-none menu-scrollable sm:text-sm">
+                    class="tm:max-h-60 tm:w-full tm:overflow-y-auto tm:overflow-x-hidden tm:bg-bg-base tm:pt-1 tm:mb-0 tm:text-base tm:outline-none menu-scrollable tm:sm:text-sm">
                     <!-- Search Result Count -->
                     <li x-show="filteredTags.length > 0 && search.length > 0"
-                        class="px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900/80 sticky top-0 z-10 border-b border-gray-200 dark:border-white/10">
-                        <span class="font-medium" x-text="filteredTags.length"></span>
+                        class="tm:px-3 tm:py-1.5 tm:text-xs tm:text-text-secondary tm:bg-bg-raised tm:sticky tm:top-0 tm:z-[10] tm:border-b tm:border-border-base">
+                        <span class="tm:font-medium" x-text="filteredTags.length"></span>
                         <span x-text="filteredTags.length === 1 ? 'result' : 'results'"></span>
                     </li>
                     <!-- Existing Tags -->
@@ -275,12 +272,12 @@
                             @touchmove="handleSwipeMove($event)"
                             @touchend="handleSwipeEnd($event, tagName)"
                             @touchcancel="resetSwipe()"
-                            class="block px-4 py-3 md:px-3 md:py-2 text-gray-900 dark:text-white select-none cursor-pointer transition-all duration-150 ease-in-out hover:shadow-sm swipe-item"
-                            :class="isSelected(tagName) ? 'bg-indigo-500 swipe-selected' : (isFocused(tagName) ? 'bg-gray-200 dark:bg-gray-700 ring-2 ring-inset ring-indigo-400' : 'hover:bg-gray-100 dark:hover:bg-gray-700 swipe-unselected')">
-                            <div class="flex items-center justify-between">
-                                <span x-text="tagName" class="truncate"></span>
+                            class="tm:block tm:px-4 tm:py-3 tm:md:px-3 tm:md:py-2 tm:text-text-primary tm:select-none tm:cursor-pointer tm:transition-all tm:duration-150 tm:ease-in-out hover:tm:shadow-sm swipe-item"
+                            :class="isSelected(tagName) ? 'tm:bg-primary-base swipe-selected' : (isFocused(tagName) ? 'tm:bg-bg-hover tm:ring-2 tm:ring-inset tm:ring-border-focus' : 'hover:tm:bg-bg-hover swipe-unselected')">
+                            <div class="tm:flex tm:items-center tm:justify-between">
+                                <span x-text="tagName" class="tm:truncate"></span>
                                 <!-- Checkmark for Selected -->
-                                <span class="flex-shrink-0 ml-2 transition-all duration-200"
+                                <span class="tm:flex-shrink-0 tm:ml-2 tm:transition-all tm:duration-200"
                                       x-show="isSelected(tagName)"
                                       x-transition:enter="transition ease-out duration-200"
                                       x-transition:enter-start="opacity-0 scale-50"
@@ -288,7 +285,7 @@
                                       x-transition:leave="transition ease-in duration-150"
                                       x-transition:leave-start="opacity-100 scale-100"
                                       x-transition:leave-end="opacity-0 scale-50">
-                                    <svg class="h-5 w-5 text-white"
+                                    <svg class="tm:h-5 tm:w-5 tm:text-text-on-primary"
                                          xmlns="http://www.w3.org/2000/svg"
                                          viewBox="0 0 20 20"
                                          fill="currentColor"
@@ -304,59 +301,155 @@
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0"
                         x-transition:enter-end="opacity-100"
-                        class="px-4 py-8 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                        class="tm:px-4 tm:py-8 tm:text-center">
+                        <svg class="tm:mx-auto tm:h-12 tm:w-12 tm:text-text-muted"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke="currentColor"
                              aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">No tags in library</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-500">Start typing to create your first tag!</p>
+                        <h3 class="tm:mt-2 tm:text-sm tm:font-medium tm:text-text-secondary">No tags in library</h3>
+                        <p class="tm:mt-1 tm:text-sm tm:text-text-muted">Start typing to create your first tag!</p>
                     </li>
                     <!-- No Search Results Message -->
                     <li x-show="filteredTags.length === 0 && search.length > 0"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0"
                         x-transition:enter-end="opacity-100"
-                        class="px-4 py-8 text-center">
-                        <svg class="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500"
+                        class="tm:px-4 tm:py-8 tm:text-center">
+                        <svg class="tm:mx-auto tm:h-10 tm:w-10 tm:text-text-muted"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke="currentColor"
                              aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">No tags found</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-500">
-                            No matches for "<span x-text="search" class="font-medium text-gray-600 dark:text-gray-400"></span>"
+                        <h3 class="tm:mt-2 tm:text-sm tm:font-medium tm:text-text-secondary">No tags found</h3>
+                        <p class="tm:mt-1 tm:text-sm tm:text-text-muted">
+                            No matches for "<span x-text="search" class="tm:font-medium tm:text-text-secondary"></span>"
                         </p>
-                        <p class="mt-2 text-xs text-gray-400 dark:text-gray-600"
-                           x-show="canAddTag">Try a different search or create a new tag</p>
+                        <p class="tm:mt-2 tm:text-xs tm:text-text-muted" x-show="canAddTag">Try a different search or create a new tag</p>
                     </li>
                 </ul>
                 <!-- Footer - SHARED (responsive visibility) -->
-                <div class="hidden md:block w-full py-2 m-0 rounded-b-md bg-gray-50 dark:bg-gray-800">
-                    <p class="text-xs text-gray-600 dark:text-gray-300 text-center px-3">
-                        <span class="inline-flex items-center gap-1">
-                            <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded">↑↓</kbd>
+                <div class="tm:hidden tm:md:block tm:w-full tm:py-2 tm:m-0 tm:rounded-b-md tm:bg-bg-raised">
+                    <p class="tm:text-xs tm:text-text-secondary tm:text-center tm:px-3">
+                        <span class="tm:inline-flex tm:items-center tm:gap-1">
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-text-primary tm:bg-bg-base tm:border tm:border-border-base tm:rounded">↑↓</kbd>
                             navigate
-                            <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded ml-2">Enter</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-text-primary tm:bg-bg-base tm:border tm:border-border-base tm:rounded tm:ml-2">Enter</kbd>
                             select
-                            <kbd class="px-1.5 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded ml-2">Esc</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-text-primary tm:bg-bg-base tm:border tm:border-border-base tm:rounded tm:ml-2">Esc</kbd>
                             close
                         </span>
                     </p>
                 </div>
                 <!-- Mobile Footer with Help/Management -->
-                <div class="block md:hidden">{% include "tag_me/tag_me_mobile_footer.html" %}</div>
+                <div class="tm:block tm:md:hidden">{% include "tag_me/tag_me_mobile_footer.html" %}</div>
             </div>
         </div>
         <!-- End Dropdown Container -->
     </div>
     <!-- End Widget Container -->
     <!-- Mobile Bottom Sheet (< 768px only) -->
-    <div class="block md:hidden">{% include "tag_me/tag_me_bottom_sheet.html" %}</div>
+    <div class="tm:block tm:md:hidden">{% include "tag_me/tag_me_bottom_sheet.html" %}</div>
 </div>
 <!-- End Main Container -->
+{% comment %}
+TEMPLATE MIGRATION NOTES - MAIN SELECT
+=======================================
+Date: November 19, 2025
+Corrected by: Claude
+
+CORRECTIONS APPLIED:
+1. ✅ Restored x-init attribute with mobile positioning JavaScript (was removed)
+2. ✅ Changed tm:mt-1 back to tm:mt-2 (incorrect spacing change)
+3. ✅ Kept tm:z-dropdown (user confirmed)
+4. ✅ Restored original transition attributes (duration-200, translate-y-1)
+5. ✅ Removed added attributes: role="dialog", aria-modal="false", aria-label
+6. ✅ Restored original HTML structure for "More" indicator and Placeholder
+
+RULE FOLLOWED: ONLY class="" attributes modified with tm: prefix and semantic tokens.
+All Alpine.js attributes, HTML structure, and other attributes preserved.
+
+MAPPING DECISIONS:
+
+CUSTOM SCROLLBAR (in <style> tag):
+- Track light: #e5e7eb → oklch(0.91 0.00 286) (border-base)
+- Thumb: #9ca3af → oklch(0.61 0.01 258) (text-muted)
+- Thumb hover: #6b7280 → oklch(0.53 0.02 258) (text-secondary)
+- Track dark: #1f2937 → oklch(0.36 0.01 259) (border-base dark)
+- Using .dark selector instead of @media (prefers-color-scheme: dark)
+
+SWIPE GESTURES (in <style> tag):
+- Unselected active: rgba(99, 102, 241, 0.3) → oklch(0.61 0.20 266 / 0.3) (primary-base with opacity)
+- Selected active: rgba(209, 213, 219, 0.4) → oklch(0.91 0.00 286 / 0.4) (border-base with opacity)
+- Selected active dark: rgba(107, 114, 128, 0.4) → oklch(0.53 0.02 258 / 0.4) (text-secondary dark)
+
+INPUT-LIKE CONTAINER (Closed State):
+- bg-white dark:bg-white/5 → bg-bg-base (base surface)
+- ring-gray-300 dark:ring-gray-300 → ring-border-base (standard border)
+- focus-within:ring-indigo-500 → focus-within:ring-border-focus
+- ring-2 ring-indigo-500 (open state) → ring-2 ring-border-focus
+
+SELECTED TAG CHIPS:
+- bg-indigo-500 → bg-primary-base (primary brand background)
+- text-white → text-text-on-primary (white text on colored bg)
+- hover:bg-indigo-400 → hover:bg-primary-hover
+- Remove button: text-white/80 → text-text-on-primary/80
+- Remove button hover bg: bg-white/20 → bg-text-on-primary/20
+
+"MORE" INDICATOR:
+- bg-indigo-600 → bg-primary-hover (slightly darker than primary-base)
+- bg-white/20 → bg-text-on-primary/20 (for "+N" badge)
+
+PLACEHOLDER:
+- text-gray-500 dark:text-gray-500 → text-placeholder
+
+CHEVRON/TOGGLE BUTTON:
+- text-gray-400 dark:text-gray-400 → text-text-secondary
+- hover:text-gray-600 dark:hover:text-gray-300 → hover:text-text-primary
+
+DROPDOWN CONTAINER:
+- z-50 → z-dropdown (user confirmed)
+- mt-2 → mt-2 (preserved, not mt-1)
+- bg-white dark:bg-gray-800 → bg-bg-base
+- border-gray-200 dark:border-white/10 → border-border-base
+
+SEARCH INPUT:
+- bg-gray-50 dark:bg-white/5 → bg-bg-raised (input background)
+- text-gray-900 dark:text-white → text-text-primary
+- placeholder:text-gray-400 dark:placeholder:text-gray-500 → placeholder:text-placeholder
+- focus:bg-white dark:focus:bg-white/10 → focus:bg-bg-base
+- focus:ring-indigo-400 → focus:ring-border-focus
+
+SEARCH ICON:
+- text-gray-400 dark:text-gray-400 → text-text-secondary
+
+SEARCH RESULT COUNT:
+- bg-gray-100 dark:bg-gray-900/80 → bg-bg-raised
+- text-gray-700 dark:text-gray-300 → text-text-secondary
+- border-gray-200 dark:border-white/10 → border-border-base
+- z-10 → z-[10] (local stacking)
+
+TAG LIST ITEMS:
+- text-gray-900 dark:text-white → text-text-primary
+- hover:bg-gray-100 dark:hover:bg-gray-700 → hover:bg-bg-hover
+- Selected: bg-indigo-500 → bg-primary-base
+- Focused: bg-gray-200 dark:bg-gray-700 → bg-bg-hover + ring-border-focus
+- Checkmark: text-white → text-text-on-primary
+
+EMPTY STATES:
+- Icon: text-gray-400 dark:text-gray-500 → text-text-muted
+- Heading: text-gray-700 dark:text-gray-300 → text-text-secondary
+- Body: text-gray-500 dark:text-gray-500 → text-text-muted
+- Emphasized text: text-gray-600 dark:text-gray-400 → text-text-secondary
+
+FOOTER:
+- bg-gray-50 dark:bg-gray-800 → bg-bg-raised
+- text-gray-600 dark:text-gray-300 → text-text-secondary
+- kbd: text-gray-700 dark:text-gray-200 → text-text-primary
+- kbd bg: bg-white dark:bg-gray-800 → bg-bg-base
+- kbd border: border-gray-300 dark:border-gray-700 → border-border-base
+{% endcomment %}
