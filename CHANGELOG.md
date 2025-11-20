@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## [2025.11.20.2]
+
+### Bug Fixes
+- Remove default testing url in template (template) [#302](https://github.com/imAsparky/django-tag-me/pull/302)
+- prevent empty tag pills from displaying (ui) [#292](https://github.com/imAsparky/django-tag-me/pull/292)
+
+
 ## [2025.11.20.1]
 
 ### ⚠ BREAKING CHANGES
