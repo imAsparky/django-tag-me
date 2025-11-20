@@ -22,17 +22,17 @@ export function createAlpineComponent(config) {
     * Available tags users can select from (the tag library)
     * @type {Set<string>}
     */
-    availableTags: new Set(config.choices || []),
+    availableTags: new Set((config.choices || []).filter(tag => tag && tag.trim())),
     /**
     * Currently selected tags (unordered for fast lookups)
     * @type {Set<string>}
     */
-    selectedTags: new Set(config.selected || []),
+    selectedTags: new Set((config.selected || []).filter(tag => tag && tag.trim())),
     /**
     * Order of selected tags (for display and form submission)
     * @type {string[]}
     */
-    tagOrder: config.selected || [],
+    tagOrder: (config.selected || []).filter(tag => tag && tag.trim()),
     // ============================================
     // UI STATE
     // ============================================
@@ -665,34 +665,6 @@ export function createAlpineComponent(config) {
     */
     base64Encode(str) {
       return btoa(JSON.stringify(str));
-    },
-    // ============================================
-    // LEGACY COMPATIBILITY (for gradual migration)
-    // ============================================
-    /**
-    * Legacy method - maps to deselectAll()
-    * @deprecated Use deselectAll() instead
-    */
-    deselectTag() {
-      console.warn('deselectTag() is deprecated, use deselectAll()');
-      this.deselectAll();
-    },
-    /**
-    * Legacy method - maps to removeTag()
-    * @deprecated Use removeTag() instead
-    */
-    remove(index, tag) {
-      console.warn('remove(index, tag) is deprecated, use removeTag(tagName)');
-      if (tag && tag.value) {
-        this.removeTag(tag.value);
-      }
-    },
-    /**
-    * Legacy method for backward compatibility
-    * @deprecated Direct array access no longer needed
-    */
-    selectedValues() {
-      return this.selectedArray;
     }
   }
 }
