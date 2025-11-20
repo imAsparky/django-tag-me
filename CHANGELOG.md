@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2025.11.20.1]
+
+### ⚠ BREAKING CHANGES
+- BREAKING: Separate SystemTag from UserTag models (models) [#282](https://github.com/imAsparky/django-tag-me/pull/282)
+
+### Maintenance
+- Update example project django (deps) [#299](https://github.com/imAsparky/django-tag-me/pull/299)
+
+### Code Refactoring
+- BREAKING: Separate SystemTag from UserTag models (models) [#282](https://github.com/imAsparky/django-tag-me/pull/282)
+
+
 ## [2025.11.19.1]
 
 ### Maintenance
