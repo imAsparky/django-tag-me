@@ -35,52 +35,55 @@ class TagMeCharField(CharField):
         *args,
         multiple: bool = True,
         synchronise: bool = False,
+        system_tag: bool = False,
         db_collation=None,
         **kwargs,
     ):
         """\
         Initializes the custom TagMeCharField model field.
 
-        This field extends the built-in CharField and utilizes a FieldTagListFormatter
-        instance internally to provide tag validation, formatting, and manipulation.
-        Tags are stored in the database sorted, and in a comma-separated (CSV) format.
-
-        The field can be configured for single or multiple tag selection, and has
-        special handling for system-defined choices that get converted into tags.
-
         Args:
             *args: Positional arguments passed to the parent CharField constructor.
             multiple: Boolean indicating if multiple tags can be selected. Defaults to True.
             synchronise: Boolean indicating whether this field is synchronised with other
                 models with the same field name. Defaults to False.
+            system_tag: Boolean indicating if this field uses system tags (choices).
+                Defaults to False (user-created tags). Defaults to False.
             db_collation: Optional database collation setting.
             **kwargs: Additional keyword arguments passed to CharField constructor.
 
-        Implementation Notes:
-            - Sets a default max_length of 255 if none provided
-            - Initializes a FieldTagListFormatter for tag handling
-            - Converts Django choices into system tags if provided
-            - Disables Django's choice machinery when using system tags
-            - System tags are stored in both list (_tag_choices) and CSV (_tags_string) formats
-
-        Choices Processing:
-            - Django choice tuples (list of (value, label)): extracts values as tags
-            - Simple list: uses items directly as tags
-            - Invalid types trigger error logging
+        Raises:
+            ValueError: If system_tag=True but no choices are provided.
         """
+        self.multiple = multiple
+        self.synchronise = synchronise
+        self.system_tag = system_tag
+        self.db_collation = db_collation
+
         super().__init__(*args, **kwargs)
 
         if self.max_length is None:
             self.max_length = 255
-
-        self.multiple = multiple
-        self.synchronise = synchronise
-        self.db_collation = db_collation
         self.validators.append(validators.MaxLengthValidator(self.max_length))
         self.formatter = FieldTagListFormatter()
+
         # Used to pass choices as a list to widget attrs.
         self._tag_choices: str = ""
         self.tag_type: str = "user"
+
+        # Validate system_tag parameter and choices consistency
+        if self.system_tag and not self.choices:
+            raise ValueError(
+                "system_tag=True requires 'choices' to be provided. "
+                "System tags must have predefined choices."
+            )
+
+        if not self.system_tag and self.choices:
+            raise ValueError(
+                "Providing 'choices' requires system_tag=True. "
+                "If you want system tags, set system_tag=True. "
+                "For user-created tags, omit 'choices'."
+            )
 
         if self.choices:
             tag_choices_list = []
@@ -102,7 +105,9 @@ class TagMeCharField(CharField):
             self.formatter.clear()
             self.formatter.add_tags(tag_choices_list)
             self._tag_choices = self.formatter.toCSV(include_trailing_comma=True)
-            self.tag_type = "system"
+
+            # Set tag_type based on system_tag parameter
+            self.tag_type = "system" if self.system_tag else "user"
             self.choices = None  # Disable Django choices machinery.
 
     def from_db_value(self, value, expression, connection):
@@ -208,26 +213,18 @@ class TagMeCharField(CharField):
 
     def formfield(self, **kwargs):
         """\
-        Overrides the default form field generation for this model field.
+            Overrides the default form field generation for this model field.
 
-        Provides flexibility in selecting the form field widget based on the
-        provided 'widget' argument in kwargs. Supports custom widgets as well
-        as Django Admin widgets.
+            Provides flexibility in selecting the form field widget based on the
+            provided 'widget' argument in kwargs. Supports custom widgets as well
+            as Django Admin widgets.
 
-        **Context for User/Admin Discrepancies:**
+            :params **kwargs (dict): Additional keyword arguments that can be used
+                                     to further customize the form field.
 
-        This customization allows for scenarios where appropriate tag options
-        might differ between regular users and admin users. By setting the
-        field as readonly in certain contexts, it ensures data consistency and
-        prevents the introduction of invalid tags by regular users, while still
-        allowing admins to view the full set of selected tags if needed.
-
-        :params **kwargs (dict): Additional keyword arguments that can be used
-                                 to further customize the form field.
-
-        :returns django.forms.Field: An instance of a form field appropriate
-                                    for representing this model field.
-        """
+            :returns django.forms.Field: An instance of a form field appropriate
+                                        for representing this model field.
+            """
 
         # Extract and analyze the provided widget
         widget = kwargs.get("widget", None)
@@ -238,7 +235,7 @@ class TagMeCharField(CharField):
         else:
             model_verbose_name = "** No Model **"
 
-        # NOTE:During initial migrations, database tables may not exist yet.
+        # NOTE: During initial migrations, database tables may not exist yet.
         # This try-except block gracefully handles database queries before the schema
         # is fully set up, allowing migrations to proceed by providing a temporary
         # placeholder TaggedFieldModel instance when database access fails.
@@ -280,7 +277,7 @@ class TagMeCharField(CharField):
                         "model_verbose_name": model_verbose_name,
                         "field_name": self.name,
                         "field_verbose_name": self.verbose_name,
-                        "tag_choices": self._tag_choices,
+                        "tag_type": self.tag_type,
                     },
                 ),
             }

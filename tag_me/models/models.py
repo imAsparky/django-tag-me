@@ -450,7 +450,7 @@ class UserTag(TagBase):
         blank=True,
         null=True,
         editable=False,
-        related_name="tagged_field",
+        related_name="user_tags",
         on_delete=models.CASCADE,
         verbose_name=_(
             "Verbose name",
@@ -602,3 +602,91 @@ class SystemTag(TagBase):
             "Verbose name",
             "System Tags",
         )
+
+    tagged_field = models.ForeignKey(
+        TaggedFieldModel,
+        blank=True,
+        null=True,
+        editable=False,
+        related_name="system_tags",
+        on_delete=models.CASCADE,
+        verbose_name=_(
+            "Verbose name",
+            "Tagged Field",
+        ),
+    )
+
+    model_verbose_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        editable=False,
+        verbose_name=_(
+            "Verbose name",
+            "Model verbose",
+        ),
+        default=None,
+    )
+
+    model_name = models.CharField(
+        blank=True,
+        null=True,
+        editable=False,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Model name",
+        ),
+        default=None,
+    )
+
+    comment = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Comment",
+        ),
+    )
+
+    field_name = models.CharField(
+        blank=True,
+        null=True,
+        editable=False,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Field name",
+        ),
+    )
+
+    field_verbose_name = models.CharField(
+        blank=True,
+        null=True,
+        editable=False,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Field verbose",
+        ),
+        default=None,
+    )
+
+    ui_display_name = models.CharField(
+        blank=True,
+        null=True,
+        max_length=50,
+        help_text="Display name for the tag in UI",
+    )
+
+    meta = models.JSONField(
+        blank=True,
+        null=True,
+        max_length=255,
+        verbose_name=_(
+            "Verbose name",
+            "Field meta data",
+        ),
+        default=dict,
+    )
