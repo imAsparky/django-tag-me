@@ -287,28 +287,29 @@ class SystemTagRegistry:
 
     @classmethod
     def populate_registered_fields(cls) -> None:
-        """\
-        Populates the database with registered field metadata.
-
-        This method checks if the system tags have already been populated and if
-        the registry is ready. If both conditions are met, it creates a TagPersistence
-        instance and saves all registered field metadata to the database.
-
-        The method is typically called after migrations are complete and the registry
-        is marked as ready. It will skip population if either:
-        - DJ_TAG_ME_SYSTEM_TAGS_POPULATED setting is True
-        - The registry is not marked as ready
         """
-        if settings.DJ_TAG_ME_SYSTEM_TAGS_POPULATED:
-            logger.info("Default tag-me tags already populated")
-            return
+        Populates/updates the database with registered field metadata and tag records.
 
+        Runs after every migrate to ensure:
+        - Field metadata (TaggedFieldModel) stays current
+        - System tags reflect any choice/field changes
+        - New users get their UserTag entries
+        """
         if not cls._is_ready:
             logger.info("Registry not ready, skipping population")
             return
 
+        # Remove the DJ_TAG_ME_SYSTEM_TAGS_POPULATED guard entirely
+
         persistence = TagPersistence()
         persistence.save_fields(cls._fields)
+
+        # Populate the actual tag records
+        from tag_me.utils.tag_mgmt_system import (
+            populate_all_tag_records,
+        )
+
+        populate_all_tag_records()
 
 
 class MigrationTracker:

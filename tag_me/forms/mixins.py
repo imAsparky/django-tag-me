@@ -1,8 +1,8 @@
 """Django-tag-me form mixins"""
 
-import structlog
 from typing import Union
 
+import structlog
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -299,7 +299,8 @@ class AllFieldsTagMeModelFormMixin:
         - Provides debugging information for development
         """
         # Query for all tagged models and user tags
-        tagged_models = TaggedFieldModel.objects.all()
+        # tagged_models = TaggedFieldModel.objects.all()
+        tagged_models = TaggedFieldModel.objects.filter(tag_type="user")
         user_tags = UserTag.objects.filter(user=self.user)
 
         created_fields = 0

@@ -13,14 +13,13 @@ from django.db import (
 )
 
 from tag_me.models import (
+    SystemTag,
     TagBase,
     TaggedFieldModel,
     TagMeSynchronise,
     UserTag,
 )
 from tag_me.utils.helpers import (
-    #     get_model_tagged_fields_field_and_verbose,
-    #     get_models_with_tagged_fields,
     stdout_with_optional_color,
 )
 
@@ -29,119 +28,214 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-def generate_user_tag_table_records(
-    user=None,
-):
+def populate_all_tag_records(user=None):
     """
-    Generates `UserTag` records for users who are not yet present in the table.
+    Orchestrator for populating all tag records (system and user).
 
-    This function automatically creates `UserTag` entries for each combination of:
+    This function coordinates the population of both SystemTag and UserTag records.
+    It provides a single entry point for all tag record population needs.
 
-    * **Existing Users (if no user is provided):** Fetches all users who do not currently have entries in the `UserTag` table.
-    * **New User (if a user is provided):**  Creates entries only for the specified `user`.
-    * **Tagged Fields:** Retrieves all tagged fields the `TaggedFieldModel`.
+    Args:
+        user (User, optional): If provided, only populate that specific user's tags.
+                              If None, populate for all users.
 
-    For each user and tagged field combination, a new `UserTag` record is created with:
-
-    * The corresponding user and tagged field.
-    * Model and field names (both name and verbose name).
-    * A unique slug based on the user's ID.
-    * Default empty tags and a comment indicating that tags need to be added.
-
-    The bulk creation of `UserTag` objects is performed within a database transaction to ensure data integrity.
-
-    **Args:**
-        user (User, optional): A specific user for whom to generate tags. If not provided, tags will be generated for all users missing from the `UserTag` table.
-
-    **Raises:**
-        ValidationError:
-            * If a duplicate value is attempted to be created for a field with a unique constraint.
-            * If invalid data types are provided for any of the `UserTag` fields.
-            * If a general database error occurs during record creation.
+    This is the primary function to call from management commands or post-migrate signals.
     """
-    stdout_with_optional_color(
-        message="tag-me user tag generation tool is running", color_code=36
-    )
+    stdout_with_optional_color(message="tag-me tag population starting", color_code=36)
+
+    try:
+        _populate_system_tags()
+        _populate_user_tags(user=user)
+
+        stdout_with_optional_color(
+            message="tag-me tag population completed successfully",
+            color_code=92,
+        )
+    except Exception as e:
+        stdout_with_optional_color(
+            message=f"tag-me tag population failed: {str(e)}",
+            color_code=91,
+        )
+        raise
+
+
+def _populate_system_tags():
+    """
+    Populates SystemTag records for all system tag fields.
+
+    Scans all TaggedFieldModel instances where tag_type='system' and creates
+    or updates corresponding SystemTag records based on the field's default_tags.
+
+    Uses update_or_create() to ensure SystemTag records reflect any changes
+    to field choices. If choices are updated, existing SystemTag records are
+    updated accordingly.
+
+    Raises:
+        ValidationError: If database errors occur during creation.
+    """
+    stdout_with_optional_color(message="  Populating system tags...", color_code=36)
+
+    try:
+        # Get all system tag fields
+        system_tag_fields = TaggedFieldModel.objects.filter(tag_type="system")
+
+        if not system_tag_fields.exists():
+            stdout_with_optional_color(
+                message="    No system tag fields found",
+                color_code=33,
+            )
+            return
+
+        total_created = 0
+        total_updated = 0
+
+        for tagged_field in system_tag_fields:
+            if not tagged_field.default_tags:
+                continue
+
+            # Parse CSV string to get tag names
+            from tag_me.utils.parser import parse_tags
+
+            tag_names = parse_tags(tagged_field.default_tags)
+
+            # Create one SystemTag per system tag field with all tags
+            obj, created = SystemTag.objects.update_or_create(
+                tagged_field=tagged_field,
+                defaults={
+                    "tags": tagged_field.default_tags,
+                    "model_name": tagged_field.model_name,
+                    "model_verbose_name": tagged_field.model_verbose_name,
+                    "field_name": tagged_field.field_name,
+                    "field_verbose_name": tagged_field.field_verbose_name,
+                    "ui_display_name": tagged_field.field_verbose_name,
+                    "slug": TagBase.slugify(tag=tagged_field.field_name),
+                    "comment": "Auto generated system tags",
+                },
+            )
+
+            if created:
+                total_created += 1
+            else:
+                total_updated += 1
+
+        stdout_with_optional_color(
+            message=f"    Created {total_created} system tags, updated {total_updated}",
+            color_code=92,
+        )
+
+    except IntegrityError as e:
+        logger.exception(msg="IntegrityError during system tag population")
+        raise ValidationError(f"Duplicate system tag found: {str(e)}")
+
+    except DataError as e:
+        msg = f"Invalid data type for SystemTag: {str(e)}"
+        logger.exception(msg)
+        raise ValidationError(msg)
+
+    except DatabaseError as e:
+        msg = f"Database error during SystemTag population: {str(e)}"
+        logger.exception(msg)
+        raise ValidationError(msg)
+
+
+def _populate_user_tags(user=None):
+    """
+    Populates UserTag records for user(s) and user tag fields.
+
+    Creates or updates UserTag entries for each combination of:
+    - User (specific user if provided, otherwise all users)
+    - Tagged field where tag_type='user'
+
+    For each user/field combination, a UserTag record is created with empty
+    tags field (user will populate with their custom tags).
+
+    Args:
+        user (User, optional): If provided, only populate for this user.
+                              If None, populate for all users without existing entries.
+
+    Raises:
+        ValidationError: If database errors occur during creation.
+    """
+    stdout_with_optional_color(message="  Populating user tags...", color_code=36)
+
     try:
         if user:
             users = [user]
             stdout_with_optional_color(
-                message=f"A single user < {user.username} > requires updating",
+                message=f"    Processing user: {user.username}",
                 color_code=96,
             )
         else:
-            # Get all unique users from UserTag
+            # Get all unique users already in UserTag
             existing_user_ids = UserTag.objects.values_list(
                 "user_id", flat=True
             ).distinct()
 
-            # Get all users who are NOT in existing_user_ids
+            # Get all users NOT in existing_user_ids
             users = User.objects.exclude(id__in=existing_user_ids)
 
-        user_count = len(users)
-        match user_count:
-            case 0:
+            user_count = users.count()
+            if user_count == 0:
                 stdout_with_optional_color(
-                    message="Nothing to do, all users are in the UserTag table!\nExiting user tag table generation tool...",
+                    message="    All users already have tag entries",
                     color_code=33,
                 )
                 return
-            case 1:
-                stdout_with_optional_color(
-                    message=f"Generating UserTag rows for {user_count} user!",
-                    color_code=36,
-                )
-            case _:
-                stdout_with_optional_color(
-                    message=f"Generating UserTag rows for {user_count} users!",
-                    color_code=36,
-                )
-        tagged_fields = TaggedFieldModel.objects.all()
+
+            stdout_with_optional_color(
+                message=f"    Processing {user_count} new user(s)",
+                color_code=36,
+            )
+
+        # Get only USER tag fields
+        user_tag_fields = TaggedFieldModel.objects.filter(tag_type="user")
+
+        if not user_tag_fields.exists():
+            stdout_with_optional_color(
+                message="    No user tag fields found",
+                color_code=33,
+            )
+            return
+
         user_tags = []
-        for user in users:
-            for field in tagged_fields:
+        for current_user in users:
+            for field in user_tag_fields:
                 user_tags.append(
                     UserTag(
-                        user=user,
+                        user=current_user,
                         tagged_field=field,
                         model_name=field.model_name,
                         model_verbose_name=field.model_verbose_name,
                         field_name=field.field_name,
                         field_verbose_name=field.field_verbose_name,
                         ui_display_name=field.field_verbose_name,
-                        slug=TagBase.slugify(tag=str(user.id)),
-                        tags=field.default_tags,
-                        comment="Auto generated, please add tags and update/delete this comment",
+                        slug=TagBase.slugify(tag=str(current_user.id)),
+                        tags="",  # Empty - user will create custom tags
+                        comment="Auto generated user tag collection",
                     )
                 )
-            with transaction.atomic():
-                # Note: Bulk create UserTag objects, ignoring conflicts due to unique constraints.
-                UserTag.objects.bulk_create(user_tags, ignore_conflicts=True)
+
+        # Bulk create with transaction for efficiency
+        with transaction.atomic():
+            UserTag.objects.bulk_create(user_tags, ignore_conflicts=True)
 
         stdout_with_optional_color(
-            message=f"    SUCCESS: Added {len(user_tags)} user tags rows in to the UserTag table for {len(users)} users!",
+            message=f"    Created {len(user_tags)} user tag entries",
             color_code=92,
         )
 
     except IntegrityError as e:
-        # Handle unique constraint violations
-        if "duplicate key value violates unique constraint" in str(e):
-            # Extract the conflicting value or field(s) if possible
-            logger.exception(msg="IntegrityError")
-            raise ValidationError(f"Duplicate value found for UserTag: {str(e)}")
-        else:
-            raise
+        logger.exception(msg="IntegrityError during user tag population")
+        raise ValidationError(f"Duplicate user tag found: {str(e)}")
 
     except DataError as e:
-        # Handle data type mismatches
-        msg = f"Invalid data type provided for UserTag: {str(e)}"
-        logger.exception(msg="DATA ERROR")
+        msg = f"Invalid data type for UserTag: {str(e)}"
+        logger.exception(msg)
         raise ValidationError(msg)
 
     except DatabaseError as e:
-        # Handle general database errors
-        msg = f"Database error during UserTag creation: {str(e)}"
-        logger.exception(msg="Database Error")
+        msg = f"Database error during UserTag population: {str(e)}"
+        logger.exception(msg)
         raise ValidationError(msg)
 
 
@@ -186,55 +280,3 @@ def update_fields_that_should_be_synchronised():
     if sync_updated:
         sync.save()
         sync.check_field_sync_list_lengths()
-
-
-# def update_models_with_tagged_fields_table() -> None:
-#     """Updates the Tagged Field Models table for managing tagged fields.
-#
-#     This function helps manage the models and fields in your Django project
-#     that use the custom 'TagMeCharField' for tagging.  Specifically, it does
-#     the following:
-#
-#     1. Finds all the models that have fields using 'TagMeCharField'.
-#     2. Looks at each 'TagMeCharField' within these models.
-#     3. Adds or updates information about each tagged field in the
-#         'TaggedFieldModel' table.  This provides a centralized way to see which
-#         models and fields use tags.
-#
-#     """
-#     for model in get_models_with_tagged_fields():
-#         content = ContentType.objects.get_for_model(model, for_concrete_model=True)
-#         model_name = content.model_class().__name__
-#         model_verbose_name = content.model_class()._meta.verbose_name
-#         for field in get_model_tagged_fields_field_and_verbose(
-#             model_name=model_name,
-#             return_field_objects_only=True,
-#         ):
-#             match field:
-#                 case None:  # Ignore if specific field name is missing
-#                     # We test for None because the first tuple returned is None
-#                     pass
-#                 case _:
-#                     (
-#                         obj,
-#                         created,
-#                     ) = TaggedFieldModel.objects.update_or_create(
-#                         content=content,
-#                         field_name=field.name,
-#                         field_verbose_name=field.verbose_name,
-#                         model_name=model_name,
-#                         model_verbose_name=model_verbose_name,
-#                         tag_type=field.tag_type,
-#                     )  # Add or update the database entry
-#
-#                     match created:
-#                         case True:
-#                             logger.info(
-#                                 f"\n-- Created {obj} : {field}"
-#                             )  # Log a new entry
-#                         case False:
-#                             logger.info(
-#                                 f"\n-- Updated {obj} : {field}"
-#                             )  # Log an updated entry
-#         update_fields_that_should_be_synchronised()
-#
