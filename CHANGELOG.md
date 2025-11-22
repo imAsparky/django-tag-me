@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2025.11.22.1]
+
+### Maintenance
+- Migrate templates to MD3 and fix keyboard navigation (ui) [#304](https://github.com/imAsparky/django-tag-me/pull/304)
+
+
 ## [2025.11.20.2]
 
 ### Bug Fixes
