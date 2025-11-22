@@ -113,6 +113,24 @@ export function createAlpineComponent(config) {
       return this.screenWidth < 768;
     },
     /**
+    * Check if device has virtual keyboard (touch device)
+    * Used to determine auto-focus behavior
+    * @returns {boolean}
+    */
+    get hasVirtualKeyboard() {
+      return ('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
+        (navigator.msMaxTouchPoints > 0);
+    },
+    /**
+    * Should we auto-focus search when dropdown opens?
+    * Auto-focus on devices with physical keyboards only
+    * @returns {boolean}
+    */
+    get shouldAutoFocus() {
+      return !this.hasVirtualKeyboard;
+    },
+    /**
     * Filtered tags based on search input
     * @returns {string[]} Sorted array of matching tags
     */
@@ -436,36 +454,73 @@ export function createAlpineComponent(config) {
       this.tagCreationError = null;
     },
     // ============================================
-    // KEYBOARD NAVIGATION
+    // KEYBOARD NAVIGATION (FIXED)
     // ============================================
     /**
     * Navigate down in filtered tag list
+    * FIXED: Added scroll-into-view for focused element
     */
     navigateDown() {
       const tags = this.filteredTags;
       if (tags.length === 0) return;
+
       const currentIndex = tags.indexOf(this.focusedTag);
       const nextIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, tags.length - 1);
       this.focusedTag = tags[nextIndex];
+
+      // Scroll focused element into view
+      this.$nextTick(() => {
+        const focusedElement = document.getElementById(`tag-option-${this.focusedTag}`);
+        if (focusedElement) {
+          focusedElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'nearest'
+          });
+        }
+      });
+
       // ARIA announcement
       this.ariaAnnouncement = `Focused: ${this.focusedTag}`;
     },
     /**
     * Navigate up in filtered tag list
+    * FIXED: Added scroll-into-view for focused element
     */
     navigateUp() {
       const tags = this.filteredTags;
       if (tags.length === 0) return;
+
       const currentIndex = tags.indexOf(this.focusedTag);
       const prevIndex = currentIndex < 0 ? 0 : Math.max(currentIndex - 1, 0);
       this.focusedTag = tags[prevIndex];
+
+      // Scroll focused element into view
+      this.$nextTick(() => {
+        const focusedElement = document.getElementById(`tag-option-${this.focusedTag}`);
+        if (focusedElement) {
+          focusedElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'nearest'
+          });
+        }
+      });
+
       // ARIA announcement
       this.ariaAnnouncement = `Focused: ${this.focusedTag}`;
     },
     /**
     * Select the currently focused tag
+    * FIXED: Auto-focus first tag if none focused yet
     */
     selectFocused() {
+      // If no tag is focused yet, focus the first one
+      if (!this.focusedTag && this.filteredTags.length > 0) {
+        this.focusedTag = this.filteredTags[0];
+      }
+
+      // Now select it if it exists in the filtered list
       if (this.focusedTag && this.filteredTags.includes(this.focusedTag)) {
         this.toggleTag(this.focusedTag);
       }

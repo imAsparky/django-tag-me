@@ -110,8 +110,8 @@
          x-ref="widgetContainer">
         <!-- Input-like Container (Closed State) - SHARED -->
         <div class="tm:relative tm:w-full">
-            <div class="tm:block tm:w-full tm:md:h-[37px] tm:rounded-md tm:bg-surface-lib tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-outline-lib tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-primary-lib"
-                 :class="show ? 'tm:ring-2 tm:ring-primary-lib' : ''">
+            <div class="tm:block tm:w-full tm:md:h-[37px] tm:rounded-md tm:bg-bg-base tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-border-base tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-border-focus"
+                 :class="show ? 'tm:ring-2 tm:ring-border-focus' : ''">
                 <!-- Selected Tags Display + Clickable Area -->
                 <div class="tm:flex tm:items-center tm:py-2 tm:md:py-1.5 tm:pr-11 tm:md:pr-10 tm:pl-3 tm:cursor-pointer"
                      @click="toggle()">
@@ -119,7 +119,7 @@
                     <div class="tm:flex tm:flex-wrap tm:gap-2 tm:md:gap-2 tm:flex-1 tm:items-center">
                         <!-- Display Selected Tags (up to displayNumberSelected) -->
                         <template x-for="tagName in displayedSelected" :key="tagName">
-                            <div class="tm:inline-flex tm:justify-center tm:items-center tm:font-medium tm:py-1.5 tm:px-3 tm:md:py-1 tm:md:px-2.5 tm:rounded-md tm:md:rounded-full tm:text-on-primary-lib tm:bg-primary-lib tm:shadow-sm tm:transition-all tm:duration-150 hover:tm:bg-primary-lib hover:tm:opacity-90 hover:tm:shadow-md hover:tm:scale-105"
+                            <div class="tm:inline-flex tm:justify-center tm:items-center tm:font-medium tm:py-1.5 tm:px-3 tm:md:py-1 tm:md:px-2.5 tm:rounded-md tm:md:rounded-full tm:text-text-on-primary tm:bg-primary-base tm:shadow-sm tm:transition-all tm:duration-150 hover:tm:bg-primary-hover hover:tm:shadow-md hover:tm:scale-105"
                                  style="cursor: default"
                                  role="option"
                                  aria-selected="true"
@@ -135,7 +135,7 @@
                                 </div>
                                 <button type="button"
                                         x-on:click.stop="removeTag(tagName)"
-                                        class="tm:flex-shrink-0 tm:p-1 tm:md:p-0 tm:text-on-primary-lib/80 tm:rounded tm:transition-all tm:duration-150 hover:tm:text-on-primary-lib hover:tm:bg-on-primary-lib/20 hover:tm:scale-110 tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-on-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-primary-lib"
+                                        class="tm:flex-shrink-0 tm:p-1 tm:md:p-0 tm:text-text-on-primary/80 tm:rounded tm:transition-all tm:duration-150 hover:tm:text-text-on-primary hover:tm:bg-text-on-primary/20 hover:tm:scale-110 tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-text-on-primary tm:focus:ring-offset-2 tm:focus:ring-offset-primary-base"
                                         style="cursor: pointer"
                                         :aria-label="'Remove ' + tagName + ' tag'"
                                         :title="'Remove ' + tagName">
@@ -159,9 +159,9 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-90"
-                             class="tm:inline-flex tm:justify-center tm:items-center tm:font-medium tm:py-1.5 tm:px-3 tm:md:py-1 tm:md:px-2.5 tm:rounded-md tm:md:rounded-full tm:text-on-primary-lib tm:bg-primary-lib tm:shadow-sm">
+                             class="tm:inline-flex tm:justify-center tm:items-center tm:font-medium tm:py-1.5 tm:px-3 tm:md:py-1 tm:md:px-2.5 tm:rounded-md tm:md:rounded-full tm:text-text-on-primary tm:bg-primary-hover tm:shadow-sm">
                             <span class="tm:text-xs tm:font-normal tm:leading-none">
-                                <span class="tm:inline-flex tm:px-1.5 tm:rounded tm:text-xs tm:font-normal tm:bg-on-primary-lib/20 tm:text-on-primary-lib tm:mr-1 tm:align-middle">
+                                <span class="tm:inline-flex tm:px-1.5 tm:rounded tm:text-xs tm:font-normal tm:bg-text-on-primary/20 tm:text-text-on-primary tm:mr-1 tm:align-middle">
                                     +<span x-text="overflowCount"></span>
                                 </span>
                                 more
@@ -169,13 +169,13 @@
                         </div>
                         <!-- Placeholder Text -->
                         <span x-show="selectedTags.size === 0"
-                              class="tm:flex-1 tm:text-sm tm:text-on-surface-variant-lib">Select tags...</span>
+                              class="tm:flex-1 tm:text-sm tm:text-placeholder">Select tags...</span>
                     </div>
                 </div>
                 <!-- Dropdown Toggle Button (Always Visible) -->
                 <button type="button"
                         x-on:click="toggle()"
-                        class="tm:absolute tm:inset-y-0 tm:right-0 tm:flex tm:items-center tm:px-3 tm:md:px-2 tm:text-on-surface-variant-lib hover:tm:text-on-surface-lib tm:transition-colors tm:duration-150 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-surface-lib tm:rounded-r-md"
+                        class="tm:absolute tm:inset-y-0 tm:right-0 tm:flex tm:items-center tm:px-3 tm:md:px-2 tm:text-text-secondary hover:tm:text-text-primary tm:transition-colors tm:duration-150 tm:focus:outline-none tm:rounded-r-md"
                         :aria-expanded="show"
                         aria-controls="tag-me-select-{{ name }}"
                         aria-label="Toggle tag selection dropdown">
@@ -201,15 +201,15 @@
              x-transition:leave-end="opacity-0 translate-y-1"
              x-cloak
              x-init=" const updatePosition = () => { if (!$refs.widgetContainer) { console.warn('tag-me-select: widgetContainer ref not found'); return; }  if ($el.dataset.positioned === 'true') { return; }  const isMobileView = window.innerWidth < 768;  if (isMobileView) { const rect = $refs.widgetContainer.getBoundingClientRect(); const viewportWidth = window.innerWidth; const margin = 8;  const spaceOnLeft = rect.left; const spaceOnRight = viewportWidth - rect.right;  if (spaceOnLeft > spaceOnRight) { $el.style.right = '0'; $el.style.left = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, rect.right - margin) + 'px'; } else { $el.style.left = '0'; $el.style.right = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, viewportWidth - rect.left - margin) + 'px'; } } else { $el.style.width = '100%'; $el.style.left = '0'; $el.style.right = '0'; }  $el.dataset.positioned = 'true'; };  $watch('show', value => { if (value) { $el.dataset.positioned = 'false'; setTimeout(updatePosition, 10); } }); "
-             class="tm:absolute tm:z-dropdown tm:mt-2 tm:w-full tm:rounded-md tm:bg-surface-container-lib tm:shadow-lg tm:border tm:border-outline-lib">
+             class="tm:absolute tm:z-dropdown tm:mt-2 tm:w-full tm:rounded-md tm:bg-bg-base tm:shadow-lg tm:border tm:border-border-base">
             <div class="tm:flex tm:flex-col tm:w-full">
                 <!-- Search Section - SHARED -->
-                <div class="tm:px-3 tm:py-3 tm:border-b tm:border-outline-lib">
+                <div class="tm:px-3 tm:py-3 tm:border-b tm:border-border-base">
                     <div class="tm:relative">
                         <!-- Search Icon -->
                         <div class="tm:absolute tm:inset-y-0 tm:left-0 tm:pl-3 tm:flex tm:items-center tm:pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="tm:h-5 tm:w-5 tm:text-on-surface-variant-lib"
+                                 class="tm:h-5 tm:w-5 tm:text-text-secondary"
                                  fill="none"
                                  viewBox="0 0 24 24"
                                  stroke="currentColor"
@@ -227,9 +227,7 @@
                                @keydown.arrow-down.prevent="navigateDown()"
                                @keydown.arrow-up.prevent="navigateUp()"
                                @keydown.enter.prevent="selectFocused()"
-                               x-ref="searchInput"
-                               x-init="$watch('show', value => { if (value && shouldAutoFocus) { $nextTick(() => $refs.searchInput?.focus()) } })"
-                               class="tm:block tm:w-full tm:rounded-md tm:bg-surface-lib tm:py-2.5 tm:md:py-2 tm:pr-16 tm:md:pr-12 tm:pl-10 tm:text-base tm:text-on-surface-lib tm:outline-none tm:placeholder:text-on-surface-variant-lib tm:focus:bg-surface-container-lib tm:focus:ring-2 tm:focus:ring-primary-lib tm:transition-colors tm:duration-150 tm:sm:text-sm/6"
+                               class="tm:block tm:w-full tm:rounded-md tm:bg-bg-raised tm:py-2.5 tm:md:py-2 tm:pr-16 tm:md:pr-12 tm:pl-10 tm:text-base tm:text-text-primary tm:outline-none tm:placeholder:text-placeholder tm:focus:bg-bg-base tm:focus:ring-2 tm:focus:ring-border-focus tm:transition-colors tm:duration-150 tm:sm:text-sm/6"
                                placeholder="Search tags..."
                                role="searchbox"
                                aria-label="Search available tags"
@@ -256,10 +254,10 @@
                     x-transition:enter-start="opacity-0 translate-y-1"
                     x-transition:enter-end="opacity-100 translate-y-0"
                     x-cloak
-                    class="tm:max-h-60 tm:w-full tm:overflow-y-auto tm:overflow-x-hidden tm:bg-surface-container-lib tm:pt-1 tm:mb-0 tm:text-base tm:outline-none menu-scrollable tm:sm:text-sm">
+                    class="tm:max-h-60 tm:w-full tm:overflow-y-auto tm:overflow-x-hidden tm:bg-bg-base tm:pt-1 tm:mb-0 tm:text-base tm:outline-none menu-scrollable tm:sm:text-sm">
                     <!-- Search Result Count -->
                     <li x-show="filteredTags.length > 0 && search.length > 0"
-                        class="tm:px-3 tm:py-1.5 tm:text-xs tm:text-on-surface-variant-lib tm:bg-surface-container-lib tm:sticky tm:top-0 tm:z-[10] tm:border-b tm:border-outline-lib">
+                        class="tm:px-3 tm:py-1.5 tm:text-xs tm:text-text-secondary tm:bg-bg-raised tm:sticky tm:top-0 tm:z-[10] tm:border-b tm:border-border-base">
                         <span class="tm:font-medium" x-text="filteredTags.length"></span>
                         <span x-text="filteredTags.length === 1 ? 'result' : 'results'"></span>
                     </li>
@@ -270,13 +268,12 @@
                             :aria-selected="isSelected(tagName)"
                             :aria-label="tagName + (isSelected(tagName) ? ' (selected)' : '')"
                             @click="toggleTag(tagName)"
-                            @keydown.enter.prevent="toggleTag(tagName)"
                             @touchstart="handleSwipeStart($event, $el)"
                             @touchmove="handleSwipeMove($event)"
                             @touchend="handleSwipeEnd($event, tagName)"
                             @touchcancel="resetSwipe()"
-                            class="tm:block tm:px-4 tm:py-3 tm:md:px-3 tm:md:py-2 tm:text-on-surface-lib tm:select-none tm:cursor-pointer tm:transition-all tm:duration-150 tm:ease-in-out hover:indigo-600 swipe-item"
-                            :class="isSelected(tagName) ? 'tm:bg-primary-lib swipe-selected' : (isFocused(tagName) ? 'tm:bg-surface-container-high-lib tm:ring-2 tm:ring-inset tm:ring-primary-lib' : 'hover:tm:bg-surface-container-high-lib swipe-unselected')">
+                            class="tm:block tm:px-4 tm:py-3 tm:md:px-3 tm:md:py-2 tm:text-text-primary tm:select-none tm:cursor-pointer tm:transition-all tm:duration-150 tm:ease-in-out hover:tm:shadow-sm swipe-item"
+                            :class="isSelected(tagName) ? 'tm:bg-primary-base swipe-selected' : (isFocused(tagName) ? 'tm:bg-bg-hover tm:ring-2 tm:ring-inset tm:ring-border-focus' : 'hover:tm:bg-bg-hover swipe-unselected')">
                             <div class="tm:flex tm:items-center tm:justify-between">
                                 <span x-text="tagName" class="tm:truncate"></span>
                                 <!-- Checkmark for Selected -->
@@ -288,7 +285,7 @@
                                       x-transition:leave="transition ease-in duration-150"
                                       x-transition:leave-start="opacity-100 scale-100"
                                       x-transition:leave-end="opacity-0 scale-50">
-                                    <svg class="tm:h-5 tm:w-5 tm:text-on-primary-lib"
+                                    <svg class="tm:h-5 tm:w-5 tm:text-text-on-primary"
                                          xmlns="http://www.w3.org/2000/svg"
                                          viewBox="0 0 20 20"
                                          fill="currentColor"
@@ -305,15 +302,15 @@
                         x-transition:enter-start="opacity-0"
                         x-transition:enter-end="opacity-100"
                         class="tm:px-4 tm:py-8 tm:text-center">
-                        <svg class="tm:mx-auto tm:h-12 tm:w-12 tm:text-on-surface-variant-lib"
+                        <svg class="tm:mx-auto tm:h-12 tm:w-12 tm:text-text-muted"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke="currentColor"
                              aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
-                        <h3 class="tm:mt-2 tm:text-sm tm:font-medium tm:text-on-surface-variant-lib">No tags in library</h3>
-                        <p class="tm:mt-1 tm:text-sm tm:text-on-surface-variant-lib">Start typing to create your first tag!</p>
+                        <h3 class="tm:mt-2 tm:text-sm tm:font-medium tm:text-text-secondary">No tags in library</h3>
+                        <p class="tm:mt-1 tm:text-sm tm:text-text-muted">Start typing to create your first tag!</p>
                     </li>
                     <!-- No Search Results Message -->
                     <li x-show="filteredTags.length === 0 && search.length > 0"
@@ -321,30 +318,29 @@
                         x-transition:enter-start="opacity-0"
                         x-transition:enter-end="opacity-100"
                         class="tm:px-4 tm:py-8 tm:text-center">
-                        <svg class="tm:mx-auto tm:h-10 tm:w-10 tm:text-on-surface-variant-lib"
+                        <svg class="tm:mx-auto tm:h-10 tm:w-10 tm:text-text-muted"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke="currentColor"
                              aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <h3 class="tm:mt-2 tm:text-sm tm:font-medium tm:text-on-surface-variant-lib">No tags found</h3>
-                        <p class="tm:mt-1 tm:text-sm tm:text-on-surface-variant-lib">
-                            No matches for "<span x-text="search" class="tm:font-medium tm:text-on-surface-variant-lib"></span>"
+                        <h3 class="tm:mt-2 tm:text-sm tm:font-medium tm:text-text-secondary">No tags found</h3>
+                        <p class="tm:mt-1 tm:text-sm tm:text-text-muted">
+                            No matches for "<span x-text="search" class="tm:font-medium tm:text-text-secondary"></span>"
                         </p>
-                        <p class="tm:mt-2 tm:text-xs tm:text-on-surface-variant-lib"
-                           x-show="canAddTag">Try a different search or create a new tag</p>
+                        <p class="tm:mt-2 tm:text-xs tm:text-text-muted" x-show="canAddTag">Try a different search or create a new tag</p>
                     </li>
                 </ul>
                 <!-- Footer - SHARED (responsive visibility) -->
-                <div class="tm:hidden tm:md:block tm:w-full tm:py-2 tm:m-0 tm:rounded-b-md tm:bg-surface-container-lib">
-                    <p class="tm:text-xs tm:text-on-surface-variant-lib tm:text-center tm:px-3">
+                <div class="tm:hidden tm:md:block tm:w-full tm:py-2 tm:m-0 tm:rounded-b-md tm:bg-bg-raised">
+                    <p class="tm:text-xs tm:text-text-secondary tm:text-center tm:px-3">
                         <span class="tm:inline-flex tm:items-center tm:gap-1">
-                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-lib tm:border tm:border-outline-lib tm:rounded">↑↓</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-text-primary tm:bg-bg-base tm:border tm:border-border-base tm:rounded">↑↓</kbd>
                             navigate
-                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-lib tm:border tm:border-outline-lib tm:rounded tm:ml-2">Enter</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-text-primary tm:bg-bg-base tm:border tm:border-border-base tm:rounded tm:ml-2">Enter</kbd>
                             select
-                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-lib tm:border tm:border-outline-lib tm:rounded tm:ml-2">Esc</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-text-primary tm:bg-bg-base tm:border tm:border-border-base tm:rounded tm:ml-2">Esc</kbd>
                             close
                         </span>
                     </p>
@@ -361,49 +357,99 @@
 </div>
 <!-- End Main Container -->
 {% comment %}
-TEMPLATE CLASS MIGRATION - MAIN SELECT (MD3 REFACTOR v2.1)
-===========================================================
-Date: November 22, 2025
-Migration: MD3 Layering Corrections + Event Handler Fixes
+TEMPLATE MIGRATION NOTES - MAIN SELECT
+=======================================
+Date: November 19, 2025
+Corrected by: Claude
 
-MD3 CHANGES APPLIED (ELEVATION FIXES):
-1. ✅ Dropdown container: bg-surface-lib → bg-surface-container-lib [0→1]
-   - Elevates dropdown above input, creates proper floating effect
-   
-2. ✅ Search input focus: bg-surface-container-lib → bg-surface-lib (idle)
-   - focus:bg-surface-lib → focus:bg-surface-container-lib
-   - Creates "inset" feel at rest, rises on focus to match dropdown
-   
-3. ✅ List container: bg-surface-lib → bg-surface-container-lib [0→1]
-   - Matches dropdown elevation, allows items to be +1 on hover
-   
-4. ✅ "More" indicator: Removed opacity-90
-   - Now matches selected chips exactly per user requirement
-   
-5. ✅ Dropdown toggle button: Added focus ring
-   - focus:ring-2 focus:ring-primary-lib focus:ring-offset-2 focus:ring-offset-surface-lib
-   - Accessibility improvement, consistent with MD3 interactive states
+CORRECTIONS APPLIED:
+1. ✅ Restored x-init attribute with mobile positioning JavaScript (was removed)
+2. ✅ Changed tm:mt-1 back to tm:mt-2 (incorrect spacing change)
+3. ✅ Kept tm:z-dropdown (user confirmed)
+4. ✅ Restored original transition attributes (duration-200, translate-y-1)
+5. ✅ Removed added attributes: role="dialog", aria-modal="false", aria-label
+6. ✅ Restored original HTML structure for "More" indicator and Placeholder
 
-EVENT HANDLER FIX:
-6. ✅ List items: Added Enter key handler
-   - @keydown.enter.prevent="toggleTag(tagName)"
-   - Allows keyboard navigation (arrow keys) + Enter to select tags
-   - Previously only worked via search input's selectFocused()
+RULE FOLLOWED: ONLY class="" attributes modified with tm: prefix and semantic tokens.
+All Alpine.js attributes, HTML structure, and other attributes preserved.
 
-ELEVATION HIERARCHY (CORRECTED):
-- Input (closed):          surface-lib [0]
-- Dropdown container:      surface-container-lib [1] ← elevated
-- Search input (idle):     surface-lib [0] ← inset feel
-- Search input (focus):    surface-container-lib [1] ← rises
-- List items (base):       surface-container-lib [1] ← matches container
-- List items (hover):      surface-container-high-lib [2] ← +1 elevation
-- List items (selected):   primary-lib ← semantic
+MAPPING DECISIONS:
 
-NO OTHER CHANGES:
-- Alpine.js: unchanged (except Enter handler addition)
-- HTMX: unchanged  
-- HTML structure: unchanged
-- Spacing/layout: unchanged
-- Z-index values: unchanged
-- Non-MD3 classes: unchanged
+CUSTOM SCROLLBAR (in <style> tag):
+- Track light: #e5e7eb → oklch(0.91 0.00 286) (border-base)
+- Thumb: #9ca3af → oklch(0.61 0.01 258) (text-muted)
+- Thumb hover: #6b7280 → oklch(0.53 0.02 258) (text-secondary)
+- Track dark: #1f2937 → oklch(0.36 0.01 259) (border-base dark)
+- Using .dark selector instead of @media (prefers-color-scheme: dark)
+
+SWIPE GESTURES (in <style> tag):
+- Unselected active: rgba(99, 102, 241, 0.3) → oklch(0.61 0.20 266 / 0.3) (primary-base with opacity)
+- Selected active: rgba(209, 213, 219, 0.4) → oklch(0.91 0.00 286 / 0.4) (border-base with opacity)
+- Selected active dark: rgba(107, 114, 128, 0.4) → oklch(0.53 0.02 258 / 0.4) (text-secondary dark)
+
+INPUT-LIKE CONTAINER (Closed State):
+- bg-white dark:bg-white/5 → bg-bg-base (base surface)
+- ring-gray-300 dark:ring-gray-300 → ring-border-base (standard border)
+- focus-within:ring-indigo-500 → focus-within:ring-border-focus
+- ring-2 ring-indigo-500 (open state) → ring-2 ring-border-focus
+
+SELECTED TAG CHIPS:
+- bg-indigo-500 → bg-primary-base (primary brand background)
+- text-white → text-text-on-primary (white text on colored bg)
+- hover:bg-indigo-400 → hover:bg-primary-hover
+- Remove button: text-white/80 → text-text-on-primary/80
+- Remove button hover bg: bg-white/20 → bg-text-on-primary/20
+
+"MORE" INDICATOR:
+- bg-indigo-600 → bg-primary-hover (slightly darker than primary-base)
+- bg-white/20 → bg-text-on-primary/20 (for "+N" badge)
+
+PLACEHOLDER:
+- text-gray-500 dark:text-gray-500 → text-placeholder
+
+CHEVRON/TOGGLE BUTTON:
+- text-gray-400 dark:text-gray-400 → text-text-secondary
+- hover:text-gray-600 dark:hover:text-gray-300 → hover:text-text-primary
+
+DROPDOWN CONTAINER:
+- z-50 → z-dropdown (user confirmed)
+- mt-2 → mt-2 (preserved, not mt-1)
+- bg-white dark:bg-gray-800 → bg-bg-base
+- border-gray-200 dark:border-white/10 → border-border-base
+
+SEARCH INPUT:
+- bg-gray-50 dark:bg-white/5 → bg-bg-raised (input background)
+- text-gray-900 dark:text-white → text-text-primary
+- placeholder:text-gray-400 dark:placeholder:text-gray-500 → placeholder:text-placeholder
+- focus:bg-white dark:focus:bg-white/10 → focus:bg-bg-base
+- focus:ring-indigo-400 → focus:ring-border-focus
+
+SEARCH ICON:
+- text-gray-400 dark:text-gray-400 → text-text-secondary
+
+SEARCH RESULT COUNT:
+- bg-gray-100 dark:bg-gray-900/80 → bg-bg-raised
+- text-gray-700 dark:text-gray-300 → text-text-secondary
+- border-gray-200 dark:border-white/10 → border-border-base
+- z-10 → z-[10] (local stacking)
+
+TAG LIST ITEMS:
+- text-gray-900 dark:text-white → text-text-primary
+- hover:bg-gray-100 dark:hover:bg-gray-700 → hover:bg-bg-hover
+- Selected: bg-indigo-500 → bg-primary-base
+- Focused: bg-gray-200 dark:bg-gray-700 → bg-bg-hover + ring-border-focus
+- Checkmark: text-white → text-text-on-primary
+
+EMPTY STATES:
+- Icon: text-gray-400 dark:text-gray-500 → text-text-muted
+- Heading: text-gray-700 dark:text-gray-300 → text-text-secondary
+- Body: text-gray-500 dark:text-gray-500 → text-text-muted
+- Emphasized text: text-gray-600 dark:text-gray-400 → text-text-secondary
+
+FOOTER:
+- bg-gray-50 dark:bg-gray-800 → bg-bg-raised
+- text-gray-600 dark:text-gray-300 → text-text-secondary
+- kbd: text-gray-700 dark:text-gray-200 → text-text-primary
+- kbd bg: bg-white dark:bg-gray-800 → bg-bg-base
+- kbd border: border-gray-300 dark:border-gray-700 → border-border-base
 {% endcomment %}

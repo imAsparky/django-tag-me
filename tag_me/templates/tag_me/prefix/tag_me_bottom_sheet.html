@@ -1,0 +1,167 @@
+{# tag_me/templates/tag_me/tag_me_bottom_sheet.html #}
+{% comment %}
+  MOBILE BOTTOM SHEET - Add Tag Modal
+  Slides up from bottom when user wants to create a new tag
+  Has backdrop, drag handle, pre-filled input, and actions
+{% endcomment %}
+<!-- Bottom Sheet Backdrop -->
+<div x-show="bottomSheetShow"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click="closeBottomSheet()"
+     class="tm:fixed tm:inset-0 tm:bg-overlay-backdrop tm:z-modal-backdrop"
+     style="display: none"
+     x-cloak></div>
+<!-- Bottom Sheet Panel -->
+<div x-show="bottomSheetShow"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="translate-y-full"
+     x-transition:enter-end="translate-y-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="translate-y-0"
+     x-transition:leave-end="translate-y-full"
+     @click.outside="closeBottomSheet()"
+     class="tm:fixed tm:bottom-0 tm:left-0 tm:right-0 tm:z-modal tm:bg-bg-hover tm:rounded-t-2xl tm:shadow-2xl tm:border-t tm:border-border-base tm:max-h-[80vh] tm:overflow-hidden"
+     style="display: none"
+     x-cloak>
+    <!-- Drag Handle -->
+    <div class="tm:flex tm:justify-center tm:pt-3 tm:pb-2">
+        <div class="tm:w-12 tm:h-1.5 tm:bg-border-base tm:rounded-full"></div>
+    </div>
+    <!-- Content -->
+    <div class="tm:px-6 tm:pb-8 tm:overflow-y-auto tm:max-h-[calc(80vh-2rem)]">
+        <!-- Header -->
+        <div class="tm:text-center tm:mb-6">
+            <h2 class="tm:text-xl tm:font-semibold tm:text-text-primary">Add New Tag</h2>
+            <p class="tm:mt-1 tm:text-sm tm:text-text-secondary">Create and add to your library</p>
+        </div>
+        <!-- Form -->
+        <div class="tm:space-y-4">
+            <!-- Tag Name Input -->
+            <div>
+                <label for="bottom-sheet-tag-name-{{ name }}"
+                       class="tm:block tm:text-sm tm:font-medium tm:text-text-secondary tm:mb-2">Tag Name</label>
+                <input type="text"
+                       id="bottom-sheet-tag-name-{{ name }}"
+                       x-model="search"
+                       @keydown.enter="createNewTag()"
+                       @keydown.escape="closeBottomSheet()"
+                       x-init="$watch('bottomSheetShow', value => { if(value) setTimeout(() => $el.focus(), 100) })"
+                       class="tm:block tm:w-full tm:rounded-lg tm:bg-bg-raised tm:px-4 tm:py-3 tm:text-base tm:text-text-primary tm:placeholder:text-placeholder tm:border tm:border-border-base tm:focus:border-border-focus tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:outline-none tm:transition-colors tm:duration-150"
+                       placeholder="Enter tag name...">
+                <p class="tm:mt-2 tm:text-xs tm:text-text-muted">
+                    This tag will be added to your library <span x-show="autoSelectNewTags">and automatically selected</span>.
+                </p>
+            </div>
+            <!-- Error Display -->
+            <div x-show="tagCreationError"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="tm:p-4 tm:bg-error-bg tm:border tm:border-error-border tm:rounded-lg">
+                <div class="tm:flex tm:items-start">
+                    <svg class="tm:h-5 tm:w-5 tm:text-error-base tm:mt-0.5 tm:mr-3 tm:flex-shrink-0"
+                         xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 20 20"
+                         fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="tm:flex-1">
+                        <h4 class="tm:text-sm tm:font-medium tm:text-error-text">Error creating tag</h4>
+                        <p class="tm:mt-1 tm:text-sm tm:text-error-text-secondary"
+                           x-text="tagCreationError"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Actions -->
+        <div class="tm:flex tm:gap-3 tm:mt-8">
+            <!-- Cancel Button -->
+            <button type="button"
+                    @click="closeBottomSheet()"
+                    :disabled="isCreatingTag"
+                    class="tm:flex-1 tm:min-h-[48px] tm:px-4 tm:py-3 tm:text-base tm:font-medium tm:text-text-secondary tm:bg-bg-hover tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-bg-hover hover:tm:text-text-primary tm:active:scale-95 tm:disabled:opacity-50 tm:disabled:cursor-not-allowed tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-border-base tm:focus:ring-offset-2 tm:focus:ring-offset-bg-base">
+                Cancel
+            </button>
+            <!-- Create Button -->
+            <button type="button"
+                    @click="createNewTag()"
+                    :disabled="isCreatingTag || search.trim().length === 0"
+                    class="tm:flex-1 tm:min-h-[48px] tm:px-4 tm:py-3 tm:text-base tm:font-medium tm:text-text-on-primary tm:bg-primary-base tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-primary-hover tm:active:scale-95 tm:disabled:opacity-50 tm:disabled:cursor-not-allowed tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-2 tm:focus:ring-offset-bg-base">
+                <span x-show="!isCreatingTag">Create Tag</span>
+                <span x-show="isCreatingTag"
+                      class="tm:inline-flex tm:items-center tm:justify-center">
+                    <svg class="tm:animate-spin tm:-ml-1 tm:mr-2 tm:h-4 tm:w-4 tm:text-text-on-primary"
+                         xmlns="http://www.w3.org/2000/svg"
+                         fill="none"
+                         viewBox="0 0 24 24">
+                        <circle class="tm:opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="tm:opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    Creating...
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+{% comment %}
+TEMPLATE MIGRATION NOTES - BOTTOM SHEET
+=========================================
+Date: November 18, 2025
+Migrated by: Claude
+MAPPING DECISIONS:
+- bg-black/50 → bg-overlay-backdrop (modal backdrop, same light/dark)
+- z-[70] → z-modal-backdrop (using semantic z-index)
+- z-[80] → z-modal (panel above backdrop)
+- bg-white dark:bg-gray-800 → bg-bg-base (base surface)
+- border-gray-200 dark:border-white/10 → border-border-base (standard outline)
+- bg-gray-300 dark:bg-gray-600 → bg-border-base (drag handle - subtle UI element)
+- text-gray-900 dark:text-white → text-text-primary (headings)
+- text-gray-600 dark:text-gray-400 → text-text-secondary (body text)
+- text-gray-700 dark:text-gray-300 → text-text-secondary (labels)
+- bg-gray-50 dark:bg-white/5 → bg-bg-raised (input background)
+- placeholder:text-gray-400 dark:placeholder:text-gray-500 → placeholder:text-placeholder
+- border-gray-300 dark:border-gray-600 → border-border-base (input border)
+- focus:border-indigo-500 → focus:border-border-focus
+- focus:ring-indigo-500 → focus:ring-focus-ring
+- text-gray-500 → text-text-muted (helper text)
+- bg-red-50 dark:bg-red-900/50 → bg-error-bg (error background)
+- border-red-200 dark:border-red-500/50 → border-error-border
+- text-red-500 dark:text-red-400 → text-error-base (error icon)
+- text-red-800 dark:text-red-300 → text-error-text (error heading)
+- text-red-700 dark:text-red-400 → text-error-text-secondary (error body)
+- bg-gray-200 dark:bg-gray-700 → bg-bg-hover (cancel button)
+- hover:bg-gray-300 dark:hover:bg-gray-600 → hover:bg-bg-hover (button hover)
+- bg-indigo-600 → bg-primary-base (primary button)
+- hover:bg-indigo-500 → hover:bg-primary-hover
+- text-white → text-text-on-primary
+GAPS / TOKENS TO CONSIDER ADDING:
+1. DRAG HANDLE: Currently using border-base for bg-gray-300/gray-600
+- Consider: --color-surface-variant or --color-outline for subtle UI elements
+- Current mapping works but could be more semantic
+2. INPUT BACKGROUNDS: Currently using bg-raised for bg-gray-50/white/5
+- Consider: --color-input-bg token for form inputs
+- Main project might want different input backgrounds vs cards
+3. SECONDARY BUTTON BACKGROUNDS: Using bg-hover for gray-200/gray-700
+- Works but could be more explicit
+- Consider: --color-button-secondary-bg token
+4. BUTTON HOVER STATES: Currently reusing bg-hover for button hover
+- Could benefit from dedicated button hover tokens
+- Main project may want different hover behaviors for buttons vs surfaces
+5. Z-INDEX: Added z-modal-backdrop (1040) and z-modal (1050)
+- Verify these align with main project's z-index scale
+- May need z-bottomsheet if distinct from generic modal
+DARK MODE TEST:
+This template is a good test case for dark mode functionality because it has:
+- Multiple surface levels (backdrop, panel, input)
+- Text hierarchy (heading, body, muted)
+- State colors (error states)
+- Interactive elements (buttons with hover)
+If dark mode works here, the approach is solid!
+ALL CHANGES: Only class="" attributes modified. No Alpine.js, HTML structure, or other attributes changed.
+{% endcomment %}

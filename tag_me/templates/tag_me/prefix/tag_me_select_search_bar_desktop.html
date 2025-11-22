@@ -11,7 +11,7 @@
             x-show="canAddTag && !isCreatingTag"
             x-transition.opacity.duration.150ms
             @click.stop="createNewTag()"
-            class="tm:relative tm:p-2 tm:text-primary-lib tm:rounded tm:transition-colors tm:duration-150 hover:tm:bg-surface-container-high-lib hover:tm:text-primary-lib hover:tm:opacity-90 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-1 tm:focus:ring-offset-surface-container-lib"
+            class="tm:relative tm:p-2 tm:text-primary-base tm:rounded tm:transition-colors tm:duration-150 hover:tm:bg-bg-hover hover:tm:text-primary-hover tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-1 tm:focus:ring-offset-bg-base"
             title="Add new tag">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="tm:h-5 tm:w-5"
@@ -24,7 +24,7 @@
     </button>
     <!-- Loading Spinner (Desktop) -->
     <div x-show="isCreatingTag" class="tm:inline-flex tm:items-center tm:px-2">
-        <svg class="tm:animate-spin tm:h-5 tm:w-5 tm:text-primary-lib"
+        <svg class="tm:animate-spin tm:h-5 tm:w-5 tm:text-primary-base"
              xmlns="http://www.w3.org/2000/svg"
              fill="none"
              viewBox="0 0 24 24">
@@ -38,7 +38,7 @@
             x-show="search.length > 0 && !isCreatingTag"
             x-transition.opacity.duration.150ms
             @click.stop="clearSearch()"
-            class="tm:relative tm:p-2 tm:text-on-surface-variant-lib tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-on-surface-lib hover:tm:bg-surface-container-high-lib tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-1 tm:focus:ring-offset-surface-container-lib"
+            class="tm:relative tm:p-2 tm:text-text-secondary tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-text-primary hover:tm:bg-bg-hover tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-1 tm:focus:ring-offset-bg-base"
             title="Clear search">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="tm:h-5 tm:w-5"
@@ -54,7 +54,7 @@
             x-show="selectedTags.size > 0 && !isCreatingTag"
             x-transition.opacity.duration.150ms
             @click.stop="deselectAll()"
-            class="tm:relative tm:p-2 tm:text-on-surface-variant-lib tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-on-surface-lib hover:tm:bg-surface-container-high-lib tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-1 tm:focus:ring-offset-surface-container-lib"
+            class="tm:relative tm:p-2 tm:text-text-secondary tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-text-primary hover:tm:bg-bg-hover tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-1 tm:focus:ring-offset-bg-base"
             :title="'Remove ' + selectedTags.size + ' tags'">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="tm:h-5 tm:w-5"
@@ -64,14 +64,14 @@
              stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
         </svg>
-        <span class="tm:absolute tm:-top-1 tm:-right-1 tm:inline-flex tm:items-center tm:justify-center tm:px-1 tm:py-0.5 tm:text-[10px] tm:font-bold tm:text-on-primary-lib tm:bg-primary-lib tm:rounded-full tm:min-w-[0.875rem] tm:h-3.5"
+        <span class="tm:absolute tm:-top-1 tm:-right-1 tm:inline-flex tm:items-center tm:justify-center tm:px-1 tm:py-0.5 tm:text-[10px] tm:font-bold tm:text-text-on-primary tm:bg-primary-base tm:rounded-full tm:min-w-[0.875rem] tm:h-3.5"
               x-text="selectedTags.size"></span>
     </button>
     <!-- Help Icon (Desktop) -->
     <a x-show="helpUrl"
        :href="helpUrl"
        target="_blank"
-       class="tm:relative tm:p-2 tm:text-on-surface-variant-lib tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-on-surface-lib hover:tm:bg-surface-container-high-lib tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-1 tm:focus:ring-offset-surface-container-lib"
+       class="tm:relative tm:p-2 tm:text-text-secondary tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-text-primary hover:tm:bg-bg-hover tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-1 tm:focus:ring-offset-bg-base"
        title="Help">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="tm:h-5 tm:w-5"
@@ -85,7 +85,7 @@
     <!-- Management Icon (Desktop) -->
     <a x-show="mgmtUrl"
        :href="mgmtUrl"
-       class="tm:relative tm:p-2 tm:text-on-surface-variant-lib tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-on-surface-lib hover:tm:bg-surface-container-high-lib tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-1 tm:focus:ring-offset-surface-container-lib"
+       class="tm:relative tm:p-2 tm:text-text-secondary tm:rounded tm:transition-colors tm:duration-150 hover:tm:text-text-primary hover:tm:bg-bg-hover tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-focus-ring tm:focus:ring-offset-1 tm:focus:ring-offset-bg-base"
        target="_blank"
        title="Tag Management">
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -100,28 +100,45 @@
     </a>
 </div>
 {% comment %}
-TEMPLATE CLASS MIGRATION - DESKTOP SEARCH BAR (MD3 REFACTOR v2)
-================================================================
-Date: November 22, 2025
-Migration: MD3 Ring Offset Corrections
-
-CHANGES APPLIED:
-✅ All buttons/links (5 instances):
-   - ring-offset-surface-lib → ring-offset-surface-container-lib
-   - Reason: These buttons are inside dropdown at surface-container-lib [1]
-   - Ring offsets must match parent surface for proper visual separation
-
-AFFECTED ELEMENTS:
-1. Add button
-2. Clear search button  
-3. Remove all tags button
-4. Help link
-5. Management link
-
-NO OTHER CHANGES:
-- Alpine.js: unchanged
-- HTMX: unchanged
-- HTML structure: unchanged
-- Spacing/layout: unchanged
-- Non-MD3 classes: unchanged
+TEMPLATE MIGRATION NOTES - DESKTOP SEARCH BAR
+==============================================
+Date: November 18, 2025
+Migrated by: Claude
+MAPPING DECISIONS:
+PRIMARY ACTION (Add Button):
+- text-indigo-500 dark:text-indigo-400 → text-primary-base (brand color for primary actions)
+- hover:text-indigo-600 dark:hover:text-indigo-300 → hover:text-primary-hover
+- hover:bg-gray-100 dark:hover:bg-white/10 → hover:bg-bg-hover
+- focus:ring-indigo-500 → focus:ring-focus-ring
+- focus:ring-offset-white dark:focus:ring-offset-gray-900 → focus:ring-offset-bg-base
+SECONDARY ACTIONS (Clear, Remove, Help, Manage):
+- text-gray-500 dark:text-gray-400 → text-text-secondary (muted for less emphasis)
+- hover:text-gray-700 dark:hover:text-gray-300 → hover:text-text-primary (darkens on hover)
+- hover:bg-gray-100 dark:hover:bg-white/10 → hover:bg-bg-hover
+- Same focus ring pattern as primary
+LOADING SPINNER:
+- text-indigo-500 dark:text-indigo-400 → text-primary-base (brand color)
+BADGE (Count indicator):
+- bg-indigo-500 dark:bg-indigo-500 → bg-primary-base (brand color background)
+- text-white → text-text-on-primary (ensures contrast on colored background)
+DESIGN PATTERN NOTES:
+1. PRIMARY vs ON-PRIMARY:
+- text-primary-base: Primary color text/icons on regular backgrounds
+- text-text-on-primary: White/high-contrast text ON primary-colored backgrounds
+- Example: Badge uses text-on-primary because it has bg-primary-base
+- This is MD3's contrast pairing system for accessibility
+2. BUTTON HIERARCHY:
+- Primary action (Add): Uses primary-base color for prominence
+- Secondary actions: Use text-secondary for less emphasis
+- All share same hover pattern (bg-hover) for consistency
+3. INTERACTION STATES:
+- Default: Primary uses primary-base, secondary uses text-secondary
+- Hover: Primary darkens to primary-hover, secondary darkens to text-primary
+- Background: All use same bg-hover on hover for consistency
+- Focus: All use same focus ring pattern
+GAPS / CONSIDERATIONS:
+- None identified - all states map cleanly to existing semantic tokens
+- Button color hierarchy works well with current token set
+- MD3 contrast pairing (on-primary) ensures badge accessibility
+ALL CHANGES: Only class="" attributes modified. No Alpine.js, HTML structure, or other attributes changed.
 {% endcomment %}
