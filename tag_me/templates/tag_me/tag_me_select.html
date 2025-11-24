@@ -9,31 +9,23 @@
   Everything else is shared with responsive Tailwind classes.
 {% endcomment %}
 <style>
-/* Custom Scrollbar Styles - Light and Dark Mode */
+/* Custom Scrollbar Styles - Uses library CSS variables for theme adaptation */
 .menu-scrollable::-webkit-scrollbar {
   width: 0.5rem;
 }
 .menu-scrollable::-webkit-scrollbar-track {
-  background-color: oklch(0.91 0.00 286); /* border-base light */
+  background-color: var(--tm-color-outline-variant-lib);
   border-radius: 9999px;
 }
 .menu-scrollable::-webkit-scrollbar-thumb {
-  background-color: oklch(0.61 0.01 258); /* text-muted */
+  background-color: var(--tm-color-on-surface-variant-lib);
   border-radius: 9999px;
 }
 .menu-scrollable::-webkit-scrollbar-thumb:hover {
-  background-color: oklch(0.53 0.02 258); /* text-secondary */
+  background-color: var(--tm-color-on-surface-lib);
 }
 
-.dark .menu-scrollable::-webkit-scrollbar-track {
-  background-color: oklch(0.36 0.01 259); /* border-base dark */
-}
-.dark .menu-scrollable::-webkit-scrollbar-thumb {
-  background-color: oklch(0.53 0.02 258); /* text-secondary dark - from placeholder */
-}
-.dark .menu-scrollable::-webkit-scrollbar-thumb:hover {
-  background-color: oklch(0.69 0.00 264); /* text-muted dark */
-}
+/* Dark mode automatically handled by CSS variables - no .dark override needed! */
 
 /* Screen Reader Only - for accessibility */
 .sr-only {
@@ -48,7 +40,7 @@
   border-width: 0;
 }
 
-/* Swipe Gesture Styles */
+/* Swipe Gesture Styles - Uses library CSS variables */
 .swipe-item {
   position: relative;
   touch-action: pan-y;
@@ -68,18 +60,16 @@
 }
 
 .swipe-item.swipe-unselected.swipe-active::before {
-  background-color: oklch(0.61 0.20 266 / 0.3); /* primary-base with 30% opacity */
+  background-color: color-mix(in oklch, var(--tm-color-primary-lib) 30%, transparent);
   opacity: 1;
 }
 
 .swipe-item.swipe-selected.swipe-active::before {
-  background-color: oklch(0.91 0.00 286 / 0.4); /* border-base with 40% opacity */
+  background-color: color-mix(in oklch, var(--tm-color-on-primary-lib) 40%, transparent);
   opacity: 1;
 }
 
-.dark .swipe-item.swipe-selected.swipe-active::before {
-  background-color: oklch(0.53 0.02 258 / 0.4); /* text-secondary dark with 40% opacity */
-}
+/* Dark mode handled automatically - no manual override needed */
 </style>
 <!-- Main Container -->
 <div id='tag-me-select-container-{{ name }}'
@@ -229,7 +219,7 @@
                                @keydown.enter.prevent="selectFocused()"
                                x-ref="searchInput"
                                x-init="$watch('show', value => { if (value && shouldAutoFocus) { $nextTick(() => $refs.searchInput?.focus()) } })"
-                               class="tm:block tm:w-full tm:rounded-md tm:bg-surface-lib tm:py-2.5 tm:md:py-2 tm:pr-16 tm:md:pr-12 tm:pl-10 tm:text-base tm:text-on-surface-lib tm:outline-none tm:placeholder:text-on-surface-variant-lib tm:focus:bg-surface-container-lib tm:focus:ring-2 tm:focus:ring-primary-lib tm:transition-colors tm:duration-150 tm:sm:text-sm/6"
+                               class="tm:block tm:w-full tm:rounded-md tm:border-0 tm:bg-surface-lib tm:py-2.5 tm:md:py-2 tm:pr-16 tm:md:pr-12 tm:pl-10 tm:text-base tm:text-on-surface-lib tm:outline-none tm:placeholder:text-on-surface-variant-lib tm:focus:bg-surface-container-lib tm:focus:ring-2 tm:focus:ring-primary-lib tm:transition-colors tm:duration-150 tm:sm:text-sm/6"
                                placeholder="Search tags..."
                                role="searchbox"
                                aria-label="Search available tags"
@@ -275,7 +265,7 @@
                             @touchmove="handleSwipeMove($event)"
                             @touchend="handleSwipeEnd($event, tagName)"
                             @touchcancel="resetSwipe()"
-                            class="tm:block tm:px-4 tm:py-3 tm:md:px-3 tm:md:py-2 tm:text-on-surface-lib tm:select-none tm:cursor-pointer tm:transition-all tm:duration-150 tm:ease-in-out hover:indigo-600 swipe-item"
+                            class="tm:block tm:px-4 tm:py-3 tm:md:px-3 tm:md:py-2 tm:text-on-surface-lib tm:select-none tm:cursor-pointer tm:transition-all tm:duration-150 tm:ease-in-out swipe-item"
                             :class="isSelected(tagName) ? 'tm:bg-primary-lib swipe-selected' : (isFocused(tagName) ? 'tm:bg-surface-container-high-lib tm:ring-2 tm:ring-inset tm:ring-primary-lib' : 'hover:tm:bg-surface-container-high-lib swipe-unselected')">
                             <div class="tm:flex tm:items-center tm:justify-between">
                                 <span x-text="tagName" class="tm:truncate"></span>
