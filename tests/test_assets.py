@@ -100,7 +100,10 @@ class TestViteAssetLoading(TestCase):
         with self.assertRaises(ViteManifestError) as context:
             get_tag_me_js()
 
-        self.assertIn("Invalid JSON in Vite manifest at", str(context.exception))
+        self.assertIn(
+            "Invalid JSON in Vite manifest: Expecting property name",
+            str(context.exception),
+        )
 
     @patch("tag_me.assets.finders.find")
     @patch("tag_me.assets.Path")
@@ -122,10 +125,10 @@ class TestViteAssetLoading(TestCase):
             get_tag_me_js()
 
         self.assertIn(
-            "JavaScript entry 'src/tag-me.js' not found in tag-me manifest.",
+            "JavaScript entry 'src/tag-me.js' not found in manifest.",
             str(context.exception),
         )
-        self.assertIn("Available keys:", str(context.exception))
+        self.assertIn("Available keys: ['style.css']", str(context.exception))
 
     @patch("tag_me.assets.finders.find")
     @patch("tag_me.assets.Path")
@@ -169,7 +172,8 @@ class TestViteAssetLoading(TestCase):
             get_tag_me_js()
 
         self.assertIn(
-            "No 'file' key in JS entry. Entry contents:", str(context.exception)
+            "No 'file' key in JS entry: {'name': 'tag-me'}",
+            str(context.exception),
         )
 
     @patch("tag_me.assets.finders.find")
@@ -192,7 +196,7 @@ class TestViteAssetLoading(TestCase):
             get_tag_me_css()
 
         self.assertIn(
-            "No 'file' key in CSS entry. Entry contents: {'src': 'style.css'}",
+            "No 'file' key in CSS entry: {'src': 'style.css'}",
             str(context.exception),
         )
 
