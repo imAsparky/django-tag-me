@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## [2025.11.24.1]
+
+### Maintenance
+- Update style with MD3 generated theme (ui) [#306](https://github.com/imAsparky/django-tag-me/pull/306)
+
+### Testing
+- Update, settings checks removed from assets (asset) [#306](https://github.com/imAsparky/django-tag-me/pull/306)
+
+
 ## [2025.11.22.1]
 
 ### Maintenance
