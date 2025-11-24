@@ -11,110 +11,66 @@
  * TAG-ME LIBRARY - MATERIAL DESIGN 3 INTEGRATION
  * ============================================================================
  * 
- * CRITICAL: We need BOTH @theme AND :root
+ * ARCHITECTURE: SINGLE SOURCE OF TRUTH PATTERN (matches main project)
  * 
- * @theme → Tells Tailwind to auto-generate base utilities (tm:bg-primary-lib)
- * :root → Makes variables accessible to manual hover/focus variants
+ * This file uses a two-step definition pattern:
  * 
- * This duplication is necessary because Tailwind v4 with prefix(tm) doesn't
- * auto-generate hover/focus/active variants for custom theme tokens.
+ * STEP 1: :root - THE SOURCE OF TRUTH
+ *    - Defines all color values ONCE with fallback OKLCH values
+ *    - Used by manual hover/focus/active variants
+ *    - Overridden by .dark class for dark mode
+ * 
+ * STEP 2: @theme - REFERENCES THE SOURCE
+ *    - References :root variables using var(--tm-color-...)
+ *    - Creates Tailwind utility classes (tm:bg-primary-lib, etc.)
+ *    - Used by tag-me templates
+ * 
+ * WHY THIS PATTERN?
+ * 
+ * 1. SINGLE SOURCE: Color values defined once in :root, eliminating sync issues
+ * 2. NO DUPLICATION: @theme references :root, doesn't duplicate values
+ * 3. EASY UPDATES: Change colors in ONE place (:root block)
+ * 4. DARK MODE: .dark overrides :root, @theme automatically inherits
+ * 5. MANUAL UTILITIES: Can reference --tm- variables directly
+ * 
+ * TO UPDATE COLORS:
+ * - Edit values in :root { } block only
+ * - @theme will automatically reference the updated values
+ * - Update .dark block for dark mode variants
+ * 
+ * ----------------------------------------------------------------------------
+ * FALLBACK VALUE STRATEGY
+ * ----------------------------------------------------------------------------
+ * 
+ * Fallback values (second parameter in var() calls) are INTENTIONALLY DIFFERENT
+ * from the main TRADER-BIZ project theme. This serves two critical purposes:
+ * 
+ * 1. INTEGRATION TESTING: If you see these generic colors instead of your 
+ *    project's brand colors, it means the main project CSS isn't loading 
+ *    properly or loading in the wrong order.
+ * 
+ * 2. STANDALONE USE: Other projects using this library get a reasonable
+ *    generic MD3 theme without requiring custom configuration.
+ * 
+ * EXPECTED BEHAVIOR:
+ * - TRADER-BIZ project: Uses main project colors (NOT these fallbacks)
+ * - Other projects: Uses these generic fallback colors
+ * - CSS load failure: Uses these fallbacks (visual debugging indicator)
+ * 
+ * ⚠️  DO NOT sync these fallbacks to match main project - the difference is 
+ *    intentional and valuable for debugging!
  * ============================================================================
  */
 
 /* ============================================================================
- * TAILWIND THEME - BASE UTILITY GENERATION
+ * CSS CUSTOM PROPERTIES - SINGLE SOURCE OF TRUTH
  * ============================================================================
- * @theme tells Tailwind to auto-generate base utilities
- * These don't need --tm- prefix here (Tailwind handles prefixing internally)
+ * All color values defined HERE with fallback OKLCH values.
+ * Both @theme and manual utilities reference these.
+ * Z-index tokens ONLY go here (not in @theme).
  * ============================================================================ */
 
-@theme {
-  /* TYPOGRAPHY */
-  --font-sans-lib: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
-  --font-display-lib: var(--font-display, ui-sans-serif, system-ui, sans-serif);
-  
-  /* MD3 SURFACE COLORS */
-  --color-surface-lib: var(--color-surface, oklch(0.98 0 0));
-  --color-surface-container-lowest-lib: var(--color-surface-container-lowest, oklch(1.00 0 0));
-  --color-surface-container-low-lib: var(--color-surface-container-low, oklch(0.96 0 0));
-  --color-surface-container-lib: var(--color-surface-container, oklch(0.94 0 0));
-  --color-surface-container-high-lib: var(--color-surface-container-high, oklch(0.92 0 0));
-  --color-surface-container-highest-lib: var(--color-surface-container-highest, oklch(0.90 0 0));
-  --color-surface-variant-lib: var(--color-surface-variant, oklch(0.91 0 0));
-  
-  /* MD3 BACKGROUND COLORS */
-  --color-background-lib: var(--color-background, oklch(0.98 0 0));
-  --color-on-background-lib: var(--color-on-background, oklch(0.20 0.01 270));
-  
-  /* MD3 TEXT COLORS */
-  --color-on-surface-lib: var(--color-on-surface, oklch(0.20 0.01 270));
-  --color-on-surface-variant-lib: var(--color-on-surface-variant, oklch(0.45 0.01 258));
-  
-  /* MD3 PRIMARY COLORS */
-  --color-primary-lib: var(--color-primary, oklch(0.61 0.20 266));
-  --color-on-primary-lib: var(--color-on-primary, oklch(1.00 0 0));
-  --color-primary-container-lib: var(--color-primary-container, oklch(0.91 0.08 266));
-  --color-on-primary-container-lib: var(--color-on-primary-container, oklch(0.15 0.15 266));
-  
-  /* MD3 SECONDARY COLORS */
-  --color-secondary-lib: var(--color-secondary, oklch(0.50 0.20 190));
-  --color-on-secondary-lib: var(--color-on-secondary, oklch(1.00 0 0));
-  --color-secondary-container-lib: var(--color-secondary-container, oklch(0.91 0.08 190));
-  --color-on-secondary-container-lib: var(--color-on-secondary-container, oklch(0.15 0.15 190));
-  
-  /* MD3 TERTIARY COLORS */
-  --color-tertiary-lib: var(--color-tertiary, oklch(0.52 0.22 330));
-  --color-on-tertiary-lib: var(--color-on-tertiary, oklch(1.00 0 0));
-  --color-tertiary-container-lib: var(--color-tertiary-container, oklch(0.91 0.08 330));
-  --color-on-tertiary-container-lib: var(--color-on-tertiary-container, oklch(0.15 0.15 330));
-  
-  /* MD3 ERROR COLORS */
-  --color-error-lib: var(--color-error, oklch(0.54 0.24 27));
-  --color-on-error-lib: var(--color-on-error, oklch(1.00 0 0));
-  --color-error-container-lib: var(--color-error-container, oklch(0.95 0.08 27));
-  --color-on-error-container-lib: var(--color-on-error-container, oklch(0.28 0.18 27));
-  
-  /* MD3 SUCCESS COLORS */
-  --color-success-lib: var(--color-success, oklch(0.55 0.15 145));
-  --color-on-success-lib: var(--color-on-success, oklch(1.00 0 0));
-  --color-success-container-lib: var(--color-success-container, oklch(0.92 0.08 145));
-  --color-on-success-container-lib: var(--color-on-success-container, oklch(0.20 0.12 145));
-  
-  /* MD3 WARNING COLORS */
-  --color-warning-lib: var(--color-warning, oklch(0.60 0.18 85));
-  --color-on-warning-lib: var(--color-on-warning, oklch(0.10 0.01 270));
-  --color-warning-container-lib: var(--color-warning-container, oklch(0.94 0.10 85));
-  --color-on-warning-container-lib: var(--color-on-warning-container, oklch(0.25 0.14 85));
-  
-  /* MD3 INFO COLORS */
-  --color-info-lib: var(--color-info, oklch(0.50 0.20 230));
-  --color-on-info-lib: var(--color-on-info, oklch(1.00 0 0));
-  --color-info-container-lib: var(--color-info-container, oklch(0.92 0.08 230));
-  --color-on-info-container-lib: var(--color-on-info-container, oklch(0.18 0.14 230));
-  
-  /* MD3 OUTLINE COLORS */
-  --color-outline-lib: var(--color-outline, oklch(0.73 0.01 258));
-  --color-outline-variant-lib: var(--color-outline-variant, oklch(0.80 0.01 258));
-  
-  /* MD3 INVERSE COLORS */
-  --color-inverse-surface-lib: var(--color-inverse-surface, oklch(0.20 0.01 270));
-  --color-inverse-on-surface-lib: var(--color-inverse-on-surface, oklch(0.95 0.01 270));
-  --color-inverse-primary-lib: var(--color-inverse-primary, oklch(0.70 0.18 266));
-  
-  /* MD3 UTILITY COLORS */
-  --color-scrim-lib: var(--color-scrim, oklch(0.00 0 0 / 0.32));
-  --color-shadow-lib: var(--color-shadow, oklch(0.00 0 0 / 0.08));
-  --color-surface-tint-lib: var(--color-surface-tint, oklch(0.47 0.24 266));
-}
-
-/* ============================================================================
- * CSS CUSTOM PROPERTIES - FOR MANUAL UTILITIES
- * ============================================================================
- * Duplicate color tokens in :root with --tm- prefix
- * This makes them accessible to manual hover/focus/active utilities
- * Z-index tokens ONLY go here (not in @theme)
- * ============================================================================ */
-
+@layer {
 :root {
   /* Z-INDEX - Only defined here, not in @theme */
   --tm-z-base-lib: var(--z-base, 0);
@@ -127,161 +83,254 @@
   --tm-z-tooltip-lib: var(--z-tooltip, 1070);
   --tm-z-notification-lib: var(--z-notification, 1080);
 
-  /* TYPOGRAPHY - Duplicated from @theme with --tm- prefix */
+  /* TYPOGRAPHY */
   --tm-font-sans-lib: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
   --tm-font-display-lib: var(--font-display, ui-sans-serif, system-ui, sans-serif);
   
-  /* MD3 SURFACE COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-surface-lib: var(--color-surface, oklch(0.98 0 0));
-  --tm-color-surface-container-lowest-lib: var(--color-surface-container-lowest, oklch(1.00 0 0));
-  --tm-color-surface-container-low-lib: var(--color-surface-container-low, oklch(0.96 0 0));
-  --tm-color-surface-container-lib: var(--color-surface-container, oklch(0.94 0 0));
-  --tm-color-surface-container-high-lib: var(--color-surface-container-high, oklch(0.92 0 0));
-  --tm-color-surface-container-highest-lib: var(--color-surface-container-highest, oklch(0.90 0 0));
-  --tm-color-surface-variant-lib: var(--color-surface-variant, oklch(0.91 0 0));
+  /* MD3 SURFACE COLORS */
+  --tm-color-surface-lib: var(--color-surface, oklch(0.98 0.01 311));
+  --tm-color-surface-container-lowest-lib: var(--color-surface-container-lowest, oklch(1.00 0.00 263));
+  --tm-color-surface-container-low-lib: var(--color-surface-container-low, oklch(0.97 0.01 308));
+  --tm-color-surface-container-lib: var(--color-surface-container, oklch(0.95 0.01 308));
+  --tm-color-surface-container-high-lib: var(--color-surface-container-high, oklch(0.93 0.01 308));
+  --tm-color-surface-container-highest-lib: var(--color-surface-container-highest, oklch(0.92 0.01 308));
+  --tm-color-surface-variant-lib: var(--color-surface-variant, oklch(0.92 0.02 302));
   
-  /* MD3 BACKGROUND COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-background-lib: var(--color-background, oklch(0.98 0 0));
-  --tm-color-on-background-lib: var(--color-on-background, oklch(0.20 0.01 270));
+  /* MD3 BACKGROUND COLORS */
+  --tm-color-background-lib: var(--color-background, oklch(0.98 0.01 311));
+  --tm-color-on-background-lib: var(--color-on-background, oklch(0.23 0.01 295));
   
-  /* MD3 TEXT COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-on-surface-lib: var(--color-on-surface, oklch(0.20 0.01 270));
-  --tm-color-on-surface-variant-lib: var(--color-on-surface-variant, oklch(0.45 0.01 258));
+  /* MD3 TEXT COLORS */
+  --tm-color-on-surface-lib: var(--color-on-surface, oklch(0.23 0.01 295));
+  --tm-color-on-surface-variant-lib: var(--color-on-surface-variant, oklch(0.40 0.02 291));
   
-  /* MD3 PRIMARY COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-primary-lib: var(--color-primary, oklch(0.61 0.20 266));
-  --tm-color-on-primary-lib: var(--color-on-primary, oklch(1.00 0 0));
-  --tm-color-primary-container-lib: var(--color-primary-container, oklch(0.91 0.08 266));
-  --tm-color-on-primary-container-lib: var(--color-on-primary-container, oklch(0.15 0.15 266));
+  /* MD3 PRIMARY COLORS */
+  --tm-color-primary-lib: var(--color-primary, oklch(0.49 0.09 285));
+  --tm-color-on-primary-lib: var(--color-on-primary, oklch(1.00 0.00 263));
+  --tm-color-primary-container-lib: var(--color-primary-container, oklch(0.92 0.04 291));
+  --tm-color-on-primary-container-lib: var(--color-on-primary-container, oklch(0.40 0.09 284));
   
-  /* MD3 SECONDARY COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-secondary-lib: var(--color-secondary, oklch(0.50 0.20 190));
-  --tm-color-on-secondary-lib: var(--color-on-secondary, oklch(1.00 0 0));
-  --tm-color-secondary-container-lib: var(--color-secondary-container, oklch(0.91 0.08 190));
-  --tm-color-on-secondary-container-lib: var(--color-on-secondary-container, oklch(0.15 0.15 190));
+  /* MD3 SECONDARY COLORS */
+  --tm-color-secondary-lib: var(--color-secondary, oklch(0.48 0.03 289));
+  --tm-color-on-secondary-lib: var(--color-on-secondary, oklch(1.00 0.00 263));
+  --tm-color-secondary-container-lib: var(--color-secondary-container, oklch(0.92 0.04 294));
+  --tm-color-on-secondary-container-lib: var(--color-on-secondary-container, oklch(0.40 0.03 287));
   
-  /* MD3 TERTIARY COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-tertiary-lib: var(--color-tertiary, oklch(0.52 0.22 330));
-  --tm-color-on-tertiary-lib: var(--color-on-tertiary, oklch(1.00 0 0));
-  --tm-color-tertiary-container-lib: var(--color-tertiary-container, oklch(0.91 0.08 330));
-  --tm-color-on-tertiary-container-lib: var(--color-on-tertiary-container, oklch(0.15 0.15 330));
+  /* MD3 TERTIARY COLORS */
+  --tm-color-tertiary-lib: var(--color-tertiary, oklch(0.49 0.06 347));
+  --tm-color-on-tertiary-lib: var(--color-on-tertiary, oklch(1.00 0.00 263));
+  --tm-color-tertiary-container-lib: var(--color-tertiary-container, oklch(0.92 0.05 350));
+  --tm-color-on-tertiary-container-lib: var(--color-on-tertiary-container, oklch(0.40 0.06 346));
   
-  /* MD3 ERROR COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-error-lib: var(--color-error, oklch(0.54 0.24 27));
-  --tm-color-on-error-lib: var(--color-on-error, oklch(1.00 0 0));
-  --tm-color-error-container-lib: var(--color-error-container, oklch(0.95 0.08 27));
-  --tm-color-on-error-container-lib: var(--color-on-error-container, oklch(0.28 0.18 27));
+  /* MD3 ERROR COLORS */
+  --tm-color-error-lib: var(--color-error, oklch(0.51 0.19 28));
+  --tm-color-on-error-lib: var(--color-on-error, oklch(1.00 0.00 263));
+  --tm-color-error-container-lib: var(--color-error-container, oklch(0.92 0.04 25));
+  --tm-color-on-error-container-lib: var(--color-on-error-container, oklch(0.42 0.17 27));
   
-  /* MD3 SUCCESS COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-success-lib: var(--color-success, oklch(0.55 0.15 145));
-  --tm-color-on-success-lib: var(--color-on-success, oklch(1.00 0 0));
-  --tm-color-success-container-lib: var(--color-success-container, oklch(0.92 0.08 145));
-  --tm-color-on-success-container-lib: var(--color-on-success-container, oklch(0.20 0.12 145));
+  /* MD3 SUCCESS COLORS */
+  --tm-color-success-lib: var(--color-success, oklch(0.47 0.09 156));
+  --tm-color-on-success-lib: var(--color-on-success, oklch(1.00 0.00 263));
+  --tm-color-success-container-lib: var(--color-success-container, oklch(0.90 0.09 154));
+  --tm-color-on-success-container-lib: var(--color-on-success-container, oklch(0.39 0.09 157));
   
-  /* MD3 WARNING COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-warning-lib: var(--color-warning, oklch(0.60 0.18 85));
-  --tm-color-on-warning-lib: var(--color-on-warning, oklch(0.10 0.01 270));
-  --tm-color-warning-container-lib: var(--color-warning-container, oklch(0.94 0.10 85));
-  --tm-color-on-warning-container-lib: var(--color-on-warning-container, oklch(0.25 0.14 85));
+  /* MD3 WARNING COLORS */
+  --tm-color-warning-lib: var(--color-warning, oklch(0.48 0.09 105));
+  --tm-color-on-warning-lib: var(--color-on-warning, oklch(1.00 0.00 263));
+  --tm-color-warning-container-lib: var(--color-warning-container, oklch(0.91 0.11 103));
+  --tm-color-on-warning-container-lib: var(--color-on-warning-container, oklch(0.39 0.08 105));
   
-  /* MD3 INFO COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-info-lib: var(--color-info, oklch(0.50 0.20 230));
-  --tm-color-on-info-lib: var(--color-on-info, oklch(1.00 0 0));
-  --tm-color-info-container-lib: var(--color-info-container, oklch(0.92 0.08 230));
-  --tm-color-on-info-container-lib: var(--color-on-info-container, oklch(0.18 0.14 230));
+  /* MD3 INFO COLORS */
+  --tm-color-info-lib: var(--color-info, oklch(0.48 0.09 251));
+  --tm-color-on-info-lib: var(--color-on-info, oklch(1.00 0.00 263));
+  --tm-color-info-container-lib: var(--color-info-container, oklch(0.91 0.04 258));
+  --tm-color-on-info-container-lib: var(--color-on-info-container, oklch(0.40 0.09 250));
   
-  /* MD3 OUTLINE COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-outline-lib: var(--color-outline, oklch(0.73 0.01 258));
-  --tm-color-outline-variant-lib: var(--color-outline-variant, oklch(0.80 0.01 258));
+  /* MD3 OUTLINE COLORS */
+  --tm-color-outline-lib: var(--color-outline, oklch(0.57 0.02 295));
+  --tm-color-outline-variant-lib: var(--color-outline-variant, oklch(0.83 0.02 298));
   
-  /* MD3 INVERSE COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-inverse-surface-lib: var(--color-inverse-surface, oklch(0.20 0.01 270));
-  --tm-color-inverse-on-surface-lib: var(--color-inverse-on-surface, oklch(0.95 0.01 270));
-  --tm-color-inverse-primary-lib: var(--color-inverse-primary, oklch(0.70 0.18 266));
+  /* MD3 INVERSE COLORS */
+  --tm-color-inverse-surface-lib: var(--color-inverse-surface, oklch(0.31 0.01 293));
+  --tm-color-inverse-on-surface-lib: var(--color-inverse-on-surface, oklch(0.96 0.01 308));
+  --tm-color-inverse-primary-lib: var(--color-inverse-primary, oklch(0.83 0.09 287));
   
-  /* MD3 UTILITY COLORS - Duplicated from @theme with --tm- prefix */
-  --tm-color-scrim-lib: var(--color-scrim, oklch(0.00 0 0 / 0.32));
-  --tm-color-shadow-lib: var(--color-shadow, oklch(0.00 0 0 / 0.08));
-  --tm-color-surface-tint-lib: var(--color-surface-tint, oklch(0.47 0.24 266));
+  /* MD3 UTILITY COLORS */
+  --tm-color-scrim-lib: var(--color-scrim, oklch(0.00 0.00 0 / 0.32));
+  --tm-color-shadow-lib: var(--color-shadow, oklch(0.00 0.00 0 / 0.08));
+  --tm-color-surface-tint-lib: var(--color-surface-tint, oklch(0.49 0.09 285));
+  }
+}
+
+/* ============================================================================
+ * TAILWIND THEME - REFERENCES :root (SINGLE SOURCE OF TRUTH)
+ * ============================================================================
+ * @theme tells Tailwind to auto-generate base utilities by REFERENCING
+ * the CSS variables defined in :root above.
+ * 
+ * This creates a single source of truth - all values come from :root,
+ * so there's no risk of mismatch between @theme and manual utilities.
+ * ============================================================================ */
+@theme {
+  /* TYPOGRAPHY */
+  --font-sans-lib: var(--tm-font-sans-lib);
+  --font-display-lib: var(--tm-font-display-lib);
+  
+  /* MD3 SURFACE COLORS */
+  --color-surface-lib: var(--tm-color-surface-lib);
+  --color-surface-container-lowest-lib: var(--tm-color-surface-container-lowest-lib);
+  --color-surface-container-low-lib: var(--tm-color-surface-container-low-lib);
+  --color-surface-container-lib: var(--tm-color-surface-container-lib);
+  --color-surface-container-high-lib: var(--tm-color-surface-container-high-lib);
+  --color-surface-container-highest-lib: var(--tm-color-surface-container-highest-lib);
+  --color-surface-variant-lib: var(--tm-color-surface-variant-lib);
+  
+  /* MD3 BACKGROUND COLORS */
+  --color-background-lib: var(--tm-color-background-lib);
+  --color-on-background-lib: var(--tm-color-on-background-lib);
+  
+  /* MD3 TEXT COLORS */
+  --color-on-surface-lib: var(--tm-color-on-surface-lib);
+  --color-on-surface-variant-lib: var(--tm-color-on-surface-variant-lib);
+  
+  /* MD3 PRIMARY COLORS */
+  --color-primary-lib: var(--tm-color-primary-lib);
+  --color-on-primary-lib: var(--tm-color-on-primary-lib);
+  --color-primary-container-lib: var(--tm-color-primary-container-lib);
+  --color-on-primary-container-lib: var(--tm-color-on-primary-container-lib);
+  
+  /* MD3 SECONDARY COLORS */
+  --color-secondary-lib: var(--tm-color-secondary-lib);
+  --color-on-secondary-lib: var(--tm-color-on-secondary-lib);
+  --color-secondary-container-lib: var(--tm-color-secondary-container-lib);
+  --color-on-secondary-container-lib: var(--tm-color-on-secondary-container-lib);
+  
+  /* MD3 TERTIARY COLORS */
+  --color-tertiary-lib: var(--tm-color-tertiary-lib);
+  --color-on-tertiary-lib: var(--tm-color-on-tertiary-lib);
+  --color-tertiary-container-lib: var(--tm-color-tertiary-container-lib);
+  --color-on-tertiary-container-lib: var(--tm-color-on-tertiary-container-lib);
+  
+  /* MD3 ERROR COLORS */
+  --color-error-lib: var(--tm-color-error-lib);
+  --color-on-error-lib: var(--tm-color-on-error-lib);
+  --color-error-container-lib: var(--tm-color-error-container-lib);
+  --color-on-error-container-lib: var(--tm-color-on-error-container-lib);
+  
+  /* MD3 SUCCESS COLORS */
+  --color-success-lib: var(--tm-color-success-lib);
+  --color-on-success-lib: var(--tm-color-on-success-lib);
+  --color-success-container-lib: var(--tm-color-success-container-lib);
+  --color-on-success-container-lib: var(--tm-color-on-success-container-lib);
+  
+  /* MD3 WARNING COLORS */
+  --color-warning-lib: var(--tm-color-warning-lib);
+  --color-on-warning-lib: var(--tm-color-on-warning-lib);
+  --color-warning-container-lib: var(--tm-color-warning-container-lib);
+  --color-on-warning-container-lib: var(--tm-color-on-warning-container-lib);
+  
+  /* MD3 INFO COLORS */
+  --color-info-lib: var(--tm-color-info-lib);
+  --color-on-info-lib: var(--tm-color-on-info-lib);
+  --color-info-container-lib: var(--tm-color-info-container-lib);
+  --color-on-info-container-lib: var(--tm-color-on-info-container-lib);
+  
+  /* MD3 OUTLINE COLORS */
+  --color-outline-lib: var(--tm-color-outline-lib);
+  --color-outline-variant-lib: var(--tm-color-outline-variant-lib);
+  
+  /* MD3 INVERSE COLORS */
+  --color-inverse-surface-lib: var(--tm-color-inverse-surface-lib);
+  --color-inverse-on-surface-lib: var(--tm-color-inverse-on-surface-lib);
+  --color-inverse-primary-lib: var(--tm-color-inverse-primary-lib);
+  
+  /* MD3 UTILITY COLORS */
+  --color-scrim-lib: var(--tm-color-scrim-lib);
+  --color-shadow-lib: var(--tm-color-shadow-lib);
+  --color-surface-tint-lib: var(--tm-color-surface-tint-lib);
 }
 
 /* ============================================
  * DARK MODE COLOR OVERRIDES
+ * ============================================
+ * Redefine CSS variables when .dark class present
+ * @theme automatically inherits these overrides
+ * No need to duplicate in @theme!
  * ============================================ */
 
 .dark {
   /* SURFACE COLORS - Dark Mode */
-  --tm-color-surface-lib: var(--color-surface, oklch(0.15 0.01 270));
-  --tm-color-surface-container-lowest-lib: var(--color-surface-container-lowest, oklch(0.12 0.01 270));
-  --tm-color-surface-container-low-lib: var(--color-surface-container-low, oklch(0.17 0.01 270));
-  --tm-color-surface-container-lib: var(--color-surface-container, oklch(0.20 0.01 270));
-  --tm-color-surface-container-high-lib: var(--color-surface-container-high, oklch(0.24 0.01 270));
-  --tm-color-surface-container-highest-lib: var(--color-surface-container-highest, oklch(0.28 0.01 270));
-  --tm-color-surface-variant-lib: var(--color-surface-variant, oklch(0.26 0.01 258));
+  --tm-color-surface-lib: var(--color-surface, oklch(0.19 0.01 285));
+  --tm-color-surface-container-lowest-lib: var(--color-surface-container-lowest, oklch(0.17 0.01 285));
+  --tm-color-surface-container-low-lib: var(--color-surface-container-low, oklch(0.23 0.01 295));
+  --tm-color-surface-container-lib: var(--color-surface-container, oklch(0.24 0.01 293));
+  --tm-color-surface-container-high-lib: var(--color-surface-container-high, oklch(0.28 0.01 293));
+  --tm-color-surface-container-highest-lib: var(--color-surface-container-highest, oklch(0.33 0.01 293));
+  --tm-color-surface-variant-lib: var(--color-surface-variant, oklch(0.40 0.02 291));
   
   /* BACKGROUND - Dark Mode */
-  --tm-color-background-lib: var(--color-background, oklch(0.15 0.01 270));
-  --tm-color-on-background-lib: var(--color-on-background, oklch(0.90 0.01 270));
+  --tm-color-background-lib: var(--color-background, oklch(0.19 0.01 285));
+  --tm-color-on-background-lib: var(--color-on-background, oklch(0.92 0.01 308));
   
   /* TEXT COLORS - Dark Mode */
-  --tm-color-on-surface-lib: var(--color-on-surface, oklch(0.90 0.01 270));
-  --tm-color-on-surface-variant-lib: var(--color-on-surface-variant, oklch(0.70 0.01 258));
+  --tm-color-on-surface-lib: var(--color-on-surface, oklch(0.92 0.01 308));
+  --tm-color-on-surface-variant-lib: var(--color-on-surface-variant, oklch(0.83 0.02 298));
   
   /* PRIMARY - Dark Mode */
-  --tm-color-primary-lib: var(--color-primary, oklch(0.70 0.18 266));
-  --tm-color-on-primary-lib: var(--color-on-primary, oklch(0.10 0.01 270));
-  --tm-color-primary-container-lib: var(--color-primary-container, oklch(0.28 0.16 266));
-  --tm-color-on-primary-container-lib: var(--color-on-primary-container, oklch(0.85 0.10 266));
+  --tm-color-primary-lib: var(--color-primary, oklch(0.83 0.09 287));
+  --tm-color-on-primary-lib: var(--color-on-primary, oklch(0.32 0.09 283));
+  --tm-color-primary-container-lib: var(--color-primary-container, oklch(0.40 0.09 284));
+  --tm-color-on-primary-container-lib: var(--color-on-primary-container, oklch(0.92 0.04 291));
   
   /* SECONDARY - Dark Mode */
-  --tm-color-secondary-lib: var(--color-secondary, oklch(0.72 0.15 190));
-  --tm-color-on-secondary-lib: var(--color-on-secondary, oklch(0.10 0.01 270));
-  --tm-color-secondary-container-lib: var(--color-secondary-container, oklch(0.28 0.16 190));
-  --tm-color-on-secondary-container-lib: var(--color-on-secondary-container, oklch(0.85 0.10 190));
+  --tm-color-secondary-lib: var(--color-secondary, oklch(0.83 0.03 291));
+  --tm-color-on-secondary-lib: var(--color-on-secondary, oklch(0.31 0.04 289));
+  --tm-color-secondary-container-lib: var(--color-secondary-container, oklch(0.40 0.03 287));
+  --tm-color-on-secondary-container-lib: var(--color-on-secondary-container, oklch(0.92 0.04 294));
   
   /* TERTIARY - Dark Mode */
-  --tm-color-tertiary-lib: var(--color-tertiary, oklch(0.75 0.16 330));
-  --tm-color-on-tertiary-lib: var(--color-on-tertiary, oklch(0.10 0.01 270));
-  --tm-color-tertiary-container-lib: var(--color-tertiary-container, oklch(0.28 0.16 330));
-  --tm-color-on-tertiary-container-lib: var(--color-on-tertiary-container, oklch(0.85 0.10 330));
+  --tm-color-tertiary-lib: var(--color-tertiary, oklch(0.84 0.06 349));
+  --tm-color-on-tertiary-lib: var(--color-on-tertiary, oklch(0.32 0.06 347));
+  --tm-color-tertiary-container-lib: var(--color-tertiary-container, oklch(0.40 0.06 346));
+  --tm-color-on-tertiary-container-lib: var(--color-on-tertiary-container, oklch(0.92 0.05 350));
   
   /* ERROR - Dark Mode */
-  --tm-color-error-lib: var(--color-error, oklch(0.78 0.16 27));
-  --tm-color-on-error-lib: var(--color-on-error, oklch(0.15 0.15 27));
-  --tm-color-error-container-lib: var(--color-error-container, oklch(0.30 0.18 27));
-  --tm-color-on-error-container-lib: var(--color-on-error-container, oklch(0.88 0.10 27));
+  --tm-color-error-lib: var(--color-error, oklch(0.84 0.09 27));
+  --tm-color-on-error-lib: var(--color-on-error, oklch(0.33 0.13 27));
+  --tm-color-error-container-lib: var(--color-error-container, oklch(0.42 0.17 27));
+  --tm-color-on-error-container-lib: var(--color-on-error-container, oklch(0.92 0.04 25));
   
   /* SUCCESS - Dark Mode */
-  --tm-color-success-lib: var(--color-success, oklch(0.75 0.12 145));
-  --tm-color-on-success-lib: var(--color-on-success, oklch(0.10 0.10 145));
-  --tm-color-success-container-lib: var(--color-success-container, oklch(0.25 0.12 145));
-  --tm-color-on-success-container-lib: var(--color-on-success-container, oklch(0.85 0.08 145));
+  --tm-color-success-lib: var(--color-success, oklch(0.82 0.09 155));
+  --tm-color-on-success-lib: var(--color-on-success, oklch(0.30 0.07 157));
+  --tm-color-success-container-lib: var(--color-success-container, oklch(0.39 0.09 157));
+  --tm-color-on-success-container-lib: var(--color-on-success-container, oklch(0.90 0.09 154));
   
   /* WARNING - Dark Mode */
-  --tm-color-warning-lib: var(--color-warning, oklch(0.80 0.14 85));
-  --tm-color-on-warning-lib: var(--color-on-warning, oklch(0.10 0.01 270));
-  --tm-color-warning-container-lib: var(--color-warning-container, oklch(0.30 0.14 85));
-  --tm-color-on-warning-container-lib: var(--color-on-warning-container, oklch(0.88 0.10 85));
+  --tm-color-warning-lib: var(--color-warning, oklch(0.82 0.11 103));
+  --tm-color-on-warning-lib: var(--color-on-warning, oklch(0.31 0.07 105));
+  --tm-color-warning-container-lib: var(--color-warning-container, oklch(0.39 0.08 105));
+  --tm-color-on-warning-container-lib: var(--color-on-warning-container, oklch(0.91 0.11 103));
   
   /* INFO - Dark Mode */
-  --tm-color-info-lib: var(--color-info, oklch(0.72 0.15 230));
-  --tm-color-on-info-lib: var(--color-on-info, oklch(0.10 0.01 270));
-  --tm-color-info-container-lib: var(--color-info-container, oklch(0.26 0.14 230));
-  --tm-color-on-info-container-lib: var(--color-on-info-container, oklch(0.85 0.10 230));
+  --tm-color-info-lib: var(--color-info, oklch(0.83 0.08 254));
+  --tm-color-on-info-lib: var(--color-on-info, oklch(0.31 0.09 249));
+  --tm-color-info-container-lib: var(--color-info-container, oklch(0.40 0.09 250));
+  --tm-color-on-info-container-lib: var(--color-on-info-container, oklch(0.91 0.04 258));
   
   /* OUTLINE - Dark Mode */
-  --tm-color-outline-lib: var(--color-outline, oklch(0.40 0.01 258));
-  --tm-color-outline-variant-lib: var(--color-outline-variant, oklch(0.32 0.01 258));
+  --tm-color-outline-lib: var(--color-outline, oklch(0.66 0.02 300));
+  --tm-color-outline-variant-lib: var(--color-outline-variant, oklch(0.40 0.02 291));
   
   /* INVERSE - Dark Mode */
-  --tm-color-inverse-surface-lib: var(--color-inverse-surface, oklch(0.90 0.01 270));
-  --tm-color-inverse-on-surface-lib: var(--color-inverse-on-surface, oklch(0.20 0.01 270));
-  --tm-color-inverse-primary-lib: var(--color-inverse-primary, oklch(0.47 0.24 266));
+  --tm-color-inverse-surface-lib: var(--color-inverse-surface, oklch(0.92 0.01 308));
+  --tm-color-inverse-on-surface-lib: var(--color-inverse-on-surface, oklch(0.31 0.01 293));
+  --tm-color-inverse-primary-lib: var(--color-inverse-primary, oklch(0.49 0.09 285));
   
   /* UTILITY - Dark Mode */
-  --tm-color-scrim-lib: var(--color-scrim, oklch(0.00 0 0 / 0.32));
-  --tm-color-shadow-lib: var(--color-shadow, oklch(0.00 0 0 / 0.08));
-  --tm-color-surface-tint-lib: var(--color-surface-tint, oklch(0.70 0.18 266));
+  --tm-color-scrim-lib: var(--color-scrim, oklch(0.00 0.00 0 / 0.32));
+  --tm-color-shadow-lib: var(--color-shadow, oklch(0.00 0.00 0 / 0.08));
+  --tm-color-surface-tint-lib: var(--color-surface-tint, oklch(0.83 0.09 287));
 }
 
 /* ============================================ */
@@ -600,7 +649,7 @@
   .focus\:tm\:ring-outline-lib:focus {
     --tw-ring-color: var(--tm-color-outline-lib);
   }
-  .focus\:tm\:ring-outline-variant-lib:focus {
+  .focus\:tm\:ring-offset-variant-lib:focus {
     --tw-ring-color: var(--tm-color-outline-variant-lib);
   }
   
@@ -644,18 +693,25 @@
 }
 
 /* ============================================
- * NOTES
+ * ARCHITECTURE NOTES
  * ============================================
+ * 
+ * SINGLE SOURCE OF TRUTH PATTERN (matches main project)
+ * ------------------------------------------------------
+ * :root: Defines all colors ONCE with fallback values
+ * @theme: References :root variables (no duplication)
+ * .dark: Overrides :root for dark mode
+ * 
+ * TO UPDATE COLORS:
+ * - Edit values in :root { } block only
+ * - @theme automatically uses the updated values
+ * - Update .dark block for dark mode variants
  * 
  * WHY BOTH @theme AND :root?
  * --------------------------
- * @theme: Tells Tailwind to generate base utilities (tm:bg-primary-lib)
+ * @theme: Generates base utilities (tm:bg-primary-lib, tm:text-on-surface-lib)
  * :root: Makes variables accessible to manual hover/focus utilities
  * 
- * This duplication is necessary because Tailwind v4 with prefix(tm)
- * doesn't auto-generate interactive variants for custom theme tokens.
- * 
- * Z-INDEX: Only in :root (not @theme) since we manually define utilities
- * COLORS: In both (base utilities from @theme, manual variants use :root)
+ * This pattern eliminates sync issues between base and interactive utilities.
  * ============================================
  */
