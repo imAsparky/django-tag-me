@@ -279,6 +279,10 @@ class TestTemplateTags(TestCase):
         template = Template("{% load tag_me_assets %}{% tag_me_assets %}")
         rendered = template.render(Context({}))
 
-        self.assertIn('<link rel="stylesheet"', rendered)
-        self.assertIn("<script src=", rendered)
-        self.assertIn("tag_me/dist/", rendered)
+        self.assertIn(
+            '<link rel="stylesheet" href="/static/tag_me/dist/css/tag-me', rendered
+        )
+        self.assertIn(
+            '<script defer src="/static/tag_me/dist/js/tag-me',
+            rendered,
+        )
