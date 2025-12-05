@@ -99,9 +99,10 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
                         tagged_field=_tagged_field,
                     ).first()
 
-                    if user_tag and user_tag.tags:
-                        _tags_string = user_tag.tags
+                    if user_tag:
                         _add_tag_url = reverse("tag_me:add-tag", args=[user_tag.id])
+                        if user_tag.tags:
+                            _tags_string = user_tag.tags
                     else:
                         self.choices = [""]
 
