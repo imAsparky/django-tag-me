@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## [2025.12.05.2]
+
+### Maintenance
+- Update MD3 layering, add close listener (templates) [#313](https://github.com/imAsparky/django-tag-me/pull/313)
+- Update prod (assets) [#313](https://github.com/imAsparky/django-tag-me/pull/313)
+
+
 ## [2025.12.05.1]
 
 ### Maintenance
