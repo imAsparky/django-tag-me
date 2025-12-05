@@ -2,6 +2,22 @@
 
 <!--next-version-placeholder-->
 
+## [2025.12.05.1]
+
+### Maintenance
+- Update prod assets (assets) [#308](https://github.com/imAsparky/django-tag-me/pull/308)
+
+### Documentation
+- Add doc for a Django project using alpinejs/htmx and vite (howto) [#310](https://github.com/imAsparky/django-tag-me/pull/310)
+
+### Bug Fixes
+- Add tag list check to ensure addUrl created (create) [#308](https://github.com/imAsparky/django-tag-me/pull/308)
+- Update build for use in django vite projects (frontend) [#311](https://github.com/imAsparky/django-tag-me/pull/311)
+
+### Testing
+- Update asset script checks (asset) [#311](https://github.com/imAsparky/django-tag-me/pull/311)
+
+
 ## [2025.11.24.1]
 
 ### Maintenance
