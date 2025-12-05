@@ -6,12 +6,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
 const isProduction = process.env.NODE_ENV === 'production'
 
 export default defineConfig({
   plugins: [
-    tailwindcss(),  // ← NEW
+    tailwindcss(),
   ],
   build: {
     lib: {
@@ -40,19 +39,75 @@ export default defineConfig({
           }
           return '[name].[hash][extname]'
         },
+        // Auto-register with Alpine.js after bundle loads
         outro: `
-          // Django Tag-Me initialization check
-          if (typeof window !== 'undefined') {
-            if (typeof window.Alpine === 'undefined') {
-              console.error(
-                '❌ Django Tag-Me requires Alpine.js. ' +
-                'Please include Alpine.js before tag-me scripts. ' +
-                'See: https://django-tag-me.readthedocs.io/installation/'
-              );
-            } else {
-              console.log('✅ Django Tag-Me loaded successfully');
+          (function() {
+            if (typeof window === 'undefined') return;
+
+            var COMPONENT_NAME = 'alpineTagMeMultiSelect';
+            var registered = false;
+
+            function registerWithAlpine() {
+              if (registered) return true;
+
+              if (typeof window.Alpine !== 'undefined' && typeof window.Alpine.data === 'function') {
+                try {
+                  window.Alpine.data(COMPONENT_NAME, exports.createAlpineComponent);
+                  registered = true;
+                  console.debug('✅ Django Tag-Me: Component registered with Alpine.js');
+                  return true;
+                } catch (e) {
+                  console.error('❌ Django Tag-Me: Registration failed:', e);
+                  return false;
+                }
+              }
+              return false;
             }
-          }
+
+            // Strategy 1: Alpine already loaded (try immediately)
+            if (registerWithAlpine()) {
+              return;
+            }
+
+            console.debug('⏳ Django Tag-Me: Waiting for Alpine.js...');
+
+            // Strategy 2: Wait for alpine:init event
+            document.addEventListener('alpine:init', function() {
+              if (registerWithAlpine()) {
+                console.debug('✅ Django Tag-Me: Registered via alpine:init');
+              }
+            });
+
+            // Strategy 3: Wait for alpine:initialized event (fallback)
+            document.addEventListener('alpine:initialized', function() {
+              if (registerWithAlpine()) {
+                console.debug('✅ Django Tag-Me: Registered via alpine:initialized');
+              }
+            });
+
+            // Strategy 4: Polling fallback for edge cases
+            var attempts = 0;
+            var maxAttempts = 50;
+            var pollInterval = setInterval(function() {
+              attempts++;
+
+              if (registerWithAlpine()) {
+                clearInterval(pollInterval);
+                return;
+              }
+
+              if (attempts >= maxAttempts) {
+                clearInterval(pollInterval);
+                if (typeof window.Alpine === 'undefined') {
+                  console.error(
+                    '❌ Django Tag-Me: Alpine.js not detected after 5 seconds.\\n' +
+                    'Please ensure Alpine.js is loaded before or alongside tag-me.\\n' +
+                    'See: https://django-tag-me.readthedocs.io/installation/'
+                  );
+                }
+              }
+            }, 100);
+          })();
         `
       }
     },
@@ -86,3 +141,4 @@ export default defineConfig({
     }
   }
 })
+
