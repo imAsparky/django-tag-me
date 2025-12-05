@@ -20,3 +20,4 @@ How-To
    how-to-tag-sync
    how-to-tagged-field
    how-to-asset-loading
+   howto-vite-alpine-htmx-integration
