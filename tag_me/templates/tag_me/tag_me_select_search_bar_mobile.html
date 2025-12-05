@@ -34,7 +34,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-90"
             @click.stop="openBottomSheet()"
-            class="tm:inline-flex tm:items-center tm:justify-center tm:w-[44px] tm:h-[44px] tm:text-on-primary-lib tm:bg-primary-lib tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-primary-lib hover:tm:opacity-90 tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-surface-container-lib"
+            class="tm:inline-flex tm:items-center tm:justify-center tm:w-[44px] tm:h-[44px] tm:text-on-primary-lib tm:bg-primary-lib tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-primary-lib hover:tm:opacity-90 tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-surface-container-high-lib"
             aria-label="Add new tag">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="tm:h-5 tm:w-5"
@@ -55,7 +55,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-90"
             @click.stop="clearSearch()"
-            class="tm:inline-flex tm:items-center tm:justify-center tm:w-[44px] tm:h-[44px] tm:text-on-surface-variant-lib tm:bg-surface-container-high-lib tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-surface-container-high-lib hover:tm:text-on-surface-lib tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-surface-container-lib"
+            class="tm:inline-flex tm:items-center tm:justify-center tm:w-[44px] tm:h-[44px] tm:text-on-surface-variant-lib tm:bg-surface-container-highest-lib tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-surface-container-highest-lib hover:tm:text-on-surface-lib tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-surface-container-high-lib"
             aria-label="Clear search">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="tm:h-5 tm:w-5"
@@ -76,7 +76,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-90"
             @click.stop="deselectAll()"
-            class="tm:relative tm:inline-flex tm:items-center tm:justify-center tm:w-[44px] tm:h-[44px] tm:p-2 tm:text-on-surface-variant-lib tm:bg-surface-container-high-lib tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-surface-container-high-lib hover:tm:text-on-surface-lib tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-surface-container-lib"
+            class="tm:relative tm:inline-flex tm:items-center tm:justify-center tm:w-[44px] tm:h-[44px] tm:p-2 tm:text-on-surface-variant-lib tm:bg-surface-container-highest-lib tm:rounded-lg tm:transition-all tm:duration-150 hover:tm:bg-surface-container-highest-lib hover:tm:text-on-surface-lib tm:active:scale-95 tm:focus:outline-none tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:ring-offset-2 tm:focus:ring-offset-surface-container-high-lib"
             :aria-label="'Remove ' + selectedTags.size + ' tags'">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="tm:h-5 tm:w-5"
@@ -92,21 +92,29 @@
     </button>
 </div>
 {% comment %}
-TEMPLATE CLASS MIGRATION - MOBILE SEARCH BAR (MD3 REFACTOR v2)
-===============================================================
-Date: November 22, 2025
-Migration: MD3 Ring Offset Corrections
+TEMPLATE CLASS MIGRATION - MOBILE SEARCH BAR (MD3 REFACTOR v3.0)
+=================================================================
+Date: December 06, 2025
+Migration: MD3 Elevation Alignment with Datetime Component
 
 CHANGES APPLIED:
-✅ All buttons (4 instances):
-   - ring-offset-surface-lib → ring-offset-surface-container-lib
-   - Reason: These buttons are inside dropdown at surface-container-lib [1]
-   - Ring offsets must match parent surface for proper visual separation
+✅ All buttons (3 instances with surface backgrounds):
+   1. bg-surface-container-high-lib → bg-surface-container-highest-lib [3→4]
+      - Dropdown is now at [3], buttons should be at [4] for prominence
+   2. ring-offset-surface-container-lib → ring-offset-surface-container-high-lib [1→3]
+      - Parent dropdown is now at surface-container-high-lib [3]
+      - Ring offset must match parent surface
 
 AFFECTED ELEMENTS:
-1. Add tag button (primary)
-2. Clear search button
-3. Remove all tags button
+1. Add tag button (primary bg - unchanged, only ring offset updated)
+2. Clear search button (surface bg updated + ring offset)
+3. Remove all tags button (surface bg updated + ring offset)
+
+ELEVATION CONTEXT:
+- These buttons sit inside the dropdown search section
+- Dropdown is now at surface-container-high-lib [3]
+- Surface buttons use surface-container-highest-lib [4] for prominence
+- Ring offset matches dropdown background [3]
 
 NO OTHER CHANGES:
 - Alpine.js: unchanged

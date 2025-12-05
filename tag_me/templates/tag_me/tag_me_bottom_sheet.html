@@ -25,12 +25,12 @@
      x-transition:leave-start="translate-y-0"
      x-transition:leave-end="translate-y-full"
      @click.outside="closeBottomSheet()"
-     class="tm:fixed tm:bottom-0 tm:left-0 tm:right-0 tm:z-modal tm:bg-surface-container-high-lib tm:rounded-t-2xl tm:shadow-2xl tm:border-t tm:border-outline-lib tm:max-h-[80vh] tm:overflow-hidden"
+     class="tm:fixed tm:bottom-0 tm:left-0 tm:right-0 tm:z-modal tm:bg-surface-container-high-lib tm:rounded-t-2xl tm:shadow-2xl tm:border-t tm:border-outline-variant-lib tm:max-h-[80vh] tm:overflow-hidden"
      style="display: none"
      x-cloak>
     <!-- Drag Handle -->
     <div class="tm:flex tm:justify-center tm:pt-3 tm:pb-2">
-        <div class="tm:w-12 tm:h-1.5 tm:bg-outline-lib tm:rounded-full"></div>
+        <div class="tm:w-12 tm:h-1.5 tm:bg-outline-variant-lib tm:rounded-full"></div>
     </div>
     <!-- Content -->
     <div class="tm:px-6 tm:pb-8 tm:overflow-y-auto tm:max-h-[calc(80vh-2rem)]">
@@ -53,7 +53,7 @@
                        @keydown.enter="createNewTag()"
                        @keydown.escape.stop="closeBottomSheet()"
                        x-init="$watch('bottomSheetShow', value => { if(value) setTimeout(() => $el.focus(), 100) })"
-                       class="tm:block tm:w-full tm:rounded-lg tm:bg-surface-container-lib tm:px-4 tm:py-3 tm:text-base tm:text-on-surface-lib tm:placeholder:text-on-surface-variant-lib tm:border tm:border-outline-lib tm:focus:border-primary-lib tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:outline-none tm:transition-colors tm:duration-150"
+                       class="tm:block tm:w-full tm:rounded-lg tm:bg-surface-container-lib tm:px-4 tm:py-3 tm:text-base tm:text-on-surface-lib tm:placeholder:text-on-surface-variant-lib tm:border tm:border-outline-variant-lib tm:focus:border-primary-lib tm:focus:ring-2 tm:focus:ring-primary-lib tm:focus:outline-none tm:transition-colors tm:duration-150"
                        placeholder="Enter tag name...">
                 <p class="tm:mt-2 tm:text-xs tm:text-on-surface-variant-lib">
                     This tag will be added to your library <span x-show="autoSelectNewTags">and automatically selected</span>.
@@ -112,45 +112,39 @@
     </div>
 </div>
 {% comment %}
-TEMPLATE CLASS MIGRATION - BOTTOM SHEET (MD3 REFACTOR v2.1)
+TEMPLATE CLASS MIGRATION - BOTTOM SHEET (MD3 REFACTOR v3.1)
 ============================================================
-Date: November 22, 2025
-Migration: MD3 Elevation Corrections + Event Handler Fixes
+Date: December 06, 2025
+Migration: MD3 Border Standardization
 
-MD3 CHANGES APPLIED:
-✅ Cancel button background:
-   - bg-surface-container-high-lib → bg-surface-container-lib [3→1]
-   - Reason: Panel is at [3], button should be [1] for visual separation (inset feel)
-   - Creates proper visual hierarchy between panel and buttons
+BORDER CHANGES APPLIED:
+✅ Panel top border:
+   - border-outline-lib → border-outline-variant-lib
+   - Softer, more subtle appearance matching datetime
 
-✅ Cancel button ring offset:
-   - ring-offset-surface-lib → ring-offset-surface-container-high-lib
-   - Reason: Button is on panel at surface-container-high-lib [3]
-   - Ring offset must match parent surface
+✅ Drag handle:
+   - bg-outline-lib → bg-outline-variant-lib
+   - Consistent with softer border approach
 
-✅ Create button ring offset:
-   - ring-offset-surface-lib → ring-offset-surface-container-high-lib
-   - Reason: Button is on panel at surface-container-high-lib [3]
-   - Ring offset must match parent surface
+✅ Input border:
+   - border-outline-lib → border-outline-variant-lib
+   - Matches datetime input styling
 
-EVENT HANDLER FIX:
-✅ Input escape key:
-   - @keydown.escape="closeBottomSheet()" → @keydown.escape.stop="closeBottomSheet()"
-   - Reason: Prevents escape key from propagating to parent container
-   - Ensures escape only closes bottom sheet, not main dropdown
+UNCHANGED (semantic borders):
+- Error display: border-error-lib (semantic, should remain prominent)
 
-ELEVATION HIERARCHY (CORRECTED):
-- Backdrop:           scrim-lib [modal overlay] ✅
-- Panel:              surface-container-high-lib [3] ✅
-- Input:              surface-container-lib [1] ✅ (inset)
-- Cancel button:      surface-container-lib [1] ✅ (inset)
-- Create button:      primary-lib ✅ (semantic)
+ELEVATION HIERARCHY (unchanged from v2.1):
+- Backdrop:           scrim-lib [modal overlay]
+- Panel:              surface-container-high-lib [3]
+- Input:              surface-container-lib [1] (inset)
+- Cancel button:      surface-container-lib [1] (inset)
+- Create button:      primary-lib (semantic)
 
 NO OTHER CHANGES:
-- Alpine.js: unchanged (except escape .stop modifier)
+- Alpine.js: unchanged
 - HTMX: unchanged
 - HTML structure: unchanged
 - Spacing/layout: unchanged
-- Z-index values: unchanged (modal-backdrop: 1040, modal: 1050)
+- Z-index values: unchanged
 - Non-MD3 classes: unchanged
 {% endcomment %}
