@@ -117,14 +117,10 @@ class WidgetAddUserTagView(View):
         encoded_data = request.POST.get("encoded_tag")
 
         if not encoded_data:
-            return JsonResponse(
-                {"error": "Invalid or corrupted tag data"}, status=400
-            )
+            return JsonResponse({"error": "Invalid or corrupted tag data"}, status=400)
 
         try:
-            data = json.loads(
-                base64.urlsafe_b64decode(encoded_data).decode("utf-8")
-            )
+            data = json.loads(base64.urlsafe_b64decode(encoded_data).decode("utf-8"))
             try:
                 user_tag = UserTag.objects.get(id=self.kwargs["pk"])
             except ObjectDoesNotExist:
@@ -142,6 +138,4 @@ class WidgetAddUserTagView(View):
             )
         except (json.JSONDecodeError, binascii.Error):
             logger.exception("Error decoding tag data.")
-            return JsonResponse(
-                {"error": "Invalid or corrupted data"}, status=400
-            )
+            return JsonResponse({"error": "Invalid or corrupted data"}, status=400)
