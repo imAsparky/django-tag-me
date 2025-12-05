@@ -76,6 +76,8 @@
      x-data="alpineTagMeMultiSelect({ addTagURL: '{{ add_tag_url }}', permittedToAddTags: {{ permitted_to_add_tags }}, allowMultiple: {{ multiple|yesno:'true,false' }}, autoSelectNewTags: {{ auto_select_new_tags|yesno:'true,false' }}, displayNumberSelected: {{ display_number_selected }}, choices: {{ choices|safe }}, selected: {{ values|safe }}, helpUrl: 'https://google.com ', mgmtUrl: 'https://google.com' })"
      x-on:click.outside="close()"
      x-on:keydown.escape="if(show) { $event.stopPropagation(); close(); }"
+     x-on:dropdown-opened.window="if ($event.detail.id !== $id('search-menu-dropdown')) close()"
+     x-effect="if (show) $dispatch('dropdown-opened', { id: $id('search-menu-dropdown') })"
      x-id="['search-menu-dropdown']"
      role="combobox"
      aria-label="Tag selection combobox"
@@ -100,7 +102,7 @@
          x-ref="widgetContainer">
         <!-- Input-like Container (Closed State) - SHARED -->
         <div class="tm:relative tm:w-full">
-            <div class="tm:block tm:w-full tm:md:h-[37px] tm:rounded-md tm:bg-surface-lib tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-outline-lib tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-primary-lib"
+            <div class="tm:block tm:w-full tm:md:h-[37px] tm:rounded-md tm:bg-surface-lib tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-outline-variant-lib tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-primary-lib"
                  :class="show ? 'tm:ring-2 tm:ring-primary-lib' : ''">
                 <!-- Selected Tags Display + Clickable Area -->
                 <div class="tm:flex tm:items-center tm:py-2 tm:md:py-1.5 tm:pr-11 tm:md:pr-10 tm:pl-3 tm:cursor-pointer"
@@ -191,10 +193,10 @@
              x-transition:leave-end="opacity-0 translate-y-1"
              x-cloak
              x-init=" const updatePosition = () => { if (!$refs.widgetContainer) { console.warn('tag-me-select: widgetContainer ref not found'); return; }  if ($el.dataset.positioned === 'true') { return; }  const isMobileView = window.innerWidth < 768;  if (isMobileView) { const rect = $refs.widgetContainer.getBoundingClientRect(); const viewportWidth = window.innerWidth; const margin = 8;  const spaceOnLeft = rect.left; const spaceOnRight = viewportWidth - rect.right;  if (spaceOnLeft > spaceOnRight) { $el.style.right = '0'; $el.style.left = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, rect.right - margin) + 'px'; } else { $el.style.left = '0'; $el.style.right = 'auto'; $el.style.width = Math.min(viewportWidth - margin * 2, viewportWidth - rect.left - margin) + 'px'; } } else { $el.style.width = '100%'; $el.style.left = '0'; $el.style.right = '0'; }  $el.dataset.positioned = 'true'; };  $watch('show', value => { if (value) { $el.dataset.positioned = 'false'; setTimeout(updatePosition, 10); } }); "
-             class="tm:absolute tm:z-dropdown tm:mt-2 tm:w-full tm:rounded-md tm:bg-surface-container-lib tm:shadow-lg tm:border tm:border-outline-lib">
+             class="tm:absolute tm:z-dropdown tm:mt-2 tm:w-full tm:rounded-md tm:bg-surface-container-high-lib tm:shadow-lg tm:border tm:border-outline-variant-lib">
             <div class="tm:flex tm:flex-col tm:w-full">
                 <!-- Search Section - SHARED -->
-                <div class="tm:px-3 tm:py-3 tm:border-b tm:border-outline-lib">
+                <div class="tm:px-3 tm:py-3 tm:border-b tm:border-outline-variant-lib">
                     <div class="tm:relative">
                         <!-- Search Icon -->
                         <div class="tm:absolute tm:inset-y-0 tm:left-0 tm:pl-3 tm:flex tm:items-center tm:pointer-events-none">
@@ -219,7 +221,7 @@
                                @keydown.enter.prevent="selectFocused()"
                                x-ref="searchInput"
                                x-init="$watch('show', value => { if (value && shouldAutoFocus) { $nextTick(() => $refs.searchInput?.focus()) } })"
-                               class="tm:block tm:w-full tm:rounded-md tm:border-0 tm:bg-surface-lib tm:py-2.5 tm:md:py-2 tm:pr-16 tm:md:pr-12 tm:pl-10 tm:text-base tm:text-on-surface-lib tm:outline-none tm:placeholder:text-on-surface-variant-lib tm:focus:bg-surface-container-lib tm:focus:ring-2 tm:focus:ring-primary-lib tm:transition-colors tm:duration-150 tm:sm:text-sm/6"
+                               class="tm:block tm:w-full tm:rounded-md tm:border-0 tm:bg-surface-container-lib tm:py-2.5 tm:md:py-2 tm:pr-16 tm:md:pr-12 tm:pl-10 tm:text-base tm:text-on-surface-lib tm:outline-none tm:placeholder:text-on-surface-variant-lib tm:focus:bg-surface-container-high-lib tm:focus:ring-2 tm:focus:ring-primary-lib tm:transition-colors tm:duration-150 tm:sm:text-sm/6"
                                placeholder="Search tags..."
                                role="searchbox"
                                aria-label="Search available tags"
@@ -246,10 +248,10 @@
                     x-transition:enter-start="opacity-0 translate-y-1"
                     x-transition:enter-end="opacity-100 translate-y-0"
                     x-cloak
-                    class="tm:max-h-60 tm:w-full tm:overflow-y-auto tm:overflow-x-hidden tm:bg-surface-container-lib tm:pt-1 tm:mb-0 tm:text-base tm:outline-none menu-scrollable tm:sm:text-sm">
+                    class="tm:max-h-60 tm:w-full tm:overflow-y-auto tm:overflow-x-hidden tm:bg-surface-container-high-lib tm:pt-1 tm:mb-0 tm:text-base tm:outline-none menu-scrollable tm:sm:text-sm">
                     <!-- Search Result Count -->
                     <li x-show="filteredTags.length > 0 && search.length > 0"
-                        class="tm:px-3 tm:py-1.5 tm:text-xs tm:text-on-surface-variant-lib tm:bg-surface-container-lib tm:sticky tm:top-0 tm:z-[10] tm:border-b tm:border-outline-lib">
+                        class="tm:px-3 tm:py-1.5 tm:text-xs tm:text-on-surface-variant-lib tm:bg-surface-container-high-lib tm:sticky tm:top-0 tm:z-[10] tm:border-b tm:border-outline-variant-lib">
                         <span class="tm:font-medium" x-text="filteredTags.length"></span>
                         <span x-text="filteredTags.length === 1 ? 'result' : 'results'"></span>
                     </li>
@@ -266,7 +268,7 @@
                             @touchend="handleSwipeEnd($event, tagName)"
                             @touchcancel="resetSwipe()"
                             class="tm:block tm:px-4 tm:py-3 tm:md:px-3 tm:md:py-2 tm:text-on-surface-lib tm:select-none tm:cursor-pointer tm:transition-all tm:duration-150 tm:ease-in-out swipe-item"
-                            :class="isSelected(tagName) ? 'tm:bg-primary-lib swipe-selected' : (isFocused(tagName) ? 'tm:bg-surface-container-high-lib tm:ring-2 tm:ring-inset tm:ring-primary-lib' : 'hover:tm:bg-surface-container-high-lib swipe-unselected')">
+                            :class="isSelected(tagName) ? 'tm:bg-primary-lib swipe-selected' : (isFocused(tagName) ? 'tm:bg-surface-container-highest-lib tm:ring-2 tm:ring-inset tm:ring-primary-lib' : 'hover:tm:bg-surface-container-highest-lib swipe-unselected')">
                             <div class="tm:flex tm:items-center tm:justify-between">
                                 <span x-text="tagName" class="tm:truncate"></span>
                                 <!-- Checkmark for Selected -->
@@ -327,14 +329,14 @@
                     </li>
                 </ul>
                 <!-- Footer - SHARED (responsive visibility) -->
-                <div class="tm:hidden tm:md:block tm:w-full tm:py-2 tm:m-0 tm:rounded-b-md tm:bg-surface-container-lib">
+                <div class="tm:hidden tm:md:block tm:w-full tm:py-2 tm:m-0 tm:rounded-b-md tm:bg-surface-container-highest-lib tm:border-t tm:border-outline-variant-lib">
                     <p class="tm:text-xs tm:text-on-surface-variant-lib tm:text-center tm:px-3">
                         <span class="tm:inline-flex tm:items-center tm:gap-1">
-                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-lib tm:border tm:border-outline-lib tm:rounded">↑↓</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-container-high-lib tm:border tm:border-outline-variant-lib tm:rounded">↑↓</kbd>
                             navigate
-                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-lib tm:border tm:border-outline-lib tm:rounded tm:ml-2">Enter</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-container-high-lib tm:border tm:border-outline-variant-lib tm:rounded tm:ml-2">Enter</kbd>
                             select
-                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-lib tm:border tm:border-outline-lib tm:rounded tm:ml-2">Esc</kbd>
+                            <kbd class="tm:px-1.5 tm:py-0.5 tm:text-xs tm:font-semibold tm:text-on-surface-lib tm:bg-surface-container-high-lib tm:border tm:border-outline-variant-lib tm:rounded tm:ml-2">Esc</kbd>
                             close
                         </span>
                     </p>
@@ -351,46 +353,67 @@
 </div>
 <!-- End Main Container -->
 {% comment %}
-TEMPLATE CLASS MIGRATION - MAIN SELECT (MD3 REFACTOR v2.1)
+TEMPLATE CLASS MIGRATION - MAIN SELECT (MD3 REFACTOR v3.1)
 ===========================================================
-Date: November 22, 2025
-Migration: MD3 Layering Corrections + Event Handler Fixes
+Date: December 06, 2025
+Migration: MD3 Elevation Alignment + Cross-component Dropdown Coordination
 
-MD3 CHANGES APPLIED (ELEVATION FIXES):
-1. ✅ Dropdown container: bg-surface-lib → bg-surface-container-lib [0→1]
-   - Elevates dropdown above input, creates proper floating effect
-   
-2. ✅ Search input focus: bg-surface-container-lib → bg-surface-lib (idle)
-   - focus:bg-surface-lib → focus:bg-surface-container-lib
-   - Creates "inset" feel at rest, rises on focus to match dropdown
-   
-3. ✅ List container: bg-surface-lib → bg-surface-container-lib [0→1]
-   - Matches dropdown elevation, allows items to be +1 on hover
-   
-4. ✅ "More" indicator: Removed opacity-90
-   - Now matches selected chips exactly per user requirement
-   
-5. ✅ Dropdown toggle button: Added focus ring
-   - focus:ring-2 focus:ring-primary-lib focus:ring-offset-2 focus:ring-offset-surface-lib
-   - Accessibility improvement, consistent with MD3 interactive states
+CROSS-COMPONENT COORDINATION (v3.1):
+✅ Added x-on:dropdown-opened.window listener
+   - Closes this dropdown when another dropdown opens
+   - Uses $id('search-menu-dropdown') for unique identification
 
-EVENT HANDLER FIX:
-6. ✅ List items: Added Enter key handler
-   - @keydown.enter.prevent="toggleTag(tagName)"
-   - Allows keyboard navigation (arrow keys) + Enter to select tags
-   - Previously only worked via search input's selectFocused()
+✅ Added x-effect to dispatch 'dropdown-opened' event
+   - Fires when 'show' becomes true
+   - Other dropdown components (datetime, etc.) receive and close
 
-ELEVATION HIERARCHY (CORRECTED):
+EVENT PATTERN:
+- Event name: 'dropdown-opened'
+- Payload: { id: $id('search-menu-dropdown') }
+- Bubbles to window level
+- All dropdown components listen and close if id doesn't match
+
+MD3 CHANGES APPLIED (ELEVATION ALIGNMENT - v3.0):
+1. ✅ Dropdown container: bg-surface-container-lib → bg-surface-container-high-lib [1→3]
+   - Matches datetime component dropdown elevation
+   - Creates proper "floating" effect above page content
+   
+2. ✅ Search input idle: bg-surface-lib → bg-surface-container-lib [0→1]
+   - Creates "inset" feel within elevated dropdown
+   - Provides subtle visual depth
+   
+3. ✅ Search input focus: focus:bg-surface-container-lib → focus:bg-surface-container-high-lib [1→3]
+   - Input "rises" to match dropdown on focus
+   - Indicates active state clearly
+   
+4. ✅ List container: bg-surface-container-lib → bg-surface-container-high-lib [1→3]
+   - Matches dropdown elevation
+   - Items can hover to +1 level (highest)
+   
+5. ✅ Search result count sticky: bg-surface-container-lib → bg-surface-container-high-lib
+   - Matches list container for seamless appearance
+   
+6. ✅ List items hover/focus: bg-surface-container-high-lib → bg-surface-container-highest-lib [3→4]
+   - Proper +1 elevation step on interaction
+   - Clear visual feedback
+   
+7. ✅ Desktop footer: bg-surface-container-lib → bg-surface-container-highest-lib [1→4]
+   - Matches datetime footer elevation
+   - Added border-t for visual separation
+   - Kbd elements updated: bg-surface-lib → bg-surface-container-high-lib
+
+ELEVATION HIERARCHY (ALIGNED WITH DATETIME):
 - Input (closed):          surface-lib [0]
-- Dropdown container:      surface-container-lib [1] ← elevated
-- Search input (idle):     surface-lib [0] ← inset feel
-- Search input (focus):    surface-container-lib [1] ← rises
-- List items (base):       surface-container-lib [1] ← matches container
-- List items (hover):      surface-container-high-lib [2] ← +1 elevation
+- Dropdown container:      surface-container-high-lib [3] ← elevated
+- Search input (idle):     surface-container-lib [1] ← inset feel
+- Search input (focus):    surface-container-high-lib [3] ← rises
+- List items (base):       surface-container-high-lib [3] ← matches container
+- List items (hover):      surface-container-highest-lib [4] ← +1 elevation
 - List items (selected):   primary-lib ← semantic
+- Desktop footer:          surface-container-highest-lib [4] ← action area
 
 NO OTHER CHANGES:
-- Alpine.js: unchanged (except Enter handler addition)
+- Alpine.js component logic: unchanged
 - HTMX: unchanged  
 - HTML structure: unchanged
 - Spacing/layout: unchanged
