@@ -354,3 +354,59 @@ class TestParseValue(TestCase):
         widget = TagMeSelectMultipleWidget()
 
         assert widget._parse_value([1, 2, 3]) == ["1", "2", "3"]
+
+
+class TestWidgetDjangoRenderingPipeline(TestCase):
+    """Test widget integrates correctly with Django's form rendering."""
+
+    def test_widget_does_not_break_optgroups(self):
+        """
+        Verify widget doesn't raise ValueError in Django's optgroups().
+
+        Django's SelectMultiple.render() calls optgroups() which expects
+        choices as (value, label) tuples. Our widget uses string choices
+        with a custom template, so we must not let Django process our choices.
+
+        Regression test for: ValueError: not enough values to unpack (expected 2, got 0)
+        """
+        widget = TagMeSelectMultipleWidget(choices=["tag1", "tag2"])
+
+        # optgroups() is what Django calls internally - this would raise
+        # ValueError if self.choices contains strings instead of tuples
+        # and super().render() is called
+        try:
+            list(widget.optgroups("test", []))
+        except ValueError as e:
+            if "not enough values to unpack" in str(e):
+                self.fail(
+                    "Widget choices caused Django's optgroups() to fail. "
+                    "Ensure super().render() is not called or self.choices "
+                    "is empty before calling it."
+                )
+            raise
+
+    @patch("tag_me.widgets.get_template")
+    def test_render_through_form_as_div(self, mock_get_template):
+        """
+        Verify widget renders through Django's full form rendering pipeline.
+
+        Regression test for template rendering ValueError.
+        """
+        from django import forms
+
+        # Mock template to avoid needing actual template file
+        mock_template = mock_get_template.return_value
+        mock_template.render.return_value = "<select>mocked</select>"
+
+        widget = TagMeSelectMultipleWidget(choices=["tag1", "tag2"])
+
+        class TestForm(forms.Form):
+            tags = forms.CharField(widget=widget, required=False)
+
+        form = TestForm()
+
+        # as_div() forces Django's full rendering pipeline
+        # This would raise ValueError if optgroups() fails
+        html = form.as_div()
+
+        assert "tags" in str(html)
