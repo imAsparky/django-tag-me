@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## [2025.12.11.2]
+
+### Bug Fixes
+- Remove call to super.render(), not needed (widget) [#317](https://github.com/imAsparky/django-tag-me/pull/317)
+
+### Testing
+- Add optgroup testing (widget) [#317](https://github.com/imAsparky/django-tag-me/pull/317)
+
+
 ## [2025.12.11.1]
 
 ### Documentation
