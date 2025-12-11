@@ -358,8 +358,11 @@ class TagMeSelectMultipleWidget(forms.SelectMultiple):
         Returns:
             str: Safe HTML string for the rendered widget.
         """
-        # Call parent for standard widget processing
-        super().render(name, value, attrs, renderer)
+        # Note: We don't call super().render() because we use a fully custom
+        # template that handles string-based choices directly, bypassing
+        # Django's optgroups() which expects (value, label) tuples.
+        # self.choices = []
+        # super().render(name, value, attrs, renderer)
 
         # Resolve all configuration
         config = self._resolve_config()
