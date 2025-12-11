@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2025.12.11.1]
+
+### Documentation
+- Add widget standalone usage (howto) [#315](https://github.com/imAsparky/django-tag-me/pull/315)
+
+### Code Refactoring
+- Simplify standalone usage (widget) [#315](https://github.com/imAsparky/django-tag-me/pull/315)
+
+### Testing
+- Update for standalone refactor (widget) [#315](https://github.com/imAsparky/django-tag-me/pull/315)
+
+
 ## [2025.12.05.2]
 
 ### Maintenance
