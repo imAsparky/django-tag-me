@@ -21,3 +21,4 @@ How-To
    how-to-tagged-field
    how-to-asset-loading
    howto-vite-alpine-htmx-integration
+   how-to-standalone-widget
