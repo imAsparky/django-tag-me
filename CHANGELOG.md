@@ -2,6 +2,29 @@
 
 <!--next-version-placeholder-->
 
+## [2026.01.05.1]
+
+### ⚠ BREAKING CHANGES
+- BREAKING: Add FK-based lookups for model rename resilience (migration) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+
+### Maintenance
+- Add migrations for updated models (migrations) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+- Update versions and status (pyproject) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+
+### Documentation
+- Add info for fk lookup based system (how-to) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+- Update with new info (README) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+
+### Features
+- BREAKING: Add FK-based lookups for model rename resilience (migration) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+
+### Code Refactoring
+- Add command to python path (management) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+
+### Testing
+- Add model rename handling tests (migrations) [#320](https://github.com/imAsparky/django-tag-me/pull/320)
+
+
 ## [2025.12.11.2]
 
 ### Bug Fixes
