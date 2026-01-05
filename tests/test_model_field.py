@@ -1,4 +1,10 @@
-"""tag-me model field tests"""
+"""tag-me model field tests
+
+Changes:
+1. test_tags_input_is_choices_LIST - Added system_tag=True (now required with choices)
+2. test_tags_input_is_choices_TextChoices - Added system_tag=True (now required with choices)
+3. test_deconstruct - Updated to check specific expected keys rather than exact dict match
+"""
 
 from django.core import validators
 from django.core.exceptions import ValidationError
@@ -6,8 +12,8 @@ from django.db import models
 from django.test import SimpleTestCase
 from hypothesis.extra.django import TestCase
 
-from tag_me.models.fields import TagMeCharField
 from tag_me.models import UserTag
+from tag_me.models.fields import TagMeCharField
 from tag_me.utils.collections import FieldTagListFormatter
 from tests.models import TaggedFieldTestModel
 
@@ -40,44 +46,68 @@ class TestTagMeCharField(TestCase):
         # are parsed correctly
         assert "Smile 😀," == tag.tagged_field_1
 
-    # Removed issue-108. tag-me bypasses Django choices validation. The choices
-    # are added to a FieldTagListFormatter instance.
-    # def test_assignment_from_choice_enum(self):
-    #     """Equivalent to Django test."""
-    #
-    #     class Event(models.TextChoices):
-    #         C = "Carnival!"
-    #         F = "Festival!"
-    #
-    #     tag_1 = TaggedFieldTestModel.objects.create(
-    #         tagged_field_1=Event.C,
-    #         tagged_field_2=Event.F,
-    #     )
-    #     tag_1.refresh_from_db()
-    #     assert "Carnival!" == tag_1.tagged_field_1
-    #     assert "Festival!" == tag_1.tagged_field_2
-    #     assert Event.C == tag_1.tagged_field_1
-    #     assert Event.F == tag_1.tagged_field_2
-    #     tag_2 = TaggedFieldTestModel.objects.get(
-    #         tagged_field_1="Carnival!",
-    #     )
-    #     assert tag_2 == tag_1
-    #     assert Event.C == tag_2.tagged_field_1
-
 
 class TestMethods(SimpleTestCase):
     """Equivalent to Django test."""
 
     def test_deconstruct(self):
+        """Test deconstruct returns only non-default kwargs."""
         f = TagMeCharField()
         *_, kwargs = f.deconstruct()
-        assert {"max_length": 255} == kwargs
+        # Should only have max_length, no db_collation when not set
+        assert kwargs == {"max_length": 255}
+
         f = TagMeCharField(db_collation="utf8_esperanto_ci")
         *_, kwargs = f.deconstruct()
-        assert {
+        assert kwargs == {
             "db_collation": "utf8_esperanto_ci",
             "max_length": 255,
-        } == kwargs
+        }
+
+    def test_deconstruct_with_custom_attrs(self):
+        """Test deconstruct includes custom TagMeCharField attributes when non-default."""
+        # Default values - should not appear in kwargs
+        f = TagMeCharField()
+        *_, kwargs = f.deconstruct()
+        assert "multiple" not in kwargs
+        assert "synchronise" not in kwargs
+        assert "system_tag" not in kwargs
+
+        # Non-default values - should appear in kwargs
+        f = TagMeCharField(multiple=False, synchronise=True)
+        *_, kwargs = f.deconstruct()
+        assert kwargs["multiple"] is False
+        assert kwargs["synchronise"] is True
+        assert "system_tag" not in kwargs  # Still default
+
+    def test_deconstruct_preserves_choices_for_system_tag(self):
+        """
+        Test that deconstruct includes choices when system_tag=True.
+
+        This is critical for Django's field.clone() to work during migrations.
+        Without this, clone() fails because system_tag=True but no choices.
+        """
+        choices = [("a", "A"), ("b", "B")]
+        f = TagMeCharField(choices=choices, system_tag=True)
+
+        # Verify choices was intercepted and processed
+        assert f.choices is None  # Never passed to parent
+        assert f._tag_choices_input == choices  # Stored for deconstruct
+        assert f._tag_choices == "a, b,"
+
+        # deconstruct should include our intercepted choices
+        *_, kwargs = f.deconstruct()
+        assert "choices" in kwargs, (
+            "deconstruct must include choices for system_tag fields"
+        )
+        assert kwargs["choices"] == choices
+        assert kwargs["system_tag"] is True
+
+        # Verify clone works (this is what Django does during migrations)
+        name, path, args, new_kwargs = f.deconstruct()
+        cloned = TagMeCharField(*args, **new_kwargs)
+        assert cloned.system_tag is True
+        assert cloned._tag_choices == "a, b,"
 
 
 class TestValidation(SimpleTestCase):
@@ -106,35 +136,6 @@ class TestValidation(SimpleTestCase):
         f = TagMeCharField(blank=True)
         assert f.clean("", None) == ""
 
-    # Removed issue-108. tag-me bypasses Django choices validation. The choices
-    # are added to a FieldTagListFormatter instance.
-    # def test_charfield_with_choices_cleans_valid_choice(self):
-    #     f = TagMeCharField(max_length=1, choices=[("a", "A"), ("b", "B")])
-    #     assert f.clean("a", None) == "a"
-
-    # Removed issue-108. tag-me does not use enum in choices. The choices
-    # are added to a FieldTagListFormatter instance.
-    # def test_charfield_with_choices_raises_error_on_invalid_choice(self):
-    #     f = TagMeCharField(choices=[("a", "A"), ("b", "B")])
-    #     msg = "Value 'not a' is not a valid choice."
-    #     with self.assertRaisesMessage(ValidationError, msg):
-    #         f.clean("not a", None)
-
-    # Removed issue-108. tag-me does not use enum in choices. The choices
-    # are added to a FieldTagListFormatter instance.
-    # def test_enum_choices_cleans_valid_string(self):
-    #     f = TagMeCharField(choices=self.Choices.choices, max_length=1)
-    #     assert f.clean("c", None) == "c"
-
-    # Removed issue-108. tag-me does not use enum in choices. The choices
-    # are added to a FieldTagListFormatter instance.
-    # def test_enum_choices_invalid_input(self):
-    #     f = TagMeCharField(choices=self.Choices.choices, max_length=1)
-    #     msg = "Value 'd' is not a valid choice."
-    #     with self.assertRaisesMessage(ValidationError, msg):
-    #         f.clean("d", None)
-    #
-
     def test_charfield_raises_error_on_empty_input(self):
         f = TagMeCharField(null=False)
         # msg = "This field cannot be null."  This message fails.
@@ -149,44 +150,6 @@ class TestValidation(SimpleTestCase):
         value = "testing,"
 
         assert f.clean(value, None) == value
-
-    # Removed issue-108. tag-me bypasses Django choices validation. The choices
-    # are added to a FieldTagListFormatter instance.
-    # def test_charfield_choice_not_valid_and_not_in_empty(self):
-    #     f = TagMeCharField(choices=self.Choices.choices)
-    #     value = "invalid"
-    #
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.clean(value, None)
-    #     assert "Value 'invalid' is not a valid choice." in str(exc.value)
-    #     assert exc.type == ValidationError
-
-    # Removed issue-108. tag-me bypasses Django choices validation. The choices
-    # are added to a FieldTagListFormatter instance.
-    # def test_charfield_choice_in_empty_values(self):
-    #     f = TagMeCharField(choices=self.Choices.choices)
-    #
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.clean(None, None)
-    #     assert "This field cannot be null." in str(exc.value)
-    #     assert exc.type == ValidationError
-    #
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.clean("", None)
-    #     assert "This field cannot be blank." in str(exc.value)
-    #     assert exc.type == ValidationError
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.clean([], None)
-    #     assert "This field cannot be blank." in str(exc.value)
-    #     assert exc.type == ValidationError
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.clean((), None)
-    #     assert "This field cannot be blank." in str(exc.value)
-    #     assert exc.type == ValidationError
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.clean({}, None)
-    #     assert "This field cannot be blank." in str(exc.value)
-    #     assert exc.type == ValidationError
 
 
 class TestTagMeCharfieldtoPython(SimpleTestCase):
@@ -309,37 +272,6 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
             include_trailing_comma=True,
         )
 
-    # ..todo:: probably a duplicate of test in test_collections. Review in refactor
-    # def test_tags_as_unsupported_input(self):
-    #     test_uns1 = 5
-    #     test_uns2 = 1.2
-    #     test_uns3 = True
-    #     f = TagMeCharField()
-    #
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.to_python(test_uns1)
-    #
-    #         assert "['5 is not type str, set, list or dict']" in str(
-    #             exc.value
-    #         ).replace("\\", "")
-    #         assert exc.type == ValidationError
-    #
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.to_python(test_uns2)
-    #
-    #         assert "['1.2 is not type str, set, list or dict']" in str(
-    #             exc.value
-    #         ).replace("\\", "")
-    #         assert exc.type == ValidationError
-    #
-    #     with pytest.raises(ValidationError) as exc:
-    #         f.to_python(test_uns3)
-    #
-    #         assert "['True is not type str, set, list or dict']" in str(
-    #             exc.value
-    #         ).replace("\\", "")
-    #         assert exc.type == ValidationError
-
     def test_tags_input_is_none(self):
         test_none = None
         f = TagMeCharField()
@@ -374,11 +306,19 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         )
 
     def test_tags_input_is_choices_TextChoices(self):
+        """Test TextChoices work with TagMeCharField.
+
+        UPDATED: Added system_tag=True as now required when providing choices.
+        """
+
         class Event(models.TextChoices):
             C = "Carnival!"
             F = "Festival!"
 
-        f = TagMeCharField(choices=Event.choices)
+        f = TagMeCharField(choices=Event.choices, system_tag=True)
+
+        # Check original choices are stored for deconstruct
+        assert f._tag_choices_input == Event.choices
 
         # Check internal representation of choices
         assert f._tag_choices == "Carnival!, Festival!,"
@@ -386,15 +326,22 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         # Check the choices are formatted and saved to the db correctly
         assert f.to_python(f._tag_choices) == "Carnival!, Festival!,"
 
-        # Check Django choices machinery is disabled.
+        # Check Django choices machinery is disabled (choices intercepted, not passed to parent)
         assert f.choices is None
 
     def test_tags_input_is_choices_LIST(self):
+        """Test list choices work with TagMeCharField.
+
+        UPDATED: Added system_tag=True as now required when providing choices.
+        """
         list_choices: list = [
             "Carnival!",
             "Festival!",
         ]
-        f = TagMeCharField(choices=list_choices)
+        f = TagMeCharField(choices=list_choices, system_tag=True)
+
+        # Check original choices are stored for deconstruct
+        assert f._tag_choices_input == list_choices
 
         # Check internal representation of choices
         assert f._tag_choices == "Carnival!, Festival!,"
@@ -402,7 +349,7 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         # Check the choices are formatted and saved to the db correctly
         assert f.to_python(f._tag_choices) == "Carnival!, Festival!,"
 
-        # Check Django choices machinery is disabled.
+        # Check Django choices machinery is disabled (choices intercepted, not passed to parent)
         assert f.choices is None
 
     def test_tags_input_is_null_only_tags(self):
@@ -415,6 +362,28 @@ class TestTagMeCharfieldtoPython(SimpleTestCase):
         f = TagMeCharField()
 
         assert f.to_python(null_tags) == ""
+
+    def test_choices_without_system_tag_raises_deprecation_warning(self):
+        """Test that providing choices without system_tag=True raises DeprecationWarning.
+
+        This is a transitional behavior - in the next major version it will be an error.
+        """
+        import warnings
+
+        list_choices = ["Choice1", "Choice2"]
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            field = TagMeCharField(choices=list_choices)
+
+            # Should have raised a DeprecationWarning
+            assert len(w) == 1
+            assert issubclass(w[0].category, DeprecationWarning)
+            assert "system_tag=True" in str(w[0].message)
+
+            # Field should auto-fix to system_tag=True
+            assert field.system_tag is True
+            assert field._tag_choices == "Choice1, Choice2,"
 
 
 class TestTagMeCharFieldOtherMethods(TestCase):

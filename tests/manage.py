@@ -3,11 +3,15 @@
 
 import os
 import sys
+from pathlib import Path
 
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+    # Add parent directory to path so tag_me and tests can be imported
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
