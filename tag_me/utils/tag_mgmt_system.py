@@ -264,7 +264,16 @@ def update_fields_that_should_be_synchronised():
     # Flag to track changes to the sync config
     sync_updated: bool = False
     for model in models_for_sync:
-        for field in model.model_class()._meta.fields:
+        # Get the model class - may be None if model was deleted
+        model_class = model.model_class()
+        if model_class is None:
+            # Model no longer exists (deleted app/model), skip it
+            logger.debug(
+                f"Skipping ContentType {model.app_label}.{model.model} - model no longer exists"
+            )
+            continue
+
+        for field in model_class._meta.fields:
             # Check if the field has the 'synchronise' attribute, and it's set
             # to True
             if hasattr(field, "synchronise") and field.synchronise:

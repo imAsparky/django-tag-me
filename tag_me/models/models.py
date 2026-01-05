@@ -10,7 +10,13 @@ from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy as _
 
+logger = logging.getLogger(__name__)
+
 User = settings.AUTH_USER_MODEL
+
+# Valid tag types - extend this list if new tag types are added
+TAG_TYPES = ["user", "system"]
+TAG_TYPE_DEFAULT = "user"
 
 try:
     """Ported from django-taggit
@@ -121,19 +127,30 @@ class TagBase(models.Model):
             search_tags_set = existing_tags.union(current_tags)
             self.search_tags = ",".join(sorted(search_tags_set)) + ","
 
-        # Existing slug generation logic
+        # Slug generation with retry logic for collisions
         if self._state.adding and not self.slug:
-            self.slug = self.slugify(self.tags)
             using = kwargs.get("using") or router.db_for_write(
                 type(self), instance=self
             )
             kwargs["using"] = using
-            try:
-                with transaction.atomic(using=using):
-                    res = super().save(*args, **kwargs)
-                return res
-            except IntegrityError:
-                pass
+
+            # Retry up to 5 times if slug collision occurs
+            max_retries = 5
+            for attempt in range(max_retries):
+                self.slug = self.slugify(self.tags)
+                try:
+                    with transaction.atomic(using=using):
+                        return super().save(*args, **kwargs)
+                except IntegrityError:
+                    if attempt == max_retries - 1:
+                        # Give up after max retries - re-raise the exception
+                        logger.error(
+                            f"Failed to generate unique slug after {max_retries} attempts "
+                            f"for {self.__class__.__name__}"
+                        )
+                        raise
+                    # Otherwise, continue to retry with a new slug
+                    continue
         else:
             return super().save(*args, **kwargs)
 
@@ -199,21 +216,34 @@ class TagMeSynchronise(models.Model):
         default=dict,
     )
 
-    def _get_field_name_models_to_sync(self, field: str = None) -> bool:
-        """"""
-        if field in self.synchronise.keys():
-            return self.synchronise.get(field)
+    def _get_field_name_models_to_sync(self, field: str = None) -> list | None:
+        """Get the list of content type IDs that should sync for a given field.
+
+        Args:
+            field: The field name to look up.
+
+        Returns:
+            List of content type IDs, or None if field not in sync config.
+        """
+        return self.synchronise.get(field)
 
     def _add_model_to_sync_list(
         self,
         content_type_id: str = None,
         field: str = None,
     ):
-        if not content_type_id | field:
+        """Add a content type to the sync list for a field.
+
+        Returns True if added, False if already present or invalid input.
+        """
+        if content_type_id is None or field is None:
             return False
+        if field not in self.synchronise:
+            self.synchronise[field] = []
         if content_type_id not in self.synchronise[field]:
             self.synchronise[field].append(content_type_id)
             return True
+        return False  # Already in list
 
     def check_field_sync_list_lengths(self):
         """
@@ -231,7 +261,6 @@ class TagMeSynchronise(models.Model):
             on the length, considering a two-item synchronization list as the
             expected minimum.
         """
-        logger = logging.getLogger(__name__)
         if self.synchronise.items():
             for k, v in self.synchronise.items():
                 match len(v):
@@ -273,6 +302,10 @@ class TaggedFieldModel(models.Model):
     Do not interact with this model directly. To update the registry after
     adding or modifying tagged fields, use the management
     command:  ./manage.py tags -U
+
+    IMPORTANT: Lookups should use `content` (ContentType FK) + `field_name`,
+    NOT `model_name`. The `model_name` field is cached for display purposes
+    only and may become stale if models are renamed.
     """
 
     class Meta:
@@ -284,16 +317,15 @@ class TaggedFieldModel(models.Model):
             "Verbose name",
             "Tagged Field Models",
         )
+        # CHANGED: Simplified constraint - uses ContentType FK as identifier
+        # This ensures model renames don't break lookups
         constraints = [
             models.UniqueConstraint(
                 fields=[
                     "content",
-                    "model_name",
-                    "model_verbose_name",
                     "field_name",
-                    "field_verbose_name",
                 ],
-                name="unique_tagged_field_model",
+                name="unique_tagged_field_content_field",
             ),
         ]
 
@@ -309,32 +341,63 @@ class TaggedFieldModel(models.Model):
         editable=False,
     )
 
+    # NOTE: model_name is kept for display/caching purposes only.
+    # Always use `content` FK for lookups to survive model renames.
     model_name = models.CharField(
-        max_length=128,
+        max_length=255,
+        blank=True,
+        null=True,
+        default=None,
         editable=False,
+        verbose_name=_(
+            "Verbose name",
+            "Model name",
+        ),
+        help_text="Cached model name for display. Use content FK for lookups.",
     )
     model_verbose_name = models.CharField(
-        max_length=128,
+        max_length=255,
+        blank=True,
+        null=True,
+        default=None,
         editable=False,
+        verbose_name=_(
+            "Verbose name",
+            "Model verbose name",
+        ),
     )
 
     field_name = models.CharField(
-        max_length=128,
+        max_length=255,
+        blank=True,
+        null=True,
+        default=None,
         editable=False,
+        verbose_name=_(
+            "Verbose name",
+            "Field name",
+        ),
     )
 
     field_verbose_name = models.CharField(
-        max_length=128,
+        max_length=255,
+        blank=True,
+        null=True,
+        default=None,
         editable=False,
+        verbose_name=_(
+            "Verbose name",
+            "Field verbose name",
+        ),
     )
     tag_type = models.CharField(
         verbose_name=_(
             "Verbose name",
-            "tags",
+            "Tag type",
         ),
         blank=False,
         null=False,
-        default="user",
+        default=TAG_TYPE_DEFAULT,
         max_length=20,
         editable=False,
         help_text=_(
@@ -356,12 +419,59 @@ class TaggedFieldModel(models.Model):
         ),
     )
 
+    @property
+    def current_model_name(self):
+        """
+        Get the current model name from ContentType.
+
+        Use this for display when you need the live/current name.
+        The stored `model_name` field may be stale after renames.
+        """
+        return self.content.model
+
+    @property
+    def current_model_class(self):
+        """
+        Get the actual model class from ContentType.
+
+        Returns None if the model no longer exists (e.g., was deleted).
+        """
+        return self.content.model_class()
+
+    @property
+    def app_label(self):
+        """Get the app label from ContentType."""
+        return self.content.app_label
+
+    def save(self, *args, **kwargs):
+        """
+        Save with validation to ensure required fields are present.
+
+        While the database columns are nullable for migration flexibility,
+        we enforce that field_name must be present at the application level.
+        A TaggedFieldModel without a field_name is semantically meaningless.
+        """
+        if not self.field_name:
+            raise ValueError(
+                "TaggedFieldModel.field_name cannot be empty. "
+                "Every TaggedFieldModel must reference a specific field."
+            )
+        if not self.content_id:
+            raise ValueError(
+                "TaggedFieldModel.content cannot be empty. "
+                "Every TaggedFieldModel must reference a ContentType."
+            )
+        if self.tag_type not in TAG_TYPES:
+            raise ValueError(
+                f"TaggedFieldModel.tag_type must be one of {TAG_TYPES}, "
+                f"got '{self.tag_type}'."
+            )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.model_verbose_name} - {self.field_verbose_name}"
-
-
-# A store for synchronised tags, that are yet to be saved
-add_synced_user_tags_list = []
+        model = self.model_verbose_name or self.model_name or "Unknown Model"
+        field = self.field_verbose_name or self.field_name or "Unknown Field"
+        return f"{model} - {field}"
 
 
 class UserTag(TagBase):
@@ -456,6 +566,7 @@ class UserTag(TagBase):
             "Verbose name",
             "Tagged Field",
         ),
+        help_text="FK to TaggedFieldModel. Use this for lookups instead of model_name.",
     )
 
     user = models.ForeignKey(
@@ -482,6 +593,8 @@ class UserTag(TagBase):
         default=None,
     )
 
+    # NOTE: model_name is kept for display/caching purposes only.
+    # Always use `tagged_field` FK for lookups to survive model renames.
     model_name = models.CharField(
         blank=True,
         null=True,
@@ -492,6 +605,7 @@ class UserTag(TagBase):
             "Model name",
         ),
         default=None,
+        help_text="Cached model name for display. Use tagged_field FK for lookups.",
     )
 
     comment = models.CharField(
@@ -551,8 +665,20 @@ class UserTag(TagBase):
         default=dict,
     )
 
+    @property
+    def current_model_name(self):
+        """
+        Get the current model name from the related TaggedFieldModel's ContentType.
+
+        Use this for display when you need the live/current name.
+        """
+        if self.tagged_field:
+            return self.tagged_field.current_model_name
+        return self.model_name  # Fallback to cached value
+
     def __str__(self) -> str:
-        return f"{self.id}:{self.user.username}:{self.model_verbose_name}:{self.field_name}:{self.tags}"
+        username = self.user.username if self.user else "NO_USER"
+        return f"{self.id}:{username}:{self.model_verbose_name}:{self.field_name}:{self.tags}"
 
     def save(
         self,
@@ -568,23 +694,41 @@ class UserTag(TagBase):
             sync, _ = TagMeSynchronise.objects.get_or_create(name=name)
 
             if self.field_name in sync.synchronise.keys():
-                content_ids = copy.deepcopy(sync.synchronise[self.field_name])
-                content_ids.remove(self.tagged_field.content_id)
+                # Skip synchronization if tagged_field is not set (orphaned record)
+                if self.tagged_field is None:
+                    logger.warning(
+                        f"UserTag {self.id} has no tagged_field FK - "
+                        f"skipping tag synchronization for field '{self.field_name}'"
+                    )
+                else:
+                    content_ids = copy.deepcopy(sync.synchronise[self.field_name])
 
-                for content_id in content_ids:
-                    tagged_field_model = TaggedFieldModel.objects.get(
-                        content=content_id,
-                        model_name=ContentType.objects.get(id=content_id)
-                        .model_class()
-                        .__name__.lower(),
-                        field_name=self.field_name,
-                    )
-                    instance = UserTag.objects.get(
-                        user=self.user,
-                        tagged_field=tagged_field_model,
-                    )
-                    instance.tags = self.tags
-                    instance.save(sync_tags_save=True)
+                    # Safely remove current content_id if present
+                    if self.tagged_field.content_id in content_ids:
+                        content_ids.remove(self.tagged_field.content_id)
+
+                    for content_id in content_ids:
+                        # CHANGED: Use content_id only, not model_name
+                        # This ensures lookups work even if model was renamed
+                        try:
+                            tagged_field_model = TaggedFieldModel.objects.get(
+                                content_id=content_id,
+                                field_name=self.field_name,
+                            )
+                            instance = UserTag.objects.get(
+                                user=self.user,
+                                tagged_field=tagged_field_model,
+                            )
+                            instance.tags = self.tags
+                            instance.save(sync_tags_save=True)
+                        except (
+                            TaggedFieldModel.DoesNotExist,
+                            UserTag.DoesNotExist,
+                        ) as e:
+                            logger.warning(
+                                f"Could not sync tags for content_id={content_id}, "
+                                f"field_name={self.field_name}: {e}"
+                            )
 
         # Call parent save (which handles search_tags merging)
         super().save(*args, **kwargs)
@@ -602,6 +746,15 @@ class SystemTag(TagBase):
             "Verbose name",
             "System Tags",
         )
+        constraints = [
+            # Ensure only one SystemTag per TaggedFieldModel
+            # Conditional to handle legacy NULL values (NULL != NULL in SQL)
+            models.UniqueConstraint(
+                fields=["tagged_field"],
+                name="unique_system_tag_field",
+                condition=models.Q(tagged_field__isnull=False),
+            )
+        ]
 
     tagged_field = models.ForeignKey(
         TaggedFieldModel,
@@ -614,6 +767,7 @@ class SystemTag(TagBase):
             "Verbose name",
             "Tagged Field",
         ),
+        help_text="FK to TaggedFieldModel. Use this for lookups instead of model_name.",
     )
 
     model_verbose_name = models.CharField(
@@ -638,6 +792,7 @@ class SystemTag(TagBase):
             "Model name",
         ),
         default=None,
+        help_text="Cached model name for display. Use tagged_field FK for lookups.",
     )
 
     comment = models.CharField(
@@ -690,3 +845,17 @@ class SystemTag(TagBase):
         ),
         default=dict,
     )
+
+    @property
+    def current_model_name(self):
+        """
+        Get the current model name from the related TaggedFieldModel's ContentType.
+        """
+        if self.tagged_field:
+            return self.tagged_field.current_model_name
+        return self.model_name
+
+    def __str__(self) -> str:
+        model = self.model_verbose_name or self.model_name or "Unknown Model"
+        field = self.field_verbose_name or self.field_name or "Unknown Field"
+        return f"{self.id}:{model}:{field}:{self.tags}"

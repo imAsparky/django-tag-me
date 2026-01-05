@@ -136,6 +136,10 @@ class WidgetAddUserTagView(View):
                     "tags": all_tags.toList(),
                 }
             )
-        except (json.JSONDecodeError, binascii.Error):
+        except (
+            json.JSONDecodeError,
+            binascii.Error,
+            UnicodeDecodeError,
+        ):
             logger.exception("Error decoding tag data.")
             return JsonResponse({"error": "Invalid or corrupted data"}, status=400)
