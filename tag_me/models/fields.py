@@ -1,4 +1,7 @@
-"""tag-me app custom model charfield."""
+"""tag-me app custom model charfield.
+
+UPDATED: Choices handling that doesn't fight Django's machinery.
+"""
 
 import logging
 
@@ -48,71 +51,114 @@ class TagMeCharField(CharField):
             synchronise: Boolean indicating whether this field is synchronised with other
                 models with the same field name. Defaults to False.
             system_tag: Boolean indicating if this field uses system tags (choices).
-                Defaults to False (user-created tags). Defaults to False.
+                Defaults to False (user-created tags).
             db_collation: Optional database collation setting.
             **kwargs: Additional keyword arguments passed to CharField constructor.
 
         Raises:
-            ValueError: If system_tag=True but no choices are provided.
+            ValueError: If system_tag and choices are inconsistent.
         """
         self.multiple = multiple
         self.synchronise = synchronise
         self.system_tag = system_tag
-        self.db_collation = db_collation
 
-        super().__init__(*args, **kwargs)
+        # Intercept choices BEFORE passing to parent - we handle it ourselves.
+        # This avoids fighting Django's choices machinery.
+        self._tag_choices_input = kwargs.pop("choices", None)
 
-        if self.max_length is None:
-            self.max_length = 255
-        self.validators.append(validators.MaxLengthValidator(self.max_length))
-        self.formatter = FieldTagListFormatter()
+        # Validate: empty choices list is not allowed
+        if self._tag_choices_input is not None and len(self._tag_choices_input) == 0:
+            raise ValueError(
+                "TagMeCharField: 'choices' cannot be an empty list. "
+                "Provide at least one choice or omit 'choices' entirely for user tags."
+            )
 
-        # Used to pass choices as a list to widget attrs.
-        self._tag_choices: str = ""
-        self.tag_type: str = "user"
-
-        # Validate system_tag parameter and choices consistency
-        if self.system_tag and not self.choices:
+        # Validate system_tag and choices consistency BEFORE calling super()
+        if self.system_tag and not self._tag_choices_input:
             raise ValueError(
                 "system_tag=True requires 'choices' to be provided. "
                 "System tags must have predefined choices."
             )
 
-        if not self.system_tag and self.choices:
-            raise ValueError(
-                "Providing 'choices' requires system_tag=True. "
-                "If you want system tags, set system_tag=True. "
-                "For user-created tags, omit 'choices'."
-            )
+        if not self.system_tag and self._tag_choices_input:
+            # DEPRECATION: In future versions, this will be an error.
+            # For now, auto-fix and warn to give users time to update.
+            import warnings
 
-        if self.choices:
+            warnings.warn(
+                "TagMeCharField: Providing 'choices' without system_tag=True is deprecated. "
+                "In the next major version, this will raise an error. "
+                "Please update your field definition to: "
+                "TagMeCharField(choices=..., system_tag=True)",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.system_tag = True  # Auto-fix for backwards compatibility
+
+        # Pass to parent WITHOUT choices - we handle choices ourselves
+        super().__init__(*args, db_collation=db_collation, **kwargs)
+
+        if self.max_length is None:
+            self.max_length = 255
+        self.validators.append(validators.MaxLengthValidator(self.max_length))
+
+        # Used to pass choices as a list to widget attrs.
+        self._tag_choices: str = ""
+        self.tag_type: str = "user"
+
+        # Process our intercepted choices
+        if self._tag_choices_input:
             tag_choices_list = []
-            # Convert choices into tags.
-            match self.choices:
+
+            match self._tag_choices_input:
                 case list() if all(
-                    isinstance(x, tuple) and len(x) == 2 for x in self.choices
+                    isinstance(x, tuple) and len(x) == 2
+                    for x in self._tag_choices_input
                 ):
-                    """If we have Django choices tuples, extract the first element."""
-                    for label, _ in self.choices:
-                        tag_choices_list.append(str(label))
-                case list():  # More general case comes after
-                    """If we have a list just turn into tags."""
-                    tag_choices_list.extend(self.choices)
+                    # Django choices tuples: [("value", "label"), ...]
+                    for value, _ in self._tag_choices_input:
+                        tag_choices_list.append(str(value))
+                case list():
+                    # Simple list: ["tag1", "tag2", ...]
+                    tag_choices_list.extend(self._tag_choices_input)
                 case _:
-                    msg = f"Tag choices must be of type <list> or <model.TextChoices> not {type(self.choices)}"
+                    msg = f"Tag choices must be of type <list> or <model.TextChoices> not {type(self._tag_choices_input)}"
                     logger.error(msg=msg)
 
-            self.formatter.clear()
-            self.formatter.add_tags(tag_choices_list)
-            self._tag_choices = self.formatter.toCSV(include_trailing_comma=True)
+            # Use local formatter for initialization only
+            # Note: We don't store formatter on self because field instances
+            # are shared across threads - see from_db_value, get_prep_value, to_python
+            formatter = FieldTagListFormatter()
+            formatter.add_tags(tag_choices_list)
+            self._tag_choices = formatter.toCSV(include_trailing_comma=True)
+            self.tag_type = "system"
 
-            # Set tag_type based on system_tag parameter
-            self.tag_type = "system" if self.system_tag else "user"
-            self.choices = None  # Disable Django choices machinery.
+    def deconstruct(self):
+        """\
+        Return a 4-tuple for migrations: (name, path, args, kwargs).
+
+        Only includes kwargs that differ from the field's defaults to keep
+        migrations clean and minimal.
+        """
+        name, path, args, kwargs = super().deconstruct()
+
+        # Include our intercepted choices if present
+        if self._tag_choices_input is not None:
+            kwargs["choices"] = self._tag_choices_input
+
+        # Only include custom attributes if they differ from defaults
+        if self.multiple is not True:
+            kwargs["multiple"] = self.multiple
+        if self.synchronise is not False:
+            kwargs["synchronise"] = self.synchronise
+        if self.system_tag is not False:
+            kwargs["system_tag"] = self.system_tag
+
+        return name, path, args, kwargs
 
     def from_db_value(self, value, expression, connection):
         """\
-        Converts the database representation of tags into a FieldTagListFormatter compliant format. # noqa: E501
+        Converts the database representation of tags into a FieldTagListFormatter compliant format.
 
         :param value: The raw tag data as retrieved from the database
                             (expected to be a CSV string).
@@ -122,10 +168,12 @@ class TagMeCharField(CharField):
 
         :return: A FieldTagListFormatter instance containing the parsed tags.
         """
-        self.formatter.clear()  # Ensure we start with an empty list
-        self.formatter.add_tags(value)
+        # Create a new formatter instance for thread safety
+        # Field instances are shared across threads, so we can't use self.formatter
+        formatter = FieldTagListFormatter()
+        formatter.add_tags(value)
 
-        return self.formatter.toCSV(
+        return formatter.toCSV(
             include_trailing_comma=True,  # Ensures correct tag string parsing
         )
 
@@ -139,10 +187,11 @@ class TagMeCharField(CharField):
         :return: A CSV-formatted string representing the tags, ready for
                         database storage.
         """
-        self.formatter.clear()  # Ensure we start with an empty list
-        self.formatter.add_tags(value)
+        # Create a new formatter instance for thread safety
+        formatter = FieldTagListFormatter()
+        formatter.add_tags(value)
 
-        return self.formatter.toCSV(
+        return formatter.toCSV(
             include_trailing_comma=True,  # Ensures correct tag string parsing
         )
 
@@ -158,16 +207,18 @@ class TagMeCharField(CharField):
 
         :return string: A FieldTagListFormatter.toCSV() formatted string.
         """
-        self.formatter.clear()  # Ensure we start with an empty list
-        self.formatter.add_tags(value)
+        # Create a new formatter instance for thread safety
+        formatter = FieldTagListFormatter()
+        formatter.add_tags(value)
 
-        return self.formatter.toCSV(
+        return formatter.toCSV(
             include_trailing_comma=True,  # Ensures correct tag string parsing
         )
 
     def contribute_to_class(self, cls, name, **kwargs):
         """\
         Registers the field's metadata with the SystemTagRegistry during model class creation.
+
         This method is called by Django during the model class creation process, before any
         migrations run but after the model class is fully formed.
 
@@ -180,81 +231,68 @@ class TagMeCharField(CharField):
             cls: The model class this field is being added to
             name: The name of this field on the model
             **kwargs: Additional keyword arguments passed by Django during model creation
-
-        Implementation Notes:
-            - Only concrete (non-abstract) models are registered
-            - Temporary migration models (starting with '__fake__') are ignored
-            - Registration collects metadata but does not access the database
-            - Actual database population happens later via post_migrate signal
-            - The collected metadata will be used to create/update TaggedFieldModel records
-                after all migrations complete
-
-        Database Fields Registered:
-            - model: The model class
-            - field_name: The name of this field
-            - tags: System tags defined in field's choices
-            - model_name: The lowercase model name
-            - model_verbose_name: Human-readable model name
-            - field_verbose_name: Human-readable field name
-            - tag_type: Type of tags (system/user)
         """
         super().contribute_to_class(cls, name, **kwargs)
 
         if not cls._meta.abstract and not cls.__module__.startswith("__fake__"):
+            # Convert verbose_name values to strings to handle lazy translation objects
+            # This ensures proper serialization and comparison
+            model_verbose = cls._meta.verbose_name
+            field_verbose = self.verbose_name
+
             SystemTagRegistry.register_field(
                 model=cls,
                 field_name=name,
                 tags=self._tag_choices,
                 model_name=cls._meta.model_name,
-                model_verbose_name=cls._meta.verbose_name,
-                field_verbose_name=self.verbose_name,
+                model_verbose_name=str(model_verbose) if model_verbose else None,
+                field_verbose_name=str(field_verbose) if field_verbose else None,
                 tag_type=self.tag_type,
             )
 
     def formfield(self, **kwargs):
         """\
-            Overrides the default form field generation for this model field.
+        Overrides the default form field generation for this model field.
 
-            Provides flexibility in selecting the form field widget based on the
-            provided 'widget' argument in kwargs. Supports custom widgets as well
-            as Django Admin widgets.
+        Provides flexibility in selecting the form field widget based on the
+        provided 'widget' argument in kwargs. Supports custom widgets as well
+        as Django Admin widgets.
 
-            :params **kwargs (dict): Additional keyword arguments that can be used
-                                     to further customize the form field.
+        :params **kwargs (dict): Additional keyword arguments that can be used
+                                 to further customize the form field.
 
-            :returns django.forms.Field: An instance of a form field appropriate
-                                        for representing this model field.
-            """
+        :returns django.forms.Field: An instance of a form field appropriate
+                                    for representing this model field.
+        """
+        # Pop widget from kwargs so it doesn't get passed twice
+        widget = kwargs.pop("widget", None)
 
-        # Extract and analyze the provided widget
-        widget = kwargs.get("widget", None)
-
-        # Added for edge cases when running tests.
         if hasattr(self, "model"):
-            model_verbose_name = self.model._meta.verbose_name
+            # Convert to string to handle lazy translation objects
+            model_verbose_name = str(self.model._meta.verbose_name)
         else:
             model_verbose_name = "** No Model **"
 
-        # NOTE: During initial migrations, database tables may not exist yet.
-        # This try-except block gracefully handles database queries before the schema
-        # is fully set up, allowing migrations to proceed by providing a temporary
-        # placeholder TaggedFieldModel instance when database access fails.
-        # We catch both OperationalError (typically raised by SQLite) and
-        # ProgrammingError (typically raised by PostgreSQL) to handle different
-        # database backends gracefully.
+        tagged_field = None
         try:
+            if not hasattr(self, "model"):
+                raise AttributeError("Field not attached to model yet")
             tagged_field = TaggedFieldModel.objects.filter(
                 content=ContentType.objects.get_for_model(self.model),
                 field_name=self.name,
             ).first()
-        except (OperationalError, ProgrammingError) as e:
+        except (OperationalError, ProgrammingError, AttributeError) as e:
             msg = f"{str(e)}: Please check you have run migrations, if so has the TaggedFieldModel table been deleted from your data base?\nWe have added an UNSAVED Tagged Field type as a placeholder for you django-tag-me display.\nPlease resolve this error before using this feature as unintended consequences may occur!"
-            tagged_field = TaggedFieldModel()
             logger.error(msg)
 
-        # Conditional widget configuration
+        # Ensure we always have a TaggedFieldModel instance (even if unsaved placeholder)
+        if tagged_field is None:
+            tagged_field = TaggedFieldModel()
+            logger.warning(
+                f"No TaggedFieldModel found for field '{self.name}' - using placeholder"
+            )
+
         if "django.contrib.admin.widgets" in str(widget):
-            # Admin-specific widget setup
             defaults = {
                 "max_length": self.max_length,
                 "required": False,
@@ -265,7 +303,6 @@ class TagMeCharField(CharField):
                 ),
             }
         else:
-            # Default custom widget setup
             defaults = {
                 "form_class": TagMeCharField_FORM,
                 "max_length": self.max_length,
@@ -282,4 +319,6 @@ class TagMeCharField(CharField):
                 ),
             }
 
+        # Merge any remaining kwargs (help_text, label, validators, etc.)
+        defaults.update(kwargs)
         return super().formfield(**defaults)

@@ -1,4 +1,7 @@
 from .models import (
+    TAG_TYPE_DEFAULT,
+    # Constants
+    TAG_TYPES,
     SystemTag,
     TagBase,
     TaggedFieldModel,
@@ -12,4 +15,7 @@ __all__ = [
     "TaggedFieldModel",
     "TagMeSynchronise",
     "UserTag",
+    # Constants
+    "TAG_TYPES",
+    "TAG_TYPE_DEFAULT",
 ]

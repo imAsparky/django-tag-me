@@ -76,6 +76,10 @@ class TagPersistence:
     to the database. It supports both system and user-defined tags, with different handling
     for each type.
 
+    IMPORTANT: Lookups use ContentType FK + field_name only. The model_name field is
+    stored for display/caching purposes but is NOT used in lookups to ensure resilience
+    to model renames.
+
     Attributes:
         default_user_tags (Dict): A dictionary containing default tags for user-defined fields.
             The dictionary keys are field names and values are strings containing the field's
@@ -129,6 +133,11 @@ class TagPersistence:
         Saves field metadata to the database and sets up tag synchronization.
 
         Creates or updates TaggedFieldModel instances for each field in the metadata set.
+        
+        IMPORTANT: Uses update_or_create with content + field_name as the lookup keys.
+        The model_name, model_verbose_name, and field_verbose_name are stored in defaults
+        so they get refreshed on each migration (in case the model was renamed).
+        
         For system tags, uses the tags directly from the metadata. For user tags, applies
         default tags from default_user_tags if available and the field is newly created.
         The reason we limit adding the default user tags to created fields is so we dont overwrite
@@ -165,10 +174,15 @@ class TagPersistence:
                 with transaction.atomic():
                     content_type = ContentType.objects.get_for_model(field.model)
 
-                    tagged_field, created = TaggedFieldModel.objects.get_or_create(
+                    # CHANGED: Use update_or_create instead of get_or_create
+                    # Lookup is by content + field_name only (stable across renames)
+                    # The defaults dict contains display fields that may change
+                    tagged_field, created = TaggedFieldModel.objects.update_or_create(
                         content=content_type,
                         field_name=field.field_name,
                         defaults={
+                            # These fields are refreshed on every migration to stay current
+                            # They're for display/caching only, not for lookups
                             "model_name": field.model_name,
                             "model_verbose_name": field.model_verbose_name,
                             "field_verbose_name": field.field_verbose_name,
@@ -190,7 +204,9 @@ class TagPersistence:
                             tagged_field.default_tags = field_tags[1]
 
                     tagged_field.save()
-                    msg = f"Successfully added tag-me {tagged_field}"
+
+                    action = "Created" if created else "Updated"
+                    msg = f"Successfully {action} tag-me {tagged_field}"
                     logger.info(msg)
 
             except AttributeError:
