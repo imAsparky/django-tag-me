@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2026.01.07.1]
+
+### Bug Fixes
+- Replace RunPython with AddConstraint (migration) [#322](https://github.com/imAsparky/django-tag-me/pull/322)
+
+
 ## [2026.01.05.1]
 
 ### ⚠ BREAKING CHANGES
