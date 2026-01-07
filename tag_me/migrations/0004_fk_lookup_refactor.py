@@ -372,200 +372,6 @@ def noop(apps, schema_editor):
     pass
 
 
-def add_unique_constraint_safely(apps, schema_editor):
-    """
-    Add the unique constraint, but don't fail if it already exists.
-
-    This handles the case where a user ran makemigrations before migrate,
-    which would have created their own migration adding the constraint.
-    """
-    from django.db import connection
-
-    TaggedFieldModel = apps.get_model("tag_me", "TaggedFieldModel")
-    constraint = models.UniqueConstraint(
-        fields=["content", "field_name"],
-        name="unique_tagged_field_content_field",
-    )
-
-    # Check if constraint already exists
-    constraint_exists = False
-
-    try:
-        with connection.cursor() as cursor:
-            # This works for PostgreSQL, MySQL, and SQLite
-            if connection.vendor == "postgresql":
-                cursor.execute(
-                    """
-                    SELECT 1 FROM information_schema.table_constraints 
-                    WHERE constraint_name = %s AND table_name = %s
-                """,
-                    [
-                        "unique_tagged_field_content_field",
-                        TaggedFieldModel._meta.db_table,
-                    ],
-                )
-                constraint_exists = cursor.fetchone() is not None
-            elif connection.vendor == "mysql":
-                cursor.execute(
-                    """
-                    SELECT 1 FROM information_schema.table_constraints 
-                    WHERE constraint_name = %s AND table_name = %s
-                """,
-                    [
-                        "unique_tagged_field_content_field",
-                        TaggedFieldModel._meta.db_table,
-                    ],
-                )
-                constraint_exists = cursor.fetchone() is not None
-            elif connection.vendor == "sqlite":
-                # SQLite doesn't have named constraints in information_schema
-                # Check for index with same name
-                cursor.execute(
-                    """
-                    SELECT 1 FROM sqlite_master 
-                    WHERE type='index' AND name = ?
-                """,
-                    ["unique_tagged_field_content_field"],
-                )
-                constraint_exists = cursor.fetchone() is not None
-    except Exception:
-        # If check fails, try to add anyway
-        constraint_exists = False
-
-    if constraint_exists:
-        print(
-            "Unique constraint 'unique_tagged_field_content_field' already exists, skipping."
-        )
-        return
-
-    # Add the constraint
-    try:
-        schema_editor.add_constraint(TaggedFieldModel, constraint)
-        print("Added unique constraint 'unique_tagged_field_content_field'.")
-    except Exception as e:
-        error_str = str(e).lower()
-        if "already exists" in error_str or "duplicate" in error_str:
-            print(
-                "Unique constraint 'unique_tagged_field_content_field' already exists, skipping."
-            )
-        else:
-            raise
-
-
-def remove_unique_constraint_safely(apps, schema_editor):
-    """Remove the unique constraint if it exists (for migration reversal)."""
-    from django.db import connection
-
-    TaggedFieldModel = apps.get_model("tag_me", "TaggedFieldModel")
-    constraint = models.UniqueConstraint(
-        fields=["content", "field_name"],
-        name="unique_tagged_field_content_field",
-    )
-
-    try:
-        schema_editor.remove_constraint(TaggedFieldModel, constraint)
-    except Exception:
-        # Constraint might not exist, that's fine
-        pass
-
-
-def add_indexes_safely(apps, schema_editor):
-    """
-    Add performance indexes, but don't fail if they already exist.
-    """
-    from django.db import connection
-
-    UserTag = apps.get_model("tag_me", "UserTag")
-    SystemTag = apps.get_model("tag_me", "SystemTag")
-
-    def index_exists(index_name):
-        """Check if an index exists in the database."""
-        try:
-            with connection.cursor() as cursor:
-                if connection.vendor == "postgresql":
-                    cursor.execute(
-                        "SELECT 1 FROM pg_indexes WHERE indexname = %s", [index_name]
-                    )
-                    return cursor.fetchone() is not None
-                elif connection.vendor == "mysql":
-                    cursor.execute(
-                        "SELECT 1 FROM information_schema.statistics WHERE index_name = %s",
-                        [index_name],
-                    )
-                    return cursor.fetchone() is not None
-                elif connection.vendor == "sqlite":
-                    cursor.execute(
-                        "SELECT 1 FROM sqlite_master WHERE type='index' AND name = ?",
-                        [index_name],
-                    )
-                    return cursor.fetchone() is not None
-        except Exception:
-            return False
-        return False
-
-    # Add UserTag index
-    user_tag_index = models.Index(
-        fields=["tagged_field", "user"],
-        name="tag_me_user_tagged_user_idx",
-    )
-    if not index_exists("tag_me_user_tagged_user_idx"):
-        try:
-            schema_editor.add_index(UserTag, user_tag_index)
-            print("Added index 'tag_me_user_tagged_user_idx'.")
-        except Exception as e:
-            if "already exists" in str(e).lower():
-                print("Index 'tag_me_user_tagged_user_idx' already exists, skipping.")
-            else:
-                raise
-    else:
-        print("Index 'tag_me_user_tagged_user_idx' already exists, skipping.")
-
-    # Add SystemTag index
-    system_tag_index = models.Index(
-        fields=["tagged_field"],
-        name="tag_me_sys_tagged_field_idx",
-    )
-    if not index_exists("tag_me_sys_tagged_field_idx"):
-        try:
-            schema_editor.add_index(SystemTag, system_tag_index)
-            print("Added index 'tag_me_sys_tagged_field_idx'.")
-        except Exception as e:
-            if "already exists" in str(e).lower():
-                print("Index 'tag_me_sys_tagged_field_idx' already exists, skipping.")
-            else:
-                raise
-    else:
-        print("Index 'tag_me_sys_tagged_field_idx' already exists, skipping.")
-
-
-def remove_indexes_safely(apps, schema_editor):
-    """Remove indexes if they exist (for migration reversal)."""
-    UserTag = apps.get_model("tag_me", "UserTag")
-    SystemTag = apps.get_model("tag_me", "SystemTag")
-
-    try:
-        schema_editor.remove_index(
-            UserTag,
-            models.Index(
-                fields=["tagged_field", "user"],
-                name="tag_me_user_tagged_user_idx",
-            ),
-        )
-    except Exception:
-        pass
-
-    try:
-        schema_editor.remove_index(
-            SystemTag,
-            models.Index(
-                fields=["tagged_field"],
-                name="tag_me_sys_tagged_field_idx",
-            ),
-        )
-    except Exception:
-        pass
-
-
 class Migration(migrations.Migration):
     """
     Complete the FK-based lookup refactor.
@@ -595,13 +401,16 @@ class Migration(migrations.Migration):
             noop,
         ),
         # =====================================================================
-        # STEP 2: Add unique constraint on TaggedFieldModel (safely)
+        # STEP 2: Add unique constraint on TaggedFieldModel
         # This enables reliable FK lookups by content + field_name
-        # Uses RunPython to handle case where constraint already exists
+        # Using proper Django AddConstraint for correct state tracking
         # =====================================================================
-        migrations.RunPython(
-            add_unique_constraint_safely,
-            remove_unique_constraint_safely,
+        migrations.AddConstraint(
+            model_name="taggedfieldmodel",
+            constraint=models.UniqueConstraint(
+                fields=["content", "field_name"],
+                name="unique_tagged_field_content_field",
+            ),
         ),
         # =====================================================================
         # STEP 3: Populate FK fields using resilient matching
@@ -730,11 +539,21 @@ class Migration(migrations.Migration):
             ),
         ),
         # =====================================================================
-        # STEP 7: Add indexes for query performance (safely)
-        # Uses RunPython to handle case where indexes already exist
+        # STEP 7: Add indexes for query performance
+        # Using proper Django AddIndex for correct state tracking
         # =====================================================================
-        migrations.RunPython(
-            add_indexes_safely,
-            remove_indexes_safely,
+        migrations.AddIndex(
+            model_name="usertag",
+            index=models.Index(
+                fields=["tagged_field", "user"],
+                name="tag_me_user_tagged_user_idx",
+            ),
+        ),
+        migrations.AddIndex(
+            model_name="systemtag",
+            index=models.Index(
+                fields=["tagged_field"],
+                name="tag_me_sys_tagged_field_idx",
+            ),
         ),
     ]

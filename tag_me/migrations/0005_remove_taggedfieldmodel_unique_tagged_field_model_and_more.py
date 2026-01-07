@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
         ("tag_me", "0004_fk_lookup_refactor"),
@@ -34,11 +33,7 @@ class Migration(migrations.Migration):
                 name="unique_system_tag_field",
             ),
         ),
-        migrations.AddConstraint(
-            model_name="taggedfieldmodel",
-            constraint=models.UniqueConstraint(
-                fields=("content", "field_name"),
-                name="unique_tagged_field_content_field",
-            ),
-        ),
+        # NOTE: The unique_tagged_field_content_field constraint is now
+        # properly added in 0004 using migrations.AddConstraint.
+        # It was removed from here to avoid duplicate constraint errors.
     ]
