@@ -9,6 +9,7 @@
 * - Keyboard navigation
 * - Desktop inline actions, mobile menu
 * - Drag-to-reorder selected tags
+* - Two-way form autosave integration via event contract
 *
 * @param {Object} config - Configuration object from Django template
 * @returns {Object} Alpine component instance
@@ -65,6 +66,17 @@ export function createAlpineComponent(config) {
       animationFrame: null
     },
     // ============================================
+    // INTERNAL FLAGS
+    // ============================================
+    /**
+    * Guard flag to suppress change event dispatch during external restore.
+    * Prevents write-back loop when form-field:external-update triggers
+    * a state update that causes formValue to change.
+    * @type {boolean}
+    * @private
+    */
+    _suppressChangeEvent: false,
+    // ============================================
     // CONFIGURATION (from Django)
     // ============================================
     /** URL to add new tags to the library */
@@ -86,11 +98,62 @@ export function createAlpineComponent(config) {
     // ============================================
     /**
     * Initialize component
+    *
+    * Sets up:
+    * - Responsive screen width tracking
+    * - Save side: watches formValue and dispatches 'change' on hidden input
+    * - Restore side: listens for 'form-field:external-update' on hidden input
     */
     init() {
       // Update screen width on resize
       window.addEventListener('resize', () => {
         this.screenWidth = window.innerWidth;
+      });
+
+      // ------------------------------------------
+      // SAVE SIDE: Dispatch 'change' event when formValue changes
+      // ------------------------------------------
+      // Uses $watch on the computed formValue so every code path that
+      // mutates selectedTags or tagOrder (toggleTag, removeTag,
+      // deselectAll, createNewTag) is covered by a single integration
+      // point. The _suppressChangeEvent guard prevents firing during
+      // external restore (form-field:external-update).
+      this.$watch('formValue', () => {
+        if (this._suppressChangeEvent) return;
+        this.$refs.hiddenInput.dispatchEvent(
+          new Event('change', { bubbles: true })
+        );
+      });
+
+      // ------------------------------------------
+      // RESTORE SIDE: Listen for external value updates
+      // ------------------------------------------
+      // External systems (autosave, form-filler, test harness) set the
+      // hidden input's .value and then dispatch this custom event.
+      // We re-read the value, parse it, and replace our internal state.
+      // Alpine's reactivity then updates the visual chips automatically.
+      this.$refs.hiddenInput.addEventListener('form-field:external-update', () => {
+        const newValue = this.$refs.hiddenInput.value;
+        const tags = this.parseTagValue(newValue);
+
+        // Suppress change event — the value hasn't actually changed,
+        // we're just syncing visual state to match the hidden input.
+        this._suppressChangeEvent = true;
+
+        // Replace selection state
+        this.selectedTags = new Set(tags);
+        this.tagOrder = [...tags];
+
+        // Add unknown tags to availableTags so they appear in the
+        // dropdown with a checkmark, consistent with normal selection.
+        // Server-side validation remains the authority on validity.
+        tags.forEach(tag => {
+          if (!this.availableTags.has(tag)) {
+            this.availableTags.add(tag);
+          }
+        });
+
+        this._suppressChangeEvent = false;
       });
     },
     // ============================================
@@ -174,10 +237,22 @@ export function createAlpineComponent(config) {
     },
     /**
     * Form value (comma-separated string for Django, preserves order)
-    * @returns {string}
+    *
+    * Includes a trailing comma when tags are selected. This acts as a
+    * format sentinel that guarantees parse_tags (Python side) always
+    * uses comma-delimited mode, which is critical for multi-word tags.
+    * Without the trailing comma, a single multi-word tag like
+    * "machine learning" would be split into two tags by the space-
+    * delimited parser.
+    *
+    * The Python _parse_value() already does rstrip(","), so the
+    * trailing comma is transparently handled on the server side.
+    *
+    * @returns {string} e.g. "python,django," or "" (empty when no selection)
     */
     get formValue() {
-      return this.selectedArray.join(',');
+      const tags = this.selectedArray;
+      return tags.length > 0 ? tags.join(',') + ',' : '';
     },
     /**
     * Whether user can add a new tag
@@ -720,6 +795,25 @@ export function createAlpineComponent(config) {
     */
     base64Encode(str) {
       return btoa(JSON.stringify(str));
+    },
+    /**
+    * Parse a tag value string into an array of tag names.
+    *
+    * Handles the comma-separated format produced by formValue,
+    * including trailing commas (format sentinel), leading/trailing
+    * whitespace around tags, and empty segments.
+    *
+    * Backwards-compatible with values stored before the trailing
+    * comma convention was adopted.
+    *
+    * @param {string} value - Raw value from hidden input (e.g. "python,django," or "python,django")
+    * @returns {string[]} Array of trimmed, non-empty tag names
+    */
+    parseTagValue(value) {
+      if (!value || typeof value !== 'string') return [];
+      return value.split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
     }
   }
 }
