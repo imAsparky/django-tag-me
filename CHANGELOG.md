@@ -2,6 +2,22 @@
 
 <!--next-version-placeholder-->
 
+## [2026.02.17.1]
+
+### Maintenance
+- Update deps (frontend) [#324](https://github.com/imAsparky/django-tag-me/pull/324)
+- Update for deploy (assets) [#324](https://github.com/imAsparky/django-tag-me/pull/324)
+
+### Documentation
+- Add django form-save integration (quickstart) [#324](https://github.com/imAsparky/django-tag-me/pull/324)
+
+### Features
+- Add django form draft save integration (frontend) [#324](https://github.com/imAsparky/django-tag-me/pull/324)
+
+### Testing
+- Add latest python/django versions to matrix (tox) [#324](https://github.com/imAsparky/django-tag-me/pull/324)
+
+
 ## [2026.01.07.1]
 
 ### Bug Fixes
