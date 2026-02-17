@@ -86,7 +86,10 @@
      :aria-describedby="$id('keyboard-instructions')"
      class="tm:w-full">
     <!-- Hidden Input for Form Submission -->
-    <input type="hidden" name="{{ name }}" x-model="formValue">
+    <input type="hidden"
+           name="{{ name }}"
+           x-model="formValue"
+           x-ref="hiddenInput">
     <!-- Aria-live region for screen reader announcements -->
     <div aria-live="polite"
          aria-atomic="true"
