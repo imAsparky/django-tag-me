@@ -690,6 +690,23 @@
   .focus\:tm\:ring-offset-background-lib:focus {
     --tw-ring-offset-color: var(--tm-color-background-lib);
   }
+  
+  /* ========================================== */
+  /* INPUT HEIGHT CONFIGURATION */
+  /* ========================================== */
+  /* Controls the closed-state min-height of the select widget.
+   * Default: 36px (matches Tailwind UI: py-1.5 + text-sm/leading-6)
+   *
+   * Override in consuming project CSS:
+   *   :root { --tm-input-height: 38px; }     Bootstrap 5
+   *   :root { --tm-input-height: 56px; }     Material Design 3
+   *   :root { --tm-input-height: 40px; }     your-custom-system
+   */
+  @media (min-width: 768px) {
+    .tm-select-closed {
+      min-height: var(--tm-input-height, 36px);
+    }
+  }
 }
 
 /* ============================================
