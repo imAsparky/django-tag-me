@@ -72,16 +72,15 @@
 /* Dark mode handled automatically - no manual override needed */
 
 /*
- * Input Height Configuration
+ * Input Height & Background Configuration
  * --tm-input-height: Controls the closed-state min-height of the select widget.
- * Default: 36px (via var() fallback — no selector needed, inherits from :root)
+ * --tm-input-bg: Controls the closed-state background color.
+ * Defaults: 36px height, surface-container-high-lib background (via var() fallback)
  *
- * Override in your project CSS to match your design system's input height:
- *   :root { --tm-input-height: 38px; }       Bootstrap 5
- *   :root { --tm-input-height: 56px; }       Material Design 3
- *   :root { --tm-input-height: 40px; }       your-custom-system
+ * Override in your project CSS to match your design system:
+ *   :root { --tm-input-height: 38px; --tm-input-bg: var(--color-surface-container); }
  *
- * Rule lives in tag-me styles.css (utilities layer), not here.
+ * Rules live in tag-me styles.css (utilities layer), not here.
  */
 </style>
 <!-- Main Container -->
@@ -118,7 +117,7 @@
          x-ref="widgetContainer">
         <!-- Input-like Container (Closed State) - SHARED -->
         <div class="tm:relative tm:w-full">
-            <div class="tm-select-closed tm:block tm:w-full tm:rounded-md tm:bg-surface-lib tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-outline-variant-lib tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-primary-lib"
+            <div class="tm-select-closed tm:block tm:w-full tm:rounded-md tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-outline-lib tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-primary-lib"
                  :class="show ? 'tm:ring-2 tm:ring-primary-lib' : ''">
                 <!-- Selected Tags Display + Clickable Area -->
                 <div class="tm:flex tm:items-center tm:py-2 tm:md:py-1.5 tm:pr-11 tm:md:pr-10 tm:pl-3 tm:cursor-pointer"
@@ -377,10 +376,13 @@ Migration: Replace hard-coded height with configurable CSS custom property
 INPUT HEIGHT CONFIGURATION (v3.2):
 ✅ Removed hard-coded tm:md:h-[37px]
 ✅ Added --tm-input-height CSS custom property (default: 36px via var() fallback)
-✅ Closed-state container uses .tm-select-closed class with plain CSS min-height
+✅ Added --tm-input-bg CSS custom property (default: surface-container-high-lib)
+✅ Closed-state container uses .tm-select-closed class with plain CSS min-height + background
 ✅ Uses @media (min-width: 768px) to match md: breakpoint behavior
 ✅ Default lives in var() fallback — no selector needed, inherits cleanly from :root
 ✅ Plain CSS avoids Tailwind arbitrary value parser issues with var() commas
+✅ Fixed ring color: outline-variant-lib → outline-lib (MD3 outlined text field spec)
+✅ Removed hardcoded tm:bg-surface-lib (now handled by .tm-select-closed CSS rule)
 
 CONSUMER USAGE:
   Override in project CSS to match your design system:
