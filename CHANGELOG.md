@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2026.02.21.2]
+
+### Maintenance
+- Update for deploy (assets) [#328](https://github.com/imAsparky/django-tag-me/pull/328)
+
+### Documentation
+- Update style usage (quickstart) [#328](https://github.com/imAsparky/django-tag-me/pull/328)
+
+### Bug Fixes
+- Add correct MD3 to style and template rings (style) [#328](https://github.com/imAsparky/django-tag-me/pull/328)
+
+
 ## [2026.02.21.1]
 
 ### Maintenance
