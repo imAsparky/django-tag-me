@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2026.02.21.1]
+
+### Maintenance
+- Update for deploy (assets) [#326](https://github.com/imAsparky/django-tag-me/pull/326)
+
+### Documentation
+- Add template min-height usage (quickstart) [#326](https://github.com/imAsparky/django-tag-me/pull/326)
+
+### Features
+- Add tm-input-height for finer control (style) [#326](https://github.com/imAsparky/django-tag-me/pull/326)
+
+
 ## [2026.02.17.1]
 
 ### Maintenance
