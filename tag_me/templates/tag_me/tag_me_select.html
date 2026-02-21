@@ -70,6 +70,19 @@
 }
 
 /* Dark mode handled automatically - no manual override needed */
+
+/*
+ * Input Height Configuration
+ * --tm-input-height: Controls the closed-state min-height of the select widget.
+ * Default: 36px (via var() fallback — no selector needed, inherits from :root)
+ *
+ * Override in your project CSS to match your design system's input height:
+ *   :root { --tm-input-height: 38px; }       Bootstrap 5
+ *   :root { --tm-input-height: 56px; }       Material Design 3
+ *   :root { --tm-input-height: 40px; }       your-custom-system
+ *
+ * Rule lives in tag-me styles.css (utilities layer), not here.
+ */
 </style>
 <!-- Main Container -->
 <div id='tag-me-select-container-{{ name }}'
@@ -105,7 +118,7 @@
          x-ref="widgetContainer">
         <!-- Input-like Container (Closed State) - SHARED -->
         <div class="tm:relative tm:w-full">
-            <div class="tm:block tm:w-full tm:md:h-[37px] tm:rounded-md tm:bg-surface-lib tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-outline-variant-lib tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-primary-lib"
+            <div class="tm-select-closed tm:block tm:w-full tm:rounded-md tm:bg-surface-lib tm:border-0 tm:shadow-sm tm:ring-1 tm:ring-inset tm:ring-outline-variant-lib tm:transition-all tm:duration-200 tm:focus-within:ring-2 tm:focus-within:ring-primary-lib"
                  :class="show ? 'tm:ring-2 tm:ring-primary-lib' : ''">
                 <!-- Selected Tags Display + Clickable Area -->
                 <div class="tm:flex tm:items-center tm:py-2 tm:md:py-1.5 tm:pr-11 tm:md:pr-10 tm:pl-3 tm:cursor-pointer"
@@ -356,70 +369,43 @@
 </div>
 <!-- End Main Container -->
 {% comment %}
-TEMPLATE CLASS MIGRATION - MAIN SELECT (MD3 REFACTOR v3.1)
+TEMPLATE CLASS MIGRATION - MAIN SELECT (MD3 REFACTOR v3.2)
 ===========================================================
-Date: December 06, 2025
-Migration: MD3 Elevation Alignment + Cross-component Dropdown Coordination
+Date: February 21, 2026
+Migration: Replace hard-coded height with configurable CSS custom property
+
+INPUT HEIGHT CONFIGURATION (v3.2):
+✅ Removed hard-coded tm:md:h-[37px]
+✅ Added --tm-input-height CSS custom property (default: 36px via var() fallback)
+✅ Closed-state container uses .tm-select-closed class with plain CSS min-height
+✅ Uses @media (min-width: 768px) to match md: breakpoint behavior
+✅ Default lives in var() fallback — no selector needed, inherits cleanly from :root
+✅ Plain CSS avoids Tailwind arbitrary value parser issues with var() commas
+
+CONSUMER USAGE:
+  Override in project CSS to match your design system:
+    :root { --tm-input-height: 38px; }   /* Bootstrap 5 */
+    :root { --tm-input-height: 56px; }   /* Material Design 3 */
+    :root { --tm-input-height: 36px; }   /* Tailwind UI (default) */
+
+RATIONALE:
+  - Hard-coded 37px prevented layout shift but coupled the library
+    to a specific design system's input height
+  - min-h (not h) allows natural growth on mobile / when tags wrap
+  - CSS variable lets consumers match their input heights without
+    forking the template
+  - Default 36px lives in var() fallback, so :root overrides inherit cleanly
 
 CROSS-COMPONENT COORDINATION (v3.1):
 ✅ Added x-on:dropdown-opened.window listener
-   - Closes this dropdown when another dropdown opens
-   - Uses $id('search-menu-dropdown') for unique identification
-
 ✅ Added x-effect to dispatch 'dropdown-opened' event
-   - Fires when 'show' becomes true
-   - Other dropdown components (datetime, etc.) receive and close
-
-EVENT PATTERN:
-- Event name: 'dropdown-opened'
-- Payload: { id: $id('search-menu-dropdown') }
-- Bubbles to window level
-- All dropdown components listen and close if id doesn't match
 
 MD3 CHANGES APPLIED (ELEVATION ALIGNMENT - v3.0):
-1. ✅ Dropdown container: bg-surface-container-lib → bg-surface-container-high-lib [1→3]
-   - Matches datetime component dropdown elevation
-   - Creates proper "floating" effect above page content
-   
-2. ✅ Search input idle: bg-surface-lib → bg-surface-container-lib [0→1]
-   - Creates "inset" feel within elevated dropdown
-   - Provides subtle visual depth
-   
-3. ✅ Search input focus: focus:bg-surface-container-lib → focus:bg-surface-container-high-lib [1→3]
-   - Input "rises" to match dropdown on focus
-   - Indicates active state clearly
-   
-4. ✅ List container: bg-surface-container-lib → bg-surface-container-high-lib [1→3]
-   - Matches dropdown elevation
-   - Items can hover to +1 level (highest)
-   
-5. ✅ Search result count sticky: bg-surface-container-lib → bg-surface-container-high-lib
-   - Matches list container for seamless appearance
-   
-6. ✅ List items hover/focus: bg-surface-container-high-lib → bg-surface-container-highest-lib [3→4]
-   - Proper +1 elevation step on interaction
-   - Clear visual feedback
-   
-7. ✅ Desktop footer: bg-surface-container-lib → bg-surface-container-highest-lib [1→4]
-   - Matches datetime footer elevation
-   - Added border-t for visual separation
-   - Kbd elements updated: bg-surface-lib → bg-surface-container-high-lib
-
-ELEVATION HIERARCHY (ALIGNED WITH DATETIME):
-- Input (closed):          surface-lib [0]
-- Dropdown container:      surface-container-high-lib [3] ← elevated
-- Search input (idle):     surface-container-lib [1] ← inset feel
-- Search input (focus):    surface-container-high-lib [3] ← rises
-- List items (base):       surface-container-high-lib [3] ← matches container
-- List items (hover):      surface-container-highest-lib [4] ← +1 elevation
-- List items (selected):   primary-lib ← semantic
-- Desktop footer:          surface-container-highest-lib [4] ← action area
-
-NO OTHER CHANGES:
-- Alpine.js component logic: unchanged
-- HTMX: unchanged  
-- HTML structure: unchanged
-- Spacing/layout: unchanged
-- Z-index values: unchanged
-- Non-MD3 classes: unchanged
+1. ✅ Dropdown container: bg-surface-container-high-lib [3]
+2. ✅ Search input idle: bg-surface-container-lib [1]
+3. ✅ Search input focus: focus:bg-surface-container-high-lib [3]
+4. ✅ List container: bg-surface-container-high-lib [3]
+5. ✅ Search result count sticky: bg-surface-container-high-lib
+6. ✅ List items hover/focus: bg-surface-container-highest-lib [4]
+7. ✅ Desktop footer: bg-surface-container-highest-lib [4]
 {% endcomment %}
