@@ -38,6 +38,37 @@ django-tag-me requires:
 * **Tailwind CSS** - For styling (uses ``tm-`` prefix to avoid conflicts)
 
 
+.. _input-height-customization:
+
+Theming & Layout
+----------------
+
+The tag-me select widget uses a CSS custom property to control its closed-state
+height. This ensures it aligns with whatever input height your design system
+uses.
+
+.. code-block:: css
+
+    /* Default: 36px (matches Tailwind UI: py-1.5 + text-sm/leading-6) */
+
+    /* Override in your project CSS to match your inputs */
+    :root {
+      --tm-input-height: 38px;   /* Bootstrap 5 */
+    }
+
+The variable sets a ``min-height``, so the widget still grows naturally on
+mobile or when selected tags wrap to multiple lines.
+
+.. note::
+    The 36px default is built into the widget as a ``var()`` fallback — if you
+    don't set ``--tm-input-height``, it just works. When you do set it on
+    ``:root``, the widget inherits your value with no specificity issues.
+
+.. tip::
+    If you're using Tailwind with the standard ``py-1.5`` + ``sm:text-sm/leading-6``
+    input styling, the 36px default should match out of the box.
+
+
 Basic Usage
 -----------
 
