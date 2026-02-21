@@ -43,26 +43,38 @@ django-tag-me requires:
 Theming & Layout
 ----------------
 
-The tag-me select widget uses a CSS custom property to control its closed-state
-height. This ensures it aligns with whatever input height your design system
-uses.
+The tag-me select widget uses CSS custom properties to control its closed-state
+height and background. This ensures it aligns with whatever input styling your
+design system uses.
 
 .. code-block:: css
 
-    /* Default: 36px (matches Tailwind UI: py-1.5 + text-sm/leading-6) */
+    /* Defaults:
+     *   Height: 36px (matches Tailwind UI: py-1.5 + text-sm/leading-6)
+     *   Background: surface-container-high (MD3 outlined text field fill)
+     */
 
-    /* Override in your project CSS to match your inputs */
+    /* Option A: Set the tag-me variables directly */
     :root {
-      --tm-input-height: 38px;   /* Bootstrap 5 */
+      --tm-input-height: 38px;
+      --tm-input-bg: var(--color-surface-container);
     }
 
-The variable sets a ``min-height``, so the widget still grows naturally on
-mobile or when selected tags wrap to multiple lines.
+    /* Option B: Bridge from your design system tokens (recommended) */
+    :root {
+      --input-height: 36px;
+      --input-bg: var(--color-surface-container-high);
+      --tm-input-height: var(--input-height);
+      --tm-input-bg: var(--input-bg);
+    }
+
+Height uses a ``min-height``, so the widget still grows naturally on mobile or
+when selected tags wrap to multiple lines.
 
 .. note::
-    The 36px default is built into the widget as a ``var()`` fallback — if you
-    don't set ``--tm-input-height``, it just works. When you do set it on
-    ``:root``, the widget inherits your value with no specificity issues.
+    Both defaults are built into the widget as ``var()`` fallbacks — if you
+    don't set the variables, it just works. When you do set them on ``:root``,
+    the widget inherits your values with no specificity issues.
 
 .. tip::
     If you're using Tailwind with the standard ``py-1.5`` + ``sm:text-sm/leading-6``
