@@ -692,20 +692,33 @@
   }
   
   /* ========================================== */
-  /* INPUT HEIGHT CONFIGURATION */
+  /* INPUT HEIGHT & BACKGROUND CONFIGURATION */
   /* ========================================== */
-  /* Controls the closed-state min-height of the select widget.
-   * Default: 36px (matches Tailwind UI: py-1.5 + text-sm/leading-6)
+  /* Controls the closed-state min-height and background of the select widget.
+   *
+   * Height default: 36px (matches Tailwind UI: py-1.5 + text-sm/leading-6)
+   * Background default: --tm-color-surface-container-high-lib
    *
    * Override in consuming project CSS:
-   *   :root { --tm-input-height: 38px; }     Bootstrap 5
-   *   :root { --tm-input-height: 56px; }     Material Design 3
-   *   :root { --tm-input-height: 40px; }     your-custom-system
+   *   :root { --tm-input-height: 38px; }
+   *   :root { --tm-input-bg: var(--color-surface-container); }
+   *
+   * Or bridge from your design system tokens:
+   *   :root {
+   *     --input-height: 38px;
+   *     --input-bg: var(--color-surface-container-high);
+   *     --tm-input-height: var(--input-height);
+   *     --tm-input-bg: var(--input-bg);
+   *   }
    */
   @media (min-width: 768px) {
     .tm-select-closed {
       min-height: var(--tm-input-height, 36px);
     }
+  }
+
+  .tm-select-closed {
+    background-color: var(--tm-input-bg, var(--tm-color-surface-container-high-lib));
   }
 }
 
