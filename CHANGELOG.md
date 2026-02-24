@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2026.02.24.1]
+
+### Bug Fixes
+- Multiple select option working (select) [#330](https://github.com/imAsparky/django-tag-me/pull/330)
+
+
 ## [2026.02.21.2]
 
 ### Maintenance
