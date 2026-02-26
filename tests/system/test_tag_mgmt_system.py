@@ -4,7 +4,7 @@ Tests for tag_me/utils/tag_mgmt_system.py
 Covers:
     - populate_all_tag_records() orchestrator
     - _populate_system_tags()
-    - _populate_user_tags()
+    - populate_user_tags()
     - update_fields_that_should_be_synchronised()
     - Integration: full population workflow, incremental population
 
@@ -31,8 +31,8 @@ from tag_me.models import (
 )
 from tag_me.utils.tag_mgmt_system import (
     _populate_system_tags,
-    _populate_user_tags,
     populate_all_tag_records,
+    populate_user_tags,
     update_fields_that_should_be_synchronised,
 )
 
@@ -257,13 +257,13 @@ class TestPopulateSystemTags:
 
 
 # =============================================================================
-# _populate_user_tags
+# populate_user_tags
 # =============================================================================
 
 
 @pytest.mark.django_db
 class TestPopulateUserTags:
-    """Tests for _populate_user_tags function."""
+    """Tests for populate_user_tags function."""
 
     def test_creates_user_tag_for_each_user_field_combo(
         self, test_user_factory, user_tagged_field
@@ -272,7 +272,7 @@ class TestPopulateUserTags:
         user1 = test_user_factory(username="utag_user1")
         user2 = test_user_factory(username="utag_user2")
 
-        _populate_user_tags()
+        populate_user_tags()
 
         assert UserTag.objects.filter(
             user=user1, tagged_field=user_tagged_field
@@ -288,7 +288,7 @@ class TestPopulateUserTags:
         user1 = test_user_factory(username="specific_user1")
         user2 = test_user_factory(username="specific_user2")
 
-        _populate_user_tags(user=user1)
+        populate_user_tags(user=user1)
 
         assert UserTag.objects.filter(
             user=user1, tagged_field=user_tagged_field
@@ -308,7 +308,7 @@ class TestPopulateUserTags:
         )
         existing.save(sync_tags_save=True)
 
-        _populate_user_tags()
+        populate_user_tags()
 
         existing.refresh_from_db()
         assert existing.tags == "existing_tag,"
@@ -350,7 +350,7 @@ class TestPopulateUserTags:
             tag_type="user",
         )
 
-        _populate_user_tags(user=test_user)
+        populate_user_tags(user=test_user)
 
         # New field should have a UserTag
         assert UserTag.objects.filter(user=test_user, tagged_field=field2).exists()
@@ -361,7 +361,7 @@ class TestPopulateUserTags:
 
     def test_no_user_fields_does_not_create_tags(self, test_user, system_tagged_field):
         """Should not create UserTags for system-type fields."""
-        _populate_user_tags()
+        populate_user_tags()
 
         assert not UserTag.objects.filter(tagged_field=system_tagged_field).exists()
 
@@ -369,7 +369,7 @@ class TestPopulateUserTags:
         """Should handle the case where no users exist."""
         User.objects.all().delete()
 
-        _populate_user_tags()
+        populate_user_tags()
 
         assert not UserTag.objects.filter(tagged_field=user_tagged_field).exists()
 
@@ -380,14 +380,14 @@ class TestPopulateUserTags:
             mock_bc.side_effect = IntegrityError("Duplicate key")
 
             with pytest.raises(ValidationError, match="Duplicate user tag"):
-                _populate_user_tags()
+                populate_user_tags()
 
     def test_raises_validation_error_on_data_error(self, test_user, user_tagged_field):
         with patch.object(UserTag.objects, "bulk_create") as mock_bc:
             mock_bc.side_effect = DataError("Invalid data")
 
             with pytest.raises(ValidationError, match="Invalid data type"):
-                _populate_user_tags()
+                populate_user_tags()
 
     def test_raises_validation_error_on_database_error(
         self, test_user, user_tagged_field
@@ -396,13 +396,13 @@ class TestPopulateUserTags:
             mock_bc.side_effect = DatabaseError("Connection failed")
 
             with pytest.raises(ValidationError, match="Database error"):
-                _populate_user_tags()
+                populate_user_tags()
 
     def test_handles_many_users(self, test_user_factory, user_tagged_field):
         """Should create tags for all users via bulk_create."""
         users = [test_user_factory(username=f"batchuser{i}") for i in range(50)]
 
-        _populate_user_tags()
+        populate_user_tags()
 
         for u in users:
             assert UserTag.objects.filter(
@@ -528,7 +528,7 @@ class TestTagMgmtSystemIntegration:
         )
 
         # Initial population
-        _populate_user_tags(user=user1)
+        populate_user_tags(user=user1)
         assert UserTag.objects.filter(user=user1, tagged_field=field1).count() == 1
 
         # Add new user + new field
@@ -541,11 +541,11 @@ class TestTagMgmtSystemIntegration:
         )
 
         # Populate user1 → should pick up field2
-        _populate_user_tags(user=user1)
+        populate_user_tags(user=user1)
         assert UserTag.objects.filter(user=user1, tagged_field=field2).exists()
 
         # Populate user2 → should pick up both fields
-        _populate_user_tags(user=user2)
+        populate_user_tags(user=user2)
         assert UserTag.objects.filter(user=user2, tagged_field=field1).exists()
         assert UserTag.objects.filter(user=user2, tagged_field=field2).exists()
 

@@ -23,17 +23,11 @@ Implementation Notes:
    - Clears ContentType cache before field registration to handle RenameModel
    - Runs orphan merger after field registration to handle DeleteModel+CreateModel
 
-
-MigrationTracker
-Migration tracking for managing the population of system tags.
-
-This module provides utilities to track the completion of Django migrations
-for specific apps, ensuring that system tag population only occurs after
-all required database tables are available.
-
-The tracker dynamically builds its tracked app set from INSTALLED_APPS,
-filtered to only apps with migrations. This ensures tag-me works regardless
-of which Django contrib apps or third-party apps the consumer has installed.
+Signal Handling:
+   Django's migrate command runs ALL migrations first, then emits post_migrate
+   once per installed app in a batch at the end. Since all tables already exist
+   by the time any post_migrate fires, we simply run on the first signal and
+   skip subsequent ones using a run-once flag.
 """
 
 import json
@@ -279,11 +273,13 @@ class SystemTagRegistry:
         _instance (SystemTagRegistry): The singleton instance of the registry.
         _fields (Set[FieldMetadata]): A set containing metadata for all registered fields.
         _is_ready (bool): Flag indicating whether the registry is ready for field population.
+        _has_populated (bool): Flag to ensure population runs only once per process.
     """
 
     _instance = None
     _fields: Set[FieldMetadata] = set()
     _is_ready: bool = False
+    _has_populated: bool = False
 
     @classmethod
     def register_field(
@@ -341,14 +337,22 @@ class SystemTagRegistry:
         """
         Populates/updates the database with registered field metadata and tag records.
 
-        Runs after every migrate to ensure:
+        Runs once after migrate to ensure:
         - Field metadata (TaggedFieldModel) stays current
         - System tags reflect any choice/field changes
         - New users get their UserTag entries
+
+        Guarded by _has_populated to prevent repeated execution when
+        post_migrate fires once per installed app.
         """
         if not cls._is_ready:
             logger.info("registry_not_ready")
             return
+
+        if cls._has_populated:
+            return
+
+        cls._has_populated = True
 
         persistence = TagPersistence()
         persistence.save_fields(cls._fields)
@@ -368,114 +372,34 @@ class SystemTagRegistry:
 
         populate_all_tag_records()
 
-
-class MigrationTracker:
-    """
-    Singleton tracker for monitoring the completion of app migrations.
-
-    Dynamically builds the set of tracked apps from INSTALLED_APPS at runtime,
-    filtered to only apps that have migrations. This ensures tag-me works
-    regardless of which Django contrib apps or third-party apps are installed.
-
-    The tracker waits for ALL installed apps with migrations to complete before
-    triggering tag-me's field population, ensuring all database tables exist.
-
-    Attributes:
-        _instance: Singleton instance of the tracker
-        _migrated_apps: Set of apps that have completed migration
-        _tracked_apps: Set of apps to track (built dynamically on first use)
-    """
-
-    _instance = None
-    _migrated_apps = set()
-    _tracked_apps = None  # Built dynamically from INSTALLED_APPS
-
-    @classmethod
-    def _get_tracked_apps(cls):
-        """
-        Build tracked apps from INSTALLED_APPS on first use.
-
-        Only includes apps that have a migrations module (i.e., apps that
-        will actually send a post_migrate signal). Apps with
-        migrations_module=None have migrations explicitly disabled and
-        are excluded.
-
-        Returns:
-            set: App labels that need to complete migration before
-                 tag-me can safely populate.
-        """
-        if cls._tracked_apps is not None:
-            return cls._tracked_apps
-
-        from django.apps import apps
-
-        cls._tracked_apps = set()
-        for app_config in apps.get_app_configs():
-            # Only track apps that have a migrations module.
-            # Apps with migrations_module=None have migrations disabled
-            # and won't send post_migrate, so we must not wait for them.
-            migrations_module = getattr(app_config, "migrations_module", None)
-            if migrations_module is not None:
-                cls._tracked_apps.add(app_config.label)
-
-        logger.debug(
-            "migration_tracker_initialized",
-            tracked_app_count=len(cls._tracked_apps),
-        )
-
-        return cls._tracked_apps
-
-    @classmethod
-    def register_migration(cls, app_label):
-        """
-        Registers the completion of an app's migration.
-
-        Called by the post_migrate signal handler to record that an app
-        has completed its migrations. Only tracks apps that are in the
-        dynamically built set of tracked apps.
-
-        Args:
-            app_label: The label of the app that completed migration
-        """
-        if cls._instance is None:
-            cls._instance = cls()
-        tracked = cls._get_tracked_apps()
-        if app_label in tracked:
-            cls._migrated_apps.add(app_label)
-
-    @classmethod
-    def all_apps_migrated(cls):
-        """Check if all tracked apps have completed their migrations."""
-        return cls._migrated_apps == cls._get_tracked_apps()
-
     @classmethod
     def reset(cls):
         """
-        Reset tracker state. Useful for testing.
+        Reset registry state.
+
+        Useful for testing to allow populate_registered_fields to run again.
         """
         cls._instance = None
-        cls._migrated_apps = set()
-        cls._tracked_apps = None
+        cls._is_ready = False
+        cls._has_populated = False
 
 
 def post_migrate_handler(sender, **kwargs):
     """
     Signal handler for Django's post_migrate signal.
 
-    This handler is called after each app completes its migrations. It:
-    1. Registers the migration completion with MigrationTracker
-    2. Checks if all tracked apps have migrated
-    3. If all migrations are complete, marks the SystemTagRegistry as ready
-       and triggers the population of system tags
+    Django's migrate command runs all migrations first, then emits
+    post_migrate once per installed app in a batch at the end. By the
+    time this handler fires, all database tables already exist.
+
+    We run on the first post_migrate signal and skip subsequent ones.
+    The dispatch_uid="tag_me_post_migrate" on the signal connection
+    prevents duplicate handler registration, and the _has_populated
+    guard on SystemTagRegistry prevents duplicate execution.
 
     Args:
-        sender: The AppConfig that just completed migration
+        sender: The AppConfig that triggered the signal
         **kwargs: Additional arguments provided by the signal
     """
-    MigrationTracker.register_migration(sender.label)
-
-    if MigrationTracker.all_apps_migrated():
-        from .registry import SystemTagRegistry
-
-        SystemTagRegistry.mark_ready()
-        SystemTagRegistry.populate_registered_fields()
+    SystemTagRegistry.mark_ready()
+    SystemTagRegistry.populate_registered_fields()

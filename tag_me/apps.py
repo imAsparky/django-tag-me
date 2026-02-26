@@ -70,4 +70,7 @@ class DjangoTagMeConfig(AppConfig):
         """Connect signal handlers for post-migration processing."""
         from tag_me.registry import post_migrate_handler
 
-        post_migrate.connect(post_migrate_handler)
+        post_migrate.connect(
+            post_migrate_handler,
+            dispatch_uid="tag_me_post_migrate",
+        )
