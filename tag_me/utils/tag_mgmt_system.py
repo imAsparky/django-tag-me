@@ -1,7 +1,6 @@
 """Users need to be added to the UserTag table."""
 
-import logging
-
+import structlog
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -23,7 +22,7 @@ from tag_me.utils.helpers import (
     stdout_with_optional_color,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 User = get_user_model()
 
@@ -51,11 +50,8 @@ def populate_all_tag_records(user=None):
             message="tag-me tag population completed successfully",
             color_code=92,
         )
-    except Exception as e:
-        stdout_with_optional_color(
-            message=f"tag-me tag population failed: {str(e)}",
-            color_code=91,
-        )
+    except Exception:
+        logger.exception("tag_population_failed")
         raise
 
 
@@ -93,13 +89,8 @@ def _populate_system_tags():
             if not tagged_field.default_tags:
                 continue
 
-            # Parse CSV string to get tag names
-            from tag_me.utils.parser import parse_tags
-
-            tag_names = parse_tags(tagged_field.default_tags)
-
             # Create one SystemTag per system tag field with all tags
-            obj, created = SystemTag.objects.update_or_create(
+            _, created = SystemTag.objects.update_or_create(
                 tagged_field=tagged_field,
                 defaults={
                     "tags": tagged_field.default_tags,
@@ -123,19 +114,23 @@ def _populate_system_tags():
             color_code=92,
         )
 
-    except IntegrityError as e:
-        logger.exception(msg="IntegrityError during system tag population")
-        raise ValidationError(f"Duplicate system tag found: {str(e)}")
+        logger.info(
+            "system_tags_populated",
+            created=total_created,
+            updated=total_updated,
+        )
 
-    except DataError as e:
-        msg = f"Invalid data type for SystemTag: {str(e)}"
-        logger.exception(msg)
-        raise ValidationError(msg)
+    except IntegrityError:
+        logger.exception("system_tag_integrity_error")
+        raise ValidationError("Duplicate system tag found")
 
-    except DatabaseError as e:
-        msg = f"Database error during SystemTag population: {str(e)}"
-        logger.exception(msg)
-        raise ValidationError(msg)
+    except DataError:
+        logger.exception("system_tag_data_error")
+        raise ValidationError("Invalid data type for SystemTag")
+
+    except DatabaseError:
+        logger.exception("system_tag_database_error")
+        raise ValidationError("Database error during SystemTag population")
 
 
 def _populate_user_tags(user=None):
@@ -224,19 +219,24 @@ def _populate_user_tags(user=None):
             color_code=92,
         )
 
-    except IntegrityError as e:
-        logger.exception(msg="IntegrityError during user tag population")
-        raise ValidationError(f"Duplicate user tag found: {str(e)}")
+        logger.info(
+            "user_tags_populated",
+            user_count=len(users),
+            tag_entries_created=len(user_tags),
+            targeted_user=str(user.id) if user else None,
+        )
 
-    except DataError as e:
-        msg = f"Invalid data type for UserTag: {str(e)}"
-        logger.exception(msg)
-        raise ValidationError(msg)
+    except IntegrityError:
+        logger.exception("user_tag_integrity_error")
+        raise ValidationError("Duplicate user tag found")
 
-    except DatabaseError as e:
-        msg = f"Database error during UserTag population: {str(e)}"
-        logger.exception(msg)
-        raise ValidationError(msg)
+    except DataError:
+        logger.exception("user_tag_data_error")
+        raise ValidationError("Invalid data type for UserTag")
+
+    except DatabaseError:
+        logger.exception("user_tag_database_error")
+        raise ValidationError("Database error during UserTag population")
 
 
 def update_fields_that_should_be_synchronised():
@@ -269,7 +269,9 @@ def update_fields_that_should_be_synchronised():
         if model_class is None:
             # Model no longer exists (deleted app/model), skip it
             logger.debug(
-                f"Skipping ContentType {model.app_label}.{model.model} - model no longer exists"
+                "sync_skipped_deleted_model",
+                app_label=model.app_label,
+                model=model.model,
             )
             continue
 
