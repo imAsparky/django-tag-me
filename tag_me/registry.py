@@ -20,6 +20,8 @@ Implementation Notes:
    - Defers database operations until after migrations
    - Thread-safe field registration
    - Handles synchronization of related fields
+   - Clears ContentType cache before field registration to handle RenameModel
+   - Runs orphan merger after field registration to handle DeleteModel+CreateModel
 
 
 MigrationTracker
@@ -29,17 +31,17 @@ This module provides utilities to track the completion of Django migrations
 for specific apps, ensuring that system tag population only occurs after
 all required database tables are available.
 
-The module tracks a predefined set of Django apps that are known to have
-model migrations, waiting for all of them to complete before triggering
-the system tag population process.
+The tracker dynamically builds its tracked app set from INSTALLED_APPS,
+filtered to only apps with migrations. This ensures tag-me works regardless
+of which Django contrib apps or third-party apps the consumer has installed.
 """
 
 import json
-import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Set
 
+import structlog
 from django.conf import settings
 from django.db import (
     models,
@@ -49,7 +51,7 @@ from django.db import (
     utils as django_db_exceptions,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class TagType(Enum):
@@ -91,7 +93,8 @@ class TagPersistence:
         Initializes the TagPersistence instance.
 
         If SEED_INITIAL_USER_DEFAULT_TAGS setting is True, attempts to load default user tags
-        from the default_user_tags.json file.
+        from the configured tags file (DJ_TAG_ME_DEFAULT_TAGS_FILE setting, defaults to
+        "default_user_tags.json" in the project root).
         """
         self.default_user_tags: Dict = {}
         if (
@@ -102,42 +105,51 @@ class TagPersistence:
 
     def _load_default_user_tags(self) -> None:
         """\
-        Loads default user tags from the default_user_tags.json file.
+        Loads default user tags from the configured JSON file.
 
-        The JSON file should contain a dictionary mapping field names to comma-separated strings, where each string
-        contains default tags.
+        The file path is read from the DJ_TAG_ME_DEFAULT_TAGS_FILE setting,
+        falling back to "default_user_tags.json" if not set. Relative paths
+        resolve against the current working directory.
+
+        The JSON file should contain a dictionary mapping field names to
+        comma-separated strings, where each string contains default tags.
 
         Example JSON format:
             {
-                "field_name": "tag1,tag2,tag3,"
+                "field_name": ["Field Label", "tag1,tag2,tag3,"]
             }
 
         Any errors during file loading (file not found, invalid JSON, permission issues) are
         logged but do not raise exceptions, leaving default_user_tags empty.
         """
+        tags_path = getattr(
+            settings,
+            "DJ_TAG_ME_DEFAULT_TAGS_FILE",
+            "default_user_tags.json",
+        )
         try:
-            with open("default_user_tags.json", "r") as f:
+            with open(tags_path, "r") as f:
                 self.default_user_tags = json.load(f)
                 logger.debug(
-                    f"Loaded default user tags from file: {self.default_user_tags}"
+                    "default_user_tags_loaded",
+                    field_count=len(self.default_user_tags),
+                    path=str(tags_path),
                 )
         except FileNotFoundError:
-            msg = "Default tags file not found: default_user_tags.json"
-            logger.exception(msg)
+            logger.warning("default_user_tags_file_not_found", path=str(tags_path))
         except (json.JSONDecodeError, PermissionError, IOError):
-            msg = "Error reading default_user_tags.json:"
-            logger.exception(msg)
+            logger.exception("default_user_tags_read_error", path=str(tags_path))
 
     def save_fields(self, metadata: set[FieldMetadata]) -> None:
         """\
         Saves field metadata to the database and sets up tag synchronization.
 
         Creates or updates TaggedFieldModel instances for each field in the metadata set.
-        
+
         IMPORTANT: Uses update_or_create with content + field_name as the lookup keys.
         The model_name, model_verbose_name, and field_verbose_name are stored in defaults
         so they get refreshed on each migration (in case the model was renamed).
-        
+
         For system tags, uses the tags directly from the metadata. For user tags, applies
         default tags from default_user_tags if available and the field is newly created.
         The reason we limit adding the default user tags to created fields is so we dont overwrite
@@ -169,12 +181,18 @@ class TagPersistence:
             update_fields_that_should_be_synchronised,
         )
 
+        # Clear ContentType cache to ensure we see any changes
+        # made by RenameModel migrations (which use .update() and bypass
+        # the in-memory cache). Without this, get_for_model() can create
+        # duplicate ContentType records after a model rename.
+        ContentType.objects.clear_cache()
+
         for field in metadata:
             try:
                 with transaction.atomic():
                     content_type = ContentType.objects.get_for_model(field.model)
 
-                    # CHANGED: Use update_or_create instead of get_or_create
+                    # Use update_or_create instead of get_or_create
                     # Lookup is by content + field_name only (stable across renames)
                     # The defaults dict contains display fields that may change
                     tagged_field, created = TaggedFieldModel.objects.update_or_create(
@@ -205,25 +223,42 @@ class TagPersistence:
 
                     tagged_field.save()
 
-                    action = "Created" if created else "Updated"
-                    msg = f"Successfully {action} tag-me {tagged_field}"
-                    logger.info(msg)
+                    action = "created" if created else "updated"
+                    logger.info(
+                        "tagged_field_saved",
+                        action=action,
+                        model_name=field.model_name,
+                        field_name=field.field_name,
+                        tag_type=field.tag_type.value,
+                    )
 
             except AttributeError:
-                msg = f"Invalid model or field attributes for {field.field_name}:"
-                logger.exception(msg)
+                logger.exception(
+                    "tagged_field_save_failed",
+                    field_name=field.field_name,
+                    reason="invalid_attributes",
+                )
                 raise
             except (django_db_exceptions.Error,):
-                msg = f"Database transaction error for {field.field_name}:"
-                logger.exception(msg)
+                logger.exception(
+                    "tagged_field_save_failed",
+                    field_name=field.field_name,
+                    reason="database_error",
+                )
                 raise
             except KeyError:
-                msg = f"Missing required field data for {field.field_name}:"
-                logger.exception(msg)
+                logger.exception(
+                    "tagged_field_save_failed",
+                    field_name=field.field_name,
+                    reason="missing_field_data",
+                )
                 raise
             except IndexError:
-                msg = f"Invalid tag data format for {field.field_name}:"
-                logger.exception(msg)
+                logger.exception(
+                    "tagged_field_save_failed",
+                    field_name=field.field_name,
+                    reason="invalid_tag_format",
+                )
                 raise
 
         update_fields_that_should_be_synchronised()
@@ -312,13 +347,19 @@ class SystemTagRegistry:
         - New users get their UserTag entries
         """
         if not cls._is_ready:
-            logger.info("Registry not ready, skipping population")
+            logger.info("registry_not_ready")
             return
-
-        # Remove the DJ_TAG_ME_SYSTEM_TAGS_POPULATED guard entirely
 
         persistence = TagPersistence()
         persistence.save_fields(cls._fields)
+
+        # Detect and merge orphaned TaggedFieldModel records.
+        # This handles the case where Django generates DeleteModel + CreateModel
+        # instead of RenameModel, which creates a new ContentType and orphans
+        # the old TaggedFieldModel records along with their UserTag/SystemTag FKs.
+        from tag_me.utils.orphan_merger import merge_orphaned_tagged_fields
+
+        merge_orphaned_tagged_fields()
 
         # Populate the actual tag records
         from tag_me.utils.tag_mgmt_system import (
@@ -330,30 +371,59 @@ class SystemTagRegistry:
 
 class MigrationTracker:
     """
-    Singleton tracker for monitoring the completion of critical app migrations.
+    Singleton tracker for monitoring the completion of app migrations.
 
-    This class tracks migrations for a specific set of Django apps that are
-    known to have models and migrations. It ensures that system tag population
-    only occurs after all tracked apps have completed their migrations.
+    Dynamically builds the set of tracked apps from INSTALLED_APPS at runtime,
+    filtered to only apps that have migrations. This ensures tag-me works
+    regardless of which Django contrib apps or third-party apps are installed.
+
+    The tracker waits for ALL installed apps with migrations to complete before
+    triggering tag-me's field population, ensuring all database tables exist.
 
     Attributes:
         _instance: Singleton instance of the tracker
         _migrated_apps: Set of apps that have completed migration
-        _tracked_apps: Set of apps that need to complete migration before
-                      system tag population can occur
+        _tracked_apps: Set of apps to track (built dynamically on first use)
     """
 
     _instance = None
     _migrated_apps = set()
-    _tracked_apps = {
-        "admin",
-        "auth",
-        "contenttypes",
-        "forms",
-        "sessions",
-        "sites",
-        "tag_me",
-    }
+    _tracked_apps = None  # Built dynamically from INSTALLED_APPS
+
+    @classmethod
+    def _get_tracked_apps(cls):
+        """
+        Build tracked apps from INSTALLED_APPS on first use.
+
+        Only includes apps that have a migrations module (i.e., apps that
+        will actually send a post_migrate signal). Apps with
+        migrations_module=None have migrations explicitly disabled and
+        are excluded.
+
+        Returns:
+            set: App labels that need to complete migration before
+                 tag-me can safely populate.
+        """
+        if cls._tracked_apps is not None:
+            return cls._tracked_apps
+
+        from django.apps import apps
+
+        cls._tracked_apps = set()
+        for app_config in apps.get_app_configs():
+            # Only track apps that have a migrations module.
+            # Apps with migrations_module=None have migrations disabled
+            # and won't send post_migrate, so we must not wait for them.
+            migrations_module = getattr(app_config, "migrations_module", None)
+            if migrations_module is not None:
+                cls._tracked_apps.add(app_config.label)
+
+        logger.debug(
+            "migration_tracker_initialized",
+            tracked_app_count=len(cls._tracked_apps),
+        )
+
+        return cls._tracked_apps
 
     @classmethod
     def register_migration(cls, app_label):
@@ -362,19 +432,30 @@ class MigrationTracker:
 
         Called by the post_migrate signal handler to record that an app
         has completed its migrations. Only tracks apps that are in the
-        predefined set of _tracked_apps.
+        dynamically built set of tracked apps.
 
         Args:
             app_label: The label of the app that completed migration
         """
         if cls._instance is None:
             cls._instance = cls()
-        if app_label in cls._tracked_apps:
+        tracked = cls._get_tracked_apps()
+        if app_label in tracked:
             cls._migrated_apps.add(app_label)
 
     @classmethod
     def all_apps_migrated(cls):
-        return cls._migrated_apps == cls._tracked_apps
+        """Check if all tracked apps have completed their migrations."""
+        return cls._migrated_apps == cls._get_tracked_apps()
+
+    @classmethod
+    def reset(cls):
+        """
+        Reset tracker state. Useful for testing.
+        """
+        cls._instance = None
+        cls._migrated_apps = set()
+        cls._tracked_apps = None
 
 
 def post_migrate_handler(sender, **kwargs):

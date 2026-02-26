@@ -1,35 +1,38 @@
-"""Management command to populate and update tag-me system and user tags."""
+"""Backward-compatible alias for 'python manage.py tag_me populate'.
+
+This command is kept for backward compatibility. New code should use:
+    python manage.py tag_me populate [--user USER_ID]
+
+See 'python manage.py tag_me help' for all available subcommands.
+"""
 
 import argparse
-import logging
+import warnings
 from uuid import UUID
 
+import structlog
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from tag_me.utils.tag_mgmt_system import populate_all_tag_records
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 User = get_user_model()
 
 
 class Command(BaseCommand):
     help = (
-        "Populate or update tag-me system and user tags. "
-        "System tags are updated to reflect any field/choice changes. "
-        "User tags are only created for new users. "
-        "This normally runs automatically after migrate."
+        "DEPRECATED: Use 'python manage.py tag_me populate' instead.\n"
+        "Populate or update tag-me system and user tags."
     )
 
     def add_arguments(self, parser):
         def user_id_type(value):
             """Accept both integer and UUID formats."""
             try:
-                # Try UUID first
                 return UUID(value)
             except ValueError:
                 try:
-                    # Fall back to integer
                     return int(value)
                 except ValueError:
                     raise argparse.ArgumentTypeError(
@@ -45,9 +48,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """Execute the tag population process."""
+        warnings.warn(
+            "populate_tags is deprecated. "
+            "Use 'python manage.py tag_me populate' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         user = None
 
-        # Handle specific user if provided
         if user_id := options.get("user"):
             try:
                 user = User.objects.get(id=user_id)
@@ -74,13 +83,9 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.SUCCESS("✓ Successfully populated/updated all tags")
                 )
-        except Exception as e:
-            logger.exception("Tag population failed")
+        except Exception:
             self.stdout.write(
-                self.style.ERROR(
-                    f"✗ Tag population failed: {str(e)}\n"
-                    "  Check logs for full error details."
-                )
+                self.style.ERROR("✗ Tag population failed. Check logs for details.")
             )
-            # Re-raise to ensure non-zero exit code
             raise
+
