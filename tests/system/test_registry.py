@@ -6,7 +6,7 @@ Covers:
     - TagPersistence initialization and file loading
     - TagPersistence.save_fields (update_or_create behavior)
     - TaggedFieldModel unique constraints and properties
-    - MigrationTracker singleton behavior
+    - SystemTagRegistry run-once guard behavior
 
 All tests are pytest-style (no Django TestCase) so that conftest.py
 autouse fixtures (reset_registry) apply consistently.
@@ -466,43 +466,73 @@ class TestTaggedFieldModelProperties:
 
 
 # =============================================================================
-# MigrationTracker
+# SystemTagRegistry Run-Once Guard
 # =============================================================================
 
 
 @pytest.mark.django_db
-class TestMigrationTracker:
-    """Test MigrationTracker singleton behavior."""
+class TestSystemTagRegistryRunOnce:
+    """Test that populate_registered_fields only runs once per process."""
 
-    def test_ignores_untracked_apps(self):
-        """Apps not in the tracked set should not be recorded."""
-        from tag_me.registry import MigrationTracker
+    def test_skips_when_not_ready(self):
+        """populate_registered_fields should no-op when _is_ready is False."""
+        from tag_me.registry import SystemTagRegistry
 
-        # Use a known tracked set to isolate from app registry state
-        MigrationTracker._tracked_apps = {"tag_me", "contenttypes"}
+        SystemTagRegistry._is_ready = False
+        SystemTagRegistry._has_populated = False
 
-        MigrationTracker.register_migration("untracked_app")
+        # Should return without doing anything (no error)
+        SystemTagRegistry.populate_registered_fields()
 
-        assert "untracked_app" not in MigrationTracker._migrated_apps
+        assert not SystemTagRegistry._has_populated
 
-    def test_tracks_known_app(self):
-        """Apps in the tracked set should be added to _migrated_apps."""
-        from tag_me.registry import MigrationTracker
+    def test_sets_has_populated_on_first_run(self):
+        """First call should set _has_populated to True."""
+        from tag_me.registry import SystemTagRegistry
 
-        MigrationTracker._tracked_apps = {"tag_me", "contenttypes"}
+        SystemTagRegistry._is_ready = True
+        SystemTagRegistry._has_populated = False
 
-        MigrationTracker.register_migration("tag_me")
+        SystemTagRegistry.populate_registered_fields()
 
-        assert "tag_me" in MigrationTracker._migrated_apps
+        assert SystemTagRegistry._has_populated
 
-    def test_reports_all_migrated_when_complete(self):
-        """all_apps_migrated returns True only when every tracked app is registered."""
-        from tag_me.registry import MigrationTracker
+    def test_skips_on_second_run(self, monkeypatch):
+        """Second call should be a no-op — save_fields should not be called again."""
+        from tag_me.registry import SystemTagRegistry, TagPersistence
 
-        MigrationTracker._tracked_apps = {"app_a", "app_b"}
+        SystemTagRegistry._is_ready = True
+        SystemTagRegistry._has_populated = False
 
-        MigrationTracker.register_migration("app_a")
-        assert not MigrationTracker.all_apps_migrated()
+        # First run
+        SystemTagRegistry.populate_registered_fields()
+        assert SystemTagRegistry._has_populated
 
-        MigrationTracker.register_migration("app_b")
-        assert MigrationTracker.all_apps_migrated()
+        # Replace save_fields with a tracker to verify it's not called again
+        called = []
+        monkeypatch.setattr(
+            TagPersistence, "save_fields", lambda self, metadata: called.append(True)
+        )
+
+        # Second run — should skip
+        SystemTagRegistry.populate_registered_fields()
+
+        assert called == []
+
+    def test_reset_allows_repopulation(self):
+        """After reset(), populate_registered_fields should run again."""
+        from tag_me.registry import SystemTagRegistry
+
+        SystemTagRegistry._is_ready = True
+        SystemTagRegistry._has_populated = True
+
+        SystemTagRegistry.reset()
+
+        assert not SystemTagRegistry._has_populated
+        assert not SystemTagRegistry._is_ready
+
+        # Mark ready again and verify it can run
+        SystemTagRegistry._is_ready = True
+        SystemTagRegistry.populate_registered_fields()
+
+        assert SystemTagRegistry._has_populated

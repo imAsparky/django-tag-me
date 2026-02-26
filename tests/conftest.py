@@ -5,7 +5,7 @@ Fixtures here are available to ALL test files under tests/.
 
 What Belongs Here
 =================
-    ✓ Registry/tracker reset (autouse)
+    ✓ Registry reset (autouse)
     ✓ Common model factories used across multiple test files
     ✓ Shared file-based fixtures (default_tags_file)
 
@@ -19,37 +19,25 @@ import json
 import pytest
 
 # =============================================================================
-# Registry & Tracker Reset
+# Registry Reset
 # =============================================================================
 
 
 @pytest.fixture(autouse=True)
 def reset_registry():
-    """Reset SystemTagRegistry and MigrationTracker between tests.
+    """Reset SystemTagRegistry between tests.
 
-    Both singletons store class-level state that persists across tests.
+    The registry stores class-level state that persists across tests.
     Without this reset, tests can see stale fields, readiness flags,
-    or migration tracking from previous tests.
+    or population state from previous tests.
     """
-    from tag_me.registry import MigrationTracker, SystemTagRegistry
+    from tag_me.registry import SystemTagRegistry
 
-    SystemTagRegistry._instance = None
-    SystemTagRegistry._fields = set()
-    SystemTagRegistry._is_ready = False
-    # Only reset mutable state — _tracked_apps is a cached derivation
-    # of INSTALLED_APPS (a constant) and is fragile to rebuild outside
-    # the migration process. Resetting it causes _get_tracked_apps() to
-    # return an empty set in some test environments.
-    MigrationTracker._instance = None
-    MigrationTracker._migrated_apps = set()
+    SystemTagRegistry.reset()
 
     yield
 
-    SystemTagRegistry._instance = None
-    SystemTagRegistry._fields = set()
-    SystemTagRegistry._is_ready = False
-    MigrationTracker._instance = None
-    MigrationTracker._migrated_apps = set()
+    SystemTagRegistry.reset()
 
 
 # =============================================================================

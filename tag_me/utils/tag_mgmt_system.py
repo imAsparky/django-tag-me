@@ -44,7 +44,7 @@ def populate_all_tag_records(user=None):
 
     try:
         _populate_system_tags()
-        _populate_user_tags(user=user)
+        populate_user_tags(user=user)
 
         stdout_with_optional_color(
             message="tag-me tag population completed successfully",
@@ -133,7 +133,7 @@ def _populate_system_tags():
         raise ValidationError("Database error during SystemTag population")
 
 
-def _populate_user_tags(user=None):
+def populate_user_tags(user=None):
     """
     Populates UserTag records for user(s) and user tag fields.
 
