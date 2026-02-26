@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## [2026.02.26.1]
+
+### Documentation
+- Update management command changes (mgmt) [#332](https://github.com/imAsparky/django-tag-me/pull/332)
+
+### Bug Fixes
+- Takes contentype.cache into account for migrations (mgmt) [#332](https://github.com/imAsparky/django-tag-me/pull/332)
+
+### Testing
+- Refactor/Add tests for new mgmt command (all) [#332](https://github.com/imAsparky/django-tag-me/pull/332)
+
+
 ## [2026.02.24.1]
 
 ### Bug Fixes
