@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## [2026.02.26.2]
+
+### Maintenance
+- Delete unused files (housekeeping) [#334](https://github.com/imAsparky/django-tag-me/pull/334)
+- Update dependencies (frontend) [#336](https://github.com/imAsparky/django-tag-me/pull/336)
+
+
 ## [2026.02.26.1]
 
 ### Documentation
