@@ -33,21 +33,51 @@
 
 |
 
-Add tags to any Django model field—with a polished widget, per-user tag customization, and optional synchronization across models.
+Add tags to any Django model field—with a polished widget, per-user tag
+customization, and automatic resilience to model renames.
 
 |
 
 Features
 --------
 
-- **Easy setup** — Add ``TagMeCharField`` to your model
+- **Easy setup** — Add ``TagMeCharField`` to your model and go
 - **Beautiful widget** — Searchable dropdown with tag pills, powered by Alpine.js
 - **User tags** — Each user gets their own customizable tag set per field
 - **System tags** — Define default tags available to all users
 - **Tag synchronization** — Keep tags in sync across related models
+- **Model rename resilient** — FK-based lookups with automatic orphan detection and repair
+- **CLI diagnostics** — Health checks, orphan repair, and built-in troubleshooting via ``tag_me`` command
+- **Structured logging** — Observability via structlog for production monitoring
 - **Form integration** — Drop-in mixin for your model forms
 - **Template tags** — Display tags as styled pills
-- **Model rename resilient** — Uses ContentType FK lookups, not model name strings
+
+|
+
+Quick Example
+-------------
+
+.. code-block:: python
+
+    # models.py
+    from tag_me.models import TagMeCharField
+
+    class Article(models.Model):
+        tags = TagMeCharField(blank=True)
+        category = TagMeCharField(choices=CategoryChoices.choices, system_tag=True)
+
+.. code-block:: python
+
+    # forms.py
+    from tag_me.forms import TagMeModelFormMixin
+
+    class ArticleForm(TagMeModelFormMixin, forms.ModelForm):
+        class Meta:
+            model = Article
+            fields = ["tags", "category"]
+
+See the `Quickstart <https://django-tag-me.readthedocs.io/en/latest/quickstart.html>`_
+for the full setup including templates and frontend requirements.
 
 |
 
@@ -68,6 +98,47 @@ Widget Preview
 
 |
 
+Model Rename Resilience
+-----------------------
+
+Rename your Django models without breaking tags. Tag-me uses ContentType
+foreign keys instead of model name strings, and automatically detects and
+merges orphaned records during migration.
+
+.. code-block:: bash
+
+    # Rename your model, then:
+    python manage.py makemigrations   # answer "yes" to rename prompt
+    python manage.py migrate          # tag-me handles the rest
+
+    # Verify everything is clean:
+    python manage.py tag_me check
+
+See `How to Upgrade to FK Lookup <https://django-tag-me.readthedocs.io/en/latest/how-to/upgrade-fk-lookup.html>`_
+for details on the FK-based system.
+
+|
+
+Management Command
+------------------
+
+Tag-me includes a CLI for diagnostics and administration:
+
+.. code-block:: bash
+
+    python manage.py tag_me populate              # create/update tags
+    python manage.py tag_me check                 # data integrity audit
+    python manage.py tag_me fix-orphans --dry-run # preview orphan repair
+    python manage.py tag_me help                  # built-in documentation
+
+Tag population runs automatically after every ``migrate``. The CLI exists for
+diagnostics, manual repair, and single-user operations.
+
+See `How to Use the Tag-me CLI <https://django-tag-me.readthedocs.io/en/latest/how-to/management-command.html>`_
+for the full guide.
+
+|
+
 Installation
 ------------
 
@@ -75,7 +146,8 @@ Installation
 
     pip install django-tag-me
 
-See the `documentation <https://django-tag-me.readthedocs.io/>`_ for setup and usage instructions.
+See the `documentation <https://django-tag-me.readthedocs.io/>`_ for setup and
+usage instructions.
 
 |
 

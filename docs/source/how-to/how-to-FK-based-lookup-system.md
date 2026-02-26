@@ -62,16 +62,32 @@ python manage.py migrate tag_me
 
 ### Verify Migration Success
 
-Run this in the Django shell to verify FK relationships are populated:
+The quickest way to verify is with the management command:
+
+```bash
+python manage.py tag_me check
+```
+
+This runs five integrity checks covering orphaned records, stale names, NULL FKs,
+field name mismatches, and stale ContentTypes. If everything is clean, you'll see
+all checks passing.
+
+For a detailed breakdown including per-field tag counts:
+
+```bash
+python manage.py tag_me check --verbose
+```
+
+Alternatively, you can verify in the Django shell:
 
 ```python
-from tag_me.models import UserTag, SystemTag, TaggedFieldModel
+from tag_me.models import UserTag, SystemTag
 
 # Check UserTag FK population
 orphaned_user_tags = UserTag.objects.filter(tagged_field__isnull=True).count()
 print(f"UserTags without FK: {orphaned_user_tags}")
 
-# Check SystemTag FK population  
+# Check SystemTag FK population
 orphaned_system_tags = SystemTag.objects.filter(tagged_field__isnull=True).count()
 print(f"SystemTags without FK: {orphaned_system_tags}")
 
@@ -213,7 +229,8 @@ This makes the distinction between system tags (predefined choices) and user tag
 
 ## Step 6: Handle Model Renames (The Main Benefit)
 
-With the FK-based system, renaming models is now safe. Here's the process:
+With the FK-based system, renaming models is now safe. Tag-me automatically detects
+and repairs orphaned records during migration.
 
 ### Renaming a Model
 
@@ -222,7 +239,7 @@ With the FK-based system, renaming models is now safe. Here's the process:
    # Before
    class BlogPost(models.Model):
        tags = TagMeCharField()
-   
+
    # After
    class Article(models.Model):
        tags = TagMeCharField()
@@ -232,60 +249,135 @@ With the FK-based system, renaming models is now safe. Here's the process:
    ```bash
    python manage.py makemigrations
    ```
+   When Django asks "Did you rename the BlogPost model to Article?", answer **yes**.
 
 3. **Apply the migration:**
    ```bash
    python manage.py migrate
    ```
 
+That's it. No additional steps required.
+
 ### What Happens Automatically
 
-- `ContentType` updates to point to the new model name
-- `TaggedFieldModel.content` FK still points to the correct ContentType
-- `UserTag.tagged_field` FK still points to the correct TaggedFieldModel
-- **All tag relationships remain intact**
+During `migrate`, tag-me's `post_migrate` handler:
+
+1. Clears Django's `ContentType` cache (prevents stale lookups)
+2. Registers fields via `update_or_create` using `content` FK + `field_name`
+3. Detects any orphaned `TaggedFieldModel` records (where the old ContentType
+   no longer maps to a model class)
+4. Matches orphans to their replacements using field signature analysis
+5. Migrates `UserTag` and `SystemTag` FK relationships to the replacement
+6. Cleans up the orphan and stale ContentType
+
+All tag relationships remain intact. No data is lost.
+
+### When Django Uses DeleteModel + CreateModel
+
+Sometimes Django generates `DeleteModel` + `CreateModel` instead of `RenameModel`
+(e.g., if you rename the model and change fields in the same migration). This creates
+a new ContentType rather than updating the existing one.
+
+Tag-me handles this automatically via the orphan merger. It uses two strategies to
+find the correct merge target:
+
+- **Unique match** — only one candidate with the same app, field name, and tag type
+- **Field signature matching** — compares the full set of tagged field names to
+  disambiguate when multiple candidates exist
+
+For a detailed walkthrough:
+
+```bash
+python manage.py tag_me help rename-workflow
+```
 
 ### The `model_name` Fields
 
-After a rename, the cached `model_name` fields will be stale:
+After a rename, the cached `model_name` fields are refreshed automatically when
+`populate_registered_fields()` runs during migration:
 
 ```python
 tagged_field = TaggedFieldModel.objects.first()
-print(tagged_field.model_name)  # "BlogPost" (stale)
-print(tagged_field.current_model_name)  # "article" (correct)
+print(tagged_field.model_name)        # "Article" (updated automatically)
+print(tagged_field.current_model_name) # "article" (from ContentType)
 ```
 
-The stale `model_name` doesn't affect functionality because lookups use FKs. The field is refreshed automatically on the next migration when `SystemTagRegistry.populate_registered_fields()` runs.
+If you need to verify the update happened:
+
+```bash
+python manage.py tag_me check
+```
+
+The check command reports any stale `model_name` values that don't match their
+ContentType.
 
 ---
 
 ## Troubleshooting
 
+### Quick Health Check
+
+The fastest way to diagnose any tag-me issue:
+
+```bash
+python manage.py tag_me check
+```
+
+This runs five integrity checks and reports the exact command to fix each issue found.
+For detailed output:
+
+```bash
+python manage.py tag_me check --verbose
+```
+
 ### Orphaned Records After Migration
 
-If you have `UserTag` or `SystemTag` records without FK relationships:
+If `tag_me check` reports orphaned `TaggedFieldModel` records:
+
+```bash
+# Preview what the merger will do
+python manage.py tag_me fix-orphans --dry-run --verbose
+
+# Apply the fix
+python manage.py tag_me fix-orphans
+
+# Verify
+python manage.py tag_me check
+```
+
+The orphan merger matches orphaned records to their replacements using field
+signatures. If it can't find a match (reported as "unresolved"), you can fix
+manually in the Django shell:
 
 ```python
 from django.contrib.contenttypes.models import ContentType
 from tag_me.models import UserTag, TaggedFieldModel
 
-# Find orphaned records
-orphaned = UserTag.objects.filter(tagged_field__isnull=True)
+# Find the orphan and the correct target
+orphan = TaggedFieldModel.objects.get(id=<ORPHAN_ID>)
+content_type = ContentType.objects.get_for_model(NewModelClass)
+target = TaggedFieldModel.objects.get(content=content_type, field_name=orphan.field_name)
 
-for user_tag in orphaned:
-    # Try to find the TaggedFieldModel by model_name
-    try:
-        # Get ContentType by model name
-        ct = ContentType.objects.get(model=user_tag.model_name.lower())
-        tagged_field = TaggedFieldModel.objects.get(
-            content=ct,
-            field_name=user_tag.field_name,
-        )
-        user_tag.tagged_field = tagged_field
-        user_tag.save()
-        print(f"Fixed: {user_tag}")
-    except (ContentType.DoesNotExist, TaggedFieldModel.DoesNotExist):
-        print(f"Cannot fix: {user_tag} - model or field no longer exists")
+# Migrate FK relationships
+UserTag.objects.filter(tagged_field=orphan).update(tagged_field=target)
+SystemTag.objects.filter(tagged_field=orphan).update(tagged_field=target)
+
+# Clean up
+stale_ct = orphan.content
+orphan.delete()
+if stale_ct.model_class() is None:
+    stale_ct.delete()
+```
+
+### Stale ContentType Cache
+
+If you see unexpected behavior after manual database operations or a database
+restore:
+
+```bash
+python manage.py tag_me clear-cache
+python manage.py tag_me populate
+python manage.py tag_me check
 ```
 
 ### Migration Conflicts
@@ -310,44 +402,12 @@ Common issues and fixes:
 | `AssertionError: lowercase != ProperCase` | `current_model_name` returns lowercase | Use `current_model_class.__name__` for proper case |
 | `IntegrityError: NOT NULL constraint` | `tagged_field` FK is required | Ensure TaggedFieldModel exists before creating UserTag |
 
-### Verifying FK Integrity
+### Built-in Troubleshooting Guide
 
-Run this to check overall FK integrity:
+For common problems with shell-ready fix commands:
 
-```python
-from tag_me.models import UserTag, SystemTag, TaggedFieldModel
-
-def check_fk_integrity():
-    issues = []
-    
-    # Check UserTag -> TaggedFieldModel
-    for ut in UserTag.objects.select_related('tagged_field'):
-        if ut.tagged_field is None:
-            issues.append(f"UserTag {ut.id} has no tagged_field FK")
-        elif ut.field_name != ut.tagged_field.field_name:
-            issues.append(f"UserTag {ut.id} field_name mismatch")
-    
-    # Check SystemTag -> TaggedFieldModel
-    for st in SystemTag.objects.select_related('tagged_field'):
-        if st.tagged_field is None:
-            issues.append(f"SystemTag {st.id} has no tagged_field FK")
-    
-    # Check TaggedFieldModel -> ContentType
-    for tfm in TaggedFieldModel.objects.select_related('content'):
-        if tfm.content is None:
-            issues.append(f"TaggedFieldModel {tfm.id} has no content FK")
-        elif tfm.content.model_class() is None:
-            issues.append(f"TaggedFieldModel {tfm.id} points to deleted model")
-    
-    return issues
-
-issues = check_fk_integrity()
-if issues:
-    print("Issues found:")
-    for issue in issues:
-        print(f"  - {issue}")
-else:
-    print("All FK relationships are valid")
+```bash
+python manage.py tag_me help troubleshooting
 ```
 
 ---
@@ -391,6 +451,19 @@ tags = TagMeCharField(choices=MyChoices.choices, system_tag=True)
 tags = TagMeCharField()
 ```
 
+### Management Command
+
+```bash
+python manage.py tag_me populate              # create/update all tags
+python manage.py tag_me populate --user 42    # specific user
+python manage.py tag_me check                 # data integrity audit
+python manage.py tag_me check --verbose       # detailed breakdown
+python manage.py tag_me fix-orphans --dry-run # preview orphan repair
+python manage.py tag_me fix-orphans           # apply orphan repair
+python manage.py tag_me clear-cache           # clear ContentType cache
+python manage.py tag_me help                  # built-in documentation
+```
+
 ---
 
 ## Summary
@@ -399,6 +472,9 @@ tags = TagMeCharField()
 2. **Run migrations** to add FK fields
 3. **Update custom queries** to use FK lookups instead of `model_name`
 4. **Add `system_tag=True`** if using `choices` with TagMeCharField
-5. **Enjoy model rename resilience** - rename models freely without breaking tags
+5. **Enjoy model rename resilience** — rename models freely without breaking tags
+6. **Use `tag_me check`** any time you want to verify data integrity
+
+For detailed CLI documentation, see [How to Use the Tag-me CLI](how-to-management-command.rst).
 
 For questions or issues, please open an issue on the tag-me repository.

@@ -1,4 +1,3 @@
-
 .. include:: ../extras.rst.txt
 .. highlight:: rst
 .. index:: how-to-config ; Index
@@ -12,21 +11,22 @@ How to Config
 Overview
 ========
 
-Some settings can be configured both globally (using Django settings) and 
-locally (using attributes in the form widget). In cases where both are 
+The ``tag_me`` app comes with sensible defaults, allowing you to start using
+it right out of the box with minimal configuration. All settings are optional
+and will use their default values if not specified in your ``settings.py``.
+
+Some settings can be configured both globally (using Django settings) and
+locally (using attributes in the form widget). In cases where both are
 defined, the widget attribute takes precedence over the global setting.
 
-For example, the ``<setting_name>`` setting can also be configured via the 
-``<attribute_name>`` attribute in the form widget. 
-
-This allows for flexible configuration, enabling you to define default 
-behavior globally while still allowing for customisation on a per-widget 
-basis. 
+This allows for flexible configuration, enabling you to define default
+behavior globally while still allowing for customisation on a per-widget
+basis.
 
 |
 
 Configuration Options: Global/Local
------------------------------------
+------------------------------------
 
 |
 
@@ -76,7 +76,8 @@ TagMeCharField Attributes
           tagged_field_1=TagMeCharField(
               max_length=50,
               choices=Visibility.choices,
-              default=Visibiltiy.PRIVATE,
+              default=Visibility.PRIVATE,
+              system_tag=True,
               multiple=False,
               )
 
@@ -84,6 +85,7 @@ TagMeCharField Attributes
               max_length=50,
               choices=tags,
               default='tag1',
+              system_tag=True,
               display_number_selected=1,
               synchronise=True,
               )
@@ -99,13 +101,30 @@ Accepts a TextChoices object and converts to a tag-me list format.
 **list**, *optional*
 Accepts a list object and converts to a tag-me list format.
 
+.. note::
+
+   When using ``choices``, you must also set ``system_tag=True`` to explicitly
+   mark the field as a system tag (predefined choices) rather than a user tag
+   (user-created). See :ref:`how-to-FK-based-lookup-system` for details.
+
+|
+
+*system_tag*
+------------
+
+**bool**, *optional:*
+Whether this field uses predefined system tags (choices) rather than
+user-created tags. ``Defaults to False``.
+
+Must be set to ``True`` when using ``choices`` with TagMeCharField.
+
 |
 
 *multiple*
------------------------
+----------
 
 **bool**, *optional:*
-Whether to allow multiple tags to be selected. ``Defaults to True``.  
+Whether to allow multiple tags to be selected. ``Defaults to True``.
 
 |
 
@@ -123,7 +142,7 @@ Whether to automatically select newly created tags. ``Defaults to True``.
 -------------------------
 
 **int**, *optional:*
-The maximum number of selected tags to display. Defaults to the value of 
+The maximum number of selected tags to display. Defaults to the value of
 the ``DJ_TAG_ME_MAX_NUMBER_DISPLAYED`` setting.
 
 |
@@ -133,7 +152,7 @@ the ``DJ_TAG_ME_MAX_NUMBER_DISPLAYED`` setting.
 
 **bool**, *optional:*
 Default False, if you have other models with the same field name
-and you wish that they always have the same tags, set synchronise to 
+and you wish that they always have the same tags, set synchronise to
 True on both fields and happy days, they will always be in sync.
 
 |
@@ -152,7 +171,7 @@ The name of the field that will be tagged. ``Defaults to None``.
 ---------------
 
 **str**, *optional:*
-The name of the template to use for rendering the widget. Defaults to 
+The name of the template to use for rendering the widget. Defaults to
 the value of the ``default`` key in the ``DJ_TAG_ME_TEMPLATES`` setting.
 
 |
@@ -160,92 +179,51 @@ the value of the ``default`` key in the ``DJ_TAG_ME_TEMPLATES`` setting.
 Settings
 ========
 
-The ``tag_me`` app comes with sensible defaults, allowing you to start using 
-it right out of the box with minimal configuration. However, you can customize 
-its behavior using the following settings in your ``settings.py`` file:
-
+All settings are optional. Tag-me sets sensible defaults automatically
+if you do not define them in your ``settings.py``.
 
 |
 
-*DJ_TAG_ME_SYSTEM_TAGS_POPULATED*
----------------------------------
-
-**SYSTEM SETTING**
-
-**bool**, *DO NOT USE*
-
-A setting used by the tag registry for state management.
-
-|
-
-*DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS*
-------------------------------------------
+DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS
+----------------------------------------
 
 **Developer Tool**
 
-**bool**, *optional* default False
+**bool**, *optional*, default ``False``
 
-Useful for loading default user tags during the initial migration
+Load default user tags from ``default_user_tags.json`` during the initial
+migration. Tags are only applied when a ``TaggedFieldModel`` record is first
+created — existing tags are never overwritten.
 
-1. Ensure the file `default_user_tags.json` is located in the project's root directory.
+To use:
+
+1. Create a ``default_user_tags.json`` file in your project's root directory.
+2. Set ``DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS = True`` in your settings.
 
 |
 
-*DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG*
----------------------------------------------------
+DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG
+-------------------------------------------------
 
 **Developer Tool**
 
-**bool**, *optional* default False
+**bool**, *optional*, default ``False``
 
-This script is useful for loading default user tags during the initial migration
-and for development/testing purposes. To use this:
+Force-load default user tags on **every** migration, even for existing
+``TaggedFieldModel`` records. This will overwrite any user changes to
+default tags.
 
-1. Ensure the file `default_user_tags.json` is located in the project's root directory.
-2. To force the addition of default user tags during migration in DEBUG mode,
-   set the environment variable `DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG=True`.
+Useful for development and testing to reset tags to a known state.
 
-Note: This is particularly helpful for seeding initial data in development environments.
-Reads your default_user_tags.json file from `BASE_DIR` and seed the user default tags.
-This will force the tag defaults to be updated even if for existing tag fields.
+To use:
 
-|
+1. Ensure ``default_user_tags.json`` is in your project's root directory.
+2. Set ``DJ_TAG_ME_SEED_INITIAL_USER_DEFAULT_TAGS_IN_DEBUG = True`` in your settings.
 
-*PROJECT_APPS*
---------------
+.. warning::
 
-**list**, *optional:*
-This setting allows you to specify a separate list of project-specific 
-apps. By default, it uses the value of ``INSTALLED_APPS``.
-
-.. tip::
-
-   **Speed up tag management:**
-
-   To improve the performance of the ``tag_me`` tool, consider splitting your 
-   ``INSTALLED_APPS`` into separate lists for project-specific apps and 
-   Django's built-in apps. This reduces the number of apps that need to be 
-   scanned for ``tag_me`` fields, leading to faster tag management operations.
-
-   **See example below.**
-
-|
-
-.. code-block:: python
-
-      PROJECT_APPS = [
-      "app1",
-      "app2",
-      ]
-
-      DJANGO_APPS = [
-      "app3",
-      "app4",
-      ]
-
-      INSTALLED_APPS: list = []
-      INSTALLED_APPS.extend(PROJECT_APPS)
-      INSTALLED_APPS.extend(DJANGO_APPS)
+   This setting will overwrite existing default tags on every migration.
+   Only use in development/testing environments.
 
 |
 
@@ -258,7 +236,7 @@ A dictionary of templates used by the ``tag_me`` app. Defaults to:
 .. code-block:: python
 
    {
-   "default": "tag_me/tag_me_select.html",
+       "default": "tag_me/tag_me_select.html",
    }
 
 |
@@ -285,10 +263,65 @@ the bottom of the menu.
 .. code-block:: python
 
    {
-   "help_url": "",
-   "mgmt_url": "",
+       "help_url": "",
+       "mgmt_url": "",
    }
 
 |
 
 .. image:: ../imgs/tag_me_search_menu.png
+
+|
+
+Management Command
+==================
+
+Tag-me includes a management command for administration, diagnostics, and
+data repair. It runs automatically after migrations via the ``post_migrate``
+signal — most users will never need to run it manually.
+
+|
+
+Quick Reference
+---------------
+
+.. code-block:: bash
+
+   # Populate or update tags
+   python manage.py tag_me populate
+   python manage.py tag_me populate --user <USER_ID>
+
+   # Check data integrity
+   python manage.py tag_me check
+   python manage.py tag_me check --verbose
+
+   # Fix orphaned records from model renames
+   python manage.py tag_me fix-orphans --dry-run
+   python manage.py tag_me fix-orphans
+
+   # Clear ContentType cache
+   python manage.py tag_me clear-cache
+
+   # Built-in help
+   python manage.py tag_me help
+   python manage.py tag_me help fix-orphans
+   python manage.py tag_me help rename-workflow
+   python manage.py tag_me help troubleshooting
+
+|
+
+For detailed usage of each subcommand, run ``python manage.py tag_me help``.
+
+.. tip::
+
+   After renaming a model that uses ``TagMeCharField``, run
+   ``python manage.py tag_me check`` to verify data integrity.
+   See ``python manage.py tag_me help rename-workflow`` for a
+   step-by-step guide.
+
+|
+
+.. note::
+
+   The old ``populate_tags`` command still works but is deprecated.
+   Use ``python manage.py tag_me populate`` instead.
