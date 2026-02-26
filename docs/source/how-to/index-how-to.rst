@@ -14,6 +14,7 @@ How-To
 
    quickstart.rst
    how-to-config
+   how-to-tag-me-management-command
    how-to-tag-parser
    how-to-custom-list
    how-to-contributing
