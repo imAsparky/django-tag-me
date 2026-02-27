@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## [2026.02.27.1]
+
+### Bug Fixes
+- Refactor app post_migrate tracker (migrations) [#338](https://github.com/imAsparky/django-tag-me/pull/338)
+
+
 ## [2026.02.26.2]
 
 ### Maintenance
