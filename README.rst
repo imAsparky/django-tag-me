@@ -4,6 +4,15 @@
 
 |
 
+    **This GitHub repository has moved and is no longer updated here.**
+
+    Development of django-tag-me continues on Codeberg:
+    https://codeberg.org/dunwright/django-tag-me
+
+    Please update your bookmarks, links, and dependencies to point there.
+
+|
+
 **Version = 2026.02.27.1**
 
 |
@@ -12,6 +21,9 @@
 
 |
 
+.. image:: https://www.repostatus.org/badges/latest/moved.svg
+   :alt: Project Status: Moved to https://codeberg.org/dunwright/django-tag-me – The project has been moved to a new location, and the version at that location should be considered authoritative.
+   :target: https://www.repostatus.org/#moved
 .. image:: https://github.com/imAsparky/django-tag-me/actions/workflows/main_PR.yaml/badge.svg
    :alt: Tests
    :target: https://github.com/imAsparky/django-tag-me/actions/workflows/main_PR.yaml
@@ -21,15 +33,15 @@
 .. image:: https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FimAsparky%2Fdjango-tag-me%2Fmain%2Fpyproject.toml&logo=Python
    :alt: Python Version Badge
    :target: https://devdocs.io/python~3.10/
-.. image:: https://www.repostatus.org/badges/latest/active.svg
-   :alt: Project Status: Active
-   :target: https://www.repostatus.org/#active
 .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
    :target: https://github.com/pre-commit/pre-commit
    :alt: pre-commit
 .. image:: https://readthedocs.org/projects/django-tag-me/badge/?version=latest
    :target: https://django-tag-me.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
+.. image:: https://static.pepy.tech/badge/django-tag-me
+   :target: https://pepy.tech/projects/django-tag-me
+   :alt: Total downloads
 
 |
 
